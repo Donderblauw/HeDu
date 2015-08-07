@@ -23,7 +23,7 @@ public class FileIO
         }
         catch(FileNotFoundException exception)
         {
-            Log.e("SaveFile", "The file " + file.getPath() + " was not found.");
+            Log.e("SaveFile", "The file " + file.getPath() + " was not found..");
         }
         catch(IOException exception)
         {
