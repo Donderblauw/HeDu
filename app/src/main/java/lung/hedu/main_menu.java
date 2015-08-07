@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Button;
 
 
 /**
@@ -157,4 +158,6 @@ public class main_menu extends Activity {
         mHideHandler.removeCallbacks(mHideRunnable);
         mHideHandler.postDelayed(mHideRunnable, delayMillis);
     }
+    Button button_teun = (Button)findViewById(R.id.button_teun);
+ //   button_teun.setText("Dusch");
 }
