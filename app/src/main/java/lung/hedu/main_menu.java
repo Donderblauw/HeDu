@@ -158,6 +158,6 @@ public class main_menu extends Activity {
         mHideHandler.removeCallbacks(mHideRunnable);
         mHideHandler.postDelayed(mHideRunnable, delayMillis);
     }
-    Button button_teun = (Button)findViewById(R.id.button_teun);
- //   button_teun.setText("Dusch");
+//    Button button_teun = (Button)findViewById(R.id.button_teun);
+ //   button_teun.setText("Dusch ");
 }
