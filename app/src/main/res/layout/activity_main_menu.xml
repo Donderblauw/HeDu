@@ -14,45 +14,82 @@
 
     <!-- This FrameLayout insets its children based on system windows using
          android:fitsSystemWindows. -->
-    <FrameLayout android:layout_width="match_parent" android:layout_height="match_parent"
-        android:fitsSystemWindows="true">
-
-    </FrameLayout>
-
+    <LinearLayout android:id="@+id/fullscreen_content_controls" style="?metaButtonBarStyle"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:background="@color/black_overlay" android:orientation="horizontal"
+        tools:ignore="UselessParent" />
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
         <LinearLayout
-            android:orientation="horizontal"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content">
+            style="?metaButtonBarStyle"
+            tools:ignore="UselessParent"
+            android:id="@+id/linearLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center_horizontal"
+            android:background="@color/black_overlay"
+            android:orientation="horizontal" >
 
             <Button
                 style="?metaButtonBarButtonStyle"
-                android:id="@+id/button_teun"
+                android:id="@+id/button"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:text="test_teun"
-                android:textColor="#ff0010"
-                android:layout_gravity="left" />
-
-        </LinearLayout>
-
-        <LinearLayout android:id="@+id/fullscreen_content_controls" style="?metaButtonBarStyle"
-            android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:layout_gravity="bottom|center_horizontal"
-            android:background="@color/black_overlay" android:orientation="horizontal"
-            tools:ignore="UselessParent">
-
-            <Button android:id="@+id/dummy_button" style="?metaButtonBarButtonStyle"
-                android:layout_width="fill_parent" android:layout_height="wrap_content"
                 android:text="Test Luuk"
                 android:background="#88000288"
                 android:textColor="#AAFFFF" />
+        </LinearLayout>
+
+        <LinearLayout
+            style="?metaButtonBarStyle"
+            tools:ignore="UselessParent"
+            android:id="@+id/linearLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center_horizontal"
+            android:background="@color/black_overlay"
+            android:orientation="horizontal" >
+
+
+            <Button
+                style="?metaButtonBarButtonStyle"
+                android:id="@+id/button"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:text="Test Teun"
+                android:background="#88000288"
+                android:textColor="#FFFFAA" />
 
         </LinearLayout>
+
+        <LinearLayout
+            style="?metaButtonBarStyle"
+            tools:ignore="UselessParent"
+            android:id="@+id/linearLayout2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center_horizontal"
+            android:background="@color/black_overlay"
+            android:orientation="horizontal" >
+
+
+            <TextView
+                android:layout_width="fill_parent"
+                android:layout_height="64dp"
+                android:id="@+id/textbox_mainmenu"
+                android:text="Click to change this Textview Main Menu"
+                android:onClick="update_text_mainmenu"
+                android:longClickable="true"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:clickable="true"
+                android:textSize="20dp" />
+        </LinearLayout>
+
     </LinearLayout>
 
 </FrameLayout>
