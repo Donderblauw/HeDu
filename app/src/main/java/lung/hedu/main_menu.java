@@ -10,6 +10,7 @@ import android.os.Handler;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 
 /**
@@ -161,5 +162,12 @@ public class main_menu extends Activity {
 
 //    Button button_teun = (Button)findViewById(R.id.button_teun);
  //   button_teun.setText("Dusch ");
+
+
+    public void update_text_mainmenu(View v)
+    {
+        TextView textbox_mainmenu_tv = (TextView)findViewById(R.id.textbox_mainmenu);
+        textbox_mainmenu_tv.setText("Werkt!");
+    }
 
 }
