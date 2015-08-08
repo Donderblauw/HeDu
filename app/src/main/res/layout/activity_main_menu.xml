@@ -55,8 +55,11 @@
             android:orientation="horizontal" >
 
 
-            <Button android:id="@+id/dummy_button" style="?metaButtonBarButtonStyle"
-                android:layout_width="fill_parent" android:layout_height="wrap_content"
+            <Button
+                style="?metaButtonBarButtonStyle"
+                android:id="@+id/button"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
                 android:text="Test Teun"
                 android:background="#88000288"
                 android:textColor="#FFFFAA" />
