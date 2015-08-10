@@ -4,13 +4,17 @@ import lung.hedu.util.SystemUiHider;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+
+import static org.apache.http.conn.params.ConnManagerParams.setTimeout;
 
 
 /**
@@ -167,7 +171,34 @@ public class main_menu extends Activity {
     public void update_text_mainmenu(View v)
     {
         TextView textbox_mainmenu_tv = (TextView)findViewById(R.id.textbox_mainmenu);
+//        textbox_mainmenu_tv.setText("5sec!");
+//        new MyAsyncTask().execute(new TextView[]{textbox_mainmenu_tv});
         textbox_mainmenu_tv.setText("Werkt!");
     }
 
+    public class MyAsyncTask extends AsyncTask<TextView, TextView, TextView> {
+
+        protected TextView doInBackground(TextView... tv) {
+            // Some long-running task like downloading an image.
+
+            return null;
+
+        }
+
+        protected void onProgressUpdate(TextView... tv) {
+            // Executes whenever publishProgress is called from doInBackground
+            // Used to update the progress indicator
+ //           Log.e("Async", " onProgressUpdate");
+        }
+
+        protected void onPostExecute(TextView... tv) {
+            // This method is executed in the UIThread
+            // with access to the result of the long running task
+ //           TextView textbox_mainmenu_tv = tv[0];
+ //           textbox_mainmenu_tv.setText("terug: ");
+ //           Log.e("Async", " end");
+        }
+    }
+
 }
+
