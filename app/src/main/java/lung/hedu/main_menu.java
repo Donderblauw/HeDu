@@ -25,6 +25,15 @@ import static lung.hedu.FileIO.saveStringFilePrivate;
  * @see SystemUiHider
  */
 public class main_menu extends Activity {
+
+// for testing TeG
+    public TextView textbox_mainmenu_tv;
+    public TextView Temp_mainmenu_timer;
+    public String out_put_testfile;
+    public Boolean async_stopped;
+    public final main_menu context_temp = this;
+
+
     /**
      * Whether or not the system UI should be auto-hidden after
      * {@link #AUTO_HIDE_DELAY_MILLIS} milliseconds.
@@ -171,33 +180,60 @@ public class main_menu extends Activity {
 
     public void update_text_mainmenu(View v)
     {
-        TextView textbox_mainmenu_tv = (TextView)findViewById(R.id.textbox_mainmenu);
-        saveStringFilePrivate(this, "First", "txt", "Hello World!");
-        String str = loadStringFilePrivate(this, "First", "txt");
-        textbox_mainmenu_tv.setText("Werkt!"+str);
+        textbox_mainmenu_tv = (TextView)findViewById(R.id.textbox_mainmenu);
+        Temp_mainmenu_timer = (TextView)findViewById(R.id.Temp_mainmenu_timer);
+        Temp_mainmenu_timer.setText("started");
+        new MyAsyncTask().execute("");
+        async_stopped = false;
+ /*       Integer tel = 0;
+        while (async_stopped == false)
+        {
+            tel +=1;
+            try {
+                wait(1);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            if(tel > 5000)
+            {
+                async_stopped = true;
+            }
+        }
+*/
+        Temp_mainmenu_timer.setText("started 2");
     }
 
-    public class MyAsyncTask extends AsyncTask<TextView, TextView, TextView> {
+    public class MyAsyncTask extends AsyncTask<String, String, String> {
 
-        protected TextView doInBackground(TextView... tv) {
+        protected void onPreExecute()
+        {
+            textbox_mainmenu_tv.setText("Started, writing...");
+        }
+        protected String doInBackground(String... String_async) {
             // Some long-running task like downloading an image.
-
-            return null;
+            saveStringFilePrivate(context_temp, "First", "txt", "Hello World!");
+            publishProgress("Writing complete! reading...");
+            out_put_testfile = loadStringFilePrivate(context_temp, "First", "txt");
+            publishProgress("reading complete! proccesing...");
+            return out_put_testfile;
 
         }
 
-        protected void onProgressUpdate(TextView... tv) {
+        protected void onProgressUpdate(String... String_async) {
             // Executes whenever publishProgress is called from doInBackground
             // Used to update the progress indicator
  //           Log.e("Async", " onProgressUpdate");
+            textbox_mainmenu_tv.setText(textbox_mainmenu_tv.getText()+" "+String_async[0]);
         }
 
-        protected void onPostExecute(TextView... tv) {
+        protected void onPostExecute(String String_async) {
             // This method is executed in the UIThread
             // with access to the result of the long running task
  //           TextView textbox_mainmenu_tv = tv[0];
  //           textbox_mainmenu_tv.setText("terug: ");
  //           Log.e("Async", " end");
+            textbox_mainmenu_tv.setText(textbox_mainmenu_tv.getText()+" "+String_async);
+            async_stopped = true;
         }
     }
 
