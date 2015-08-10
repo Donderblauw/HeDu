@@ -11,6 +11,10 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import lung.hedu.FileIO;
+
+import static lung.hedu.FileIO.loadStringFilePrivate;
+import static lung.hedu.FileIO.saveStringFilePrivate;
 
 
 /**
@@ -167,7 +171,9 @@ public class main_menu extends Activity {
     public void update_text_mainmenu(View v)
     {
         TextView textbox_mainmenu_tv = (TextView)findViewById(R.id.textbox_mainmenu);
-        textbox_mainmenu_tv.setText("Werkt!");
+        saveStringFilePrivate(this, "First", "txt", "Hello World!");
+        String str = loadStringFilePrivate(this, "First", "txt");
+        textbox_mainmenu_tv.setText("Werkt!"+str);
     }
 
 }

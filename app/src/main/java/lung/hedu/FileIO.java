@@ -21,10 +21,6 @@ import java.io.OutputStream;
  */
 public class FileIO
 {
-    public static final int FILE_BMP = 0;
-    public static final int FILE_XML = 1;
-    public static final int FILE_TXT = 2;
-
     public void saveFile(Context context, File file, String fileName, int mode){
         OutputStream out = null;
         try
@@ -53,7 +49,7 @@ public class FileIO
         }
     }
 
-    public void saveStringFilePrivate(Context context, String fileName, String extention, String Data){
+    public static void saveStringFilePrivate(Context context, String fileName, String extention, String Data){
         FileOutputStream out = null;
         try
         {
@@ -78,7 +74,7 @@ public class FileIO
         }
     }
 
-    public void loadStringFilePrivate(Context context, String fileName, String extention, String Data){
+    public static String loadStringFilePrivate(Context context, String fileName, String extention){
         FileInputStream in = null;
         InputStreamReader inS = null;
         BufferedReader read = null;
@@ -86,7 +82,7 @@ public class FileIO
         String buf = null;
         try
         {
-            in = context.openFileInput("fileName");
+            in = context.openFileInput(fileName +"."+ extention);
             inS = new InputStreamReader(in);
             read = new BufferedReader(inS);
 
@@ -127,6 +123,7 @@ public class FileIO
                 catch(Throwable ignore) {}
             }
         }
+        return result.toString();
     }
 
     public void saveBMP(Context context, Bitmap bmp, String fileName, Bitmap.CompressFormat format, int quality, int mode)
