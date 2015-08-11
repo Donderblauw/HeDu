@@ -220,7 +220,7 @@ public class main_menu extends Activity {
     public void goto_questionnaire(View v)
     {
         Intent goto_questionnaire_intent = new Intent(this, Questionnaire.class);
-        // versturen information between intents, test.
+        // versturen information between intents, test. ik snap het niet.
 //        goto_questionnaire_intent.putExtra(give_text, "Gelder");
         startActivity(goto_questionnaire_intent);
     }
