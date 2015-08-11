@@ -183,7 +183,8 @@ public class main_menu extends Activity {
     public void update_text_mainmenu(View v)
     {
         textbox_mainmenu_tv = (TextView)findViewById(R.id.textbox_mainmenu);
-        String world_1_q1a = "\"<use_font value=\"niconne_regular.ttf\" set_size=\"28\"></use_font><world n=\"1\" value=\"test_world\"></world><question>Welcome, Choose a awnser.</question><awnser goto=\"test_world_q2a.xml\">This is option A.</awnser>wnser goto=\"test_world_q2b.xml\">This is option B.</awnser>\"";
+        // String world_1_q1a = "\"<use_font value=\"niconne_regular.ttf\" set_size=\"28\"></use_font><world n=\"1\" value=\"test_world\"></world><question>Welcome, Choose a awnser.</question><awnser goto=\"test_world_q2a.xml\">This is option A.</awnser>wnser goto=\"test_world_q2b.xml\">This is option B.</awnser>\"";
+        String world_1_q1a = "<world n=\"1\" value=\"test_world\"><use_font value=\"niconne_regular.ttf\" set_size=\"28\"></use_font><question>Welcome, Choose a awnser.</question><awnser goto=\"test_world_q2a.xml\">This is option A.</awnser><awnser goto=\"test_world_q2b.xml\">This is option B.</awnser></world>";
         new MyAsyncTask().execute(world_1_q1a);
     }
 
@@ -223,6 +224,32 @@ public class main_menu extends Activity {
         // versturen information between intents, test. ik snap het niet.
 //        goto_questionnaire_intent.putExtra(give_text, "Gelder");
         startActivity(goto_questionnaire_intent);
+
+        /* XML from WEB
+        public String getXmlFromUrl(String url) {
+        String xml = null;
+
+        try {
+            // defaultHttpClient
+            DefaultHttpClient httpClient = new DefaultHttpClient();
+            HttpPost httpPost = new HttpPost(url);
+
+            HttpResponse httpResponse = httpClient.execute(httpPost);
+            HttpEntity httpEntity = httpResponse.getEntity();
+            xml = EntityUtils.toString(httpEntity);
+
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (ClientProtocolException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        // return XML
+        return xml;
+    }
+         */
+
     }
 
 }

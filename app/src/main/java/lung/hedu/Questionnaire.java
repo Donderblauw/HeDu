@@ -4,15 +4,27 @@ import lung.hedu.util.SystemUiHider;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.ListActivity;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.MenuItem;
 import android.support.v4.app.NavUtils;
 import android.widget.TextView;
+
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlPullParserFactory;
+
+import org.w3c.dom.Document;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import lung.hedu.FileIO;
 
@@ -30,6 +42,10 @@ public class Questionnaire extends Activity {
     // recieve info between intents, test.
     // for_main_menu_context = Intent.getStringExtra(main_menu.context_temp_across_activity);
     // public String from_main_menu = null;
+
+    public String from_XML_parser_public;
+    public String output_questionfile = null;
+    public Document question_XML= null;
 
     /**
      * Whether or not the system UI should be auto-hidden after
@@ -148,7 +164,7 @@ public class Questionnaire extends Activity {
     /**
      * Set up the {@link android.app.ActionBar}, if the API is available.
 
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+ //   @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     private void setupActionBar() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
             // Show the Up button in the action bar.
@@ -210,11 +226,105 @@ public class Questionnaire extends Activity {
     public void load_world1_q1a(View v)
     {
         String out_put_testfile = loadStringFilePrivate("world_1_q1a", "xml");
-        TextView text_box_q_temp_tv = (TextView)findViewById(R.id.text_box_q_temp);
-        text_box_q_temp_tv.setText(out_put_testfile);
-    }
-    public void load_XML(String input)
-    {
+        String temp = XML_value_text_of_tagname("question");
 
+        TextView text_box_q_temp_tv = (TextView)findViewById(R.id.text_box_q_temp);
+        text_box_q_temp_tv.setText(temp);
+
+    }
+    public String XML_value_text_of_tagname(String tag_name) {
+        XmlPullParser XmlPullParser_temp = null;
+        String text_return = "";
+
+        output_questionfile = "world_1_q1a.xml";
+        try {
+            XmlPullParser_temp = load_XML(output_questionfile);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (XmlPullParserException e) {
+            e.printStackTrace();
+        }
+
+        int event;
+        String text = null;
+
+        String parent_xml = "";
+        String child_xml = "";
+        String xml_atm = "";
+
+        try {
+            event = XmlPullParser_temp.getEventType();
+
+            while (event != XmlPullParser.END_DOCUMENT) {
+                String name = XmlPullParser_temp.getName();
+
+                switch (event) {
+                    case XmlPullParser.START_TAG:
+                        xml_atm = name;
+                        if(parent_xml == "")
+                        {
+                            parent_xml = name;
+                        }
+                        else
+                        {
+                            if(child_xml != "")
+                            {
+                                parent_xml = child_xml;
+                            }
+                            child_xml = name;
+                        }
+                        break;
+
+                    case XmlPullParser.TEXT:
+                        if(xml_atm.equals(tag_name))
+                        {
+                            text_return = XmlPullParser_temp.getText();
+                        }
+                        break;
+
+                    case XmlPullParser.END_TAG:
+                        if (name.equals(child_xml))
+                        {
+                            child_xml = "";
+                            xml_atm = parent_xml;
+
+                        }
+                        else if (name.equals(parent_xml))
+                        {
+                            parent_xml = "";
+                            xml_atm = "";
+                        }
+                        else {
+                        }
+                        break;
+                }
+
+                event = XmlPullParser_temp.next();
+
+            }
+
+
+        } catch (XmlPullParserException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return text_return;
+    }
+
+    public XmlPullParser load_XML(String input) throws FileNotFoundException, XmlPullParserException {
+
+        FileInputStream in = null;
+        in = ApplicationContextProvider.getContext().openFileInput(input);
+
+        XmlPullParserFactory xmlFactoryObject;
+
+        xmlFactoryObject = XmlPullParserFactory.newInstance();
+        XmlPullParser myparser = xmlFactoryObject.newPullParser();
+
+        myparser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
+        myparser.setInput(in, null);
+
+        return myparser;
     }
 }
