@@ -22,7 +22,7 @@ public class FileIO
         FileOutputStream out = null;
         try
         {
-            out = ApplicationContextProvider.getContext().openFileOutput(fileName + "." + extention, context.MODE_PRIVATE);
+            out = ApplicationContextProvider.getContext().openFileOutput(fileName + "." + extention, ApplicationContextProvider.getContext().MODE_PRIVATE);
             out.write(Data.getBytes());
         }
         catch(IOException exception)
@@ -100,7 +100,7 @@ public class FileIO
         FileOutputStream out = null;
         try
         {
-            out = ApplicationContextProvider.getContext().openFileOutput(fileName + ".bmp", context.MODE_PRIVATE);
+            out = ApplicationContextProvider.getContext().openFileOutput(fileName + ".bmp", ApplicationContextProvider.getContext().MODE_PRIVATE);
             bmp.compress(format, quality, out);
         }
         catch (IOException exception)
@@ -165,7 +165,7 @@ public class FileIO
         FileOutputStream out = null;
         try
         {
-            out = ApplicationContextProvider.getContext().getApplicationContext().openFileOutput(fileName + ".pdf", context.MODE_PRIVATE);
+            out = ApplicationContextProvider.getContext().getApplicationContext().openFileOutput(fileName + ".pdf", ApplicationContextProvider.getContext().MODE_PRIVATE);
             pdf.writeTo(out);
         }
         catch (IOException exception)

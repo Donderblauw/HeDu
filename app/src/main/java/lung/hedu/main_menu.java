@@ -197,9 +197,9 @@ public class main_menu extends Activity {
         }
         protected String doInBackground(String... String_async) {
             // Some long-running task like downloading an image.
-            saveStringFilePrivate(context_temp, "First", "txt", "Hello World!");
+            saveStringFilePrivate("First", "txt", "Hello World!");
             publishProgress("Writing complete! reading...");
-            out_put_testfile = loadStringFilePrivate(context_temp, "First", "txt");
+            out_put_testfile = loadStringFilePrivate("First", "txt");
             publishProgress("reading complete! proccesing...");
             return out_put_testfile;
 
