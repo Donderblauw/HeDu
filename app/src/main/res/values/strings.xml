@@ -5,6 +5,8 @@
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENT</string>
 
+    <string name="title_activity_questionnaire">Questionnaire</string>
+
     <string name="title_activity_luuk_tests">LuukTests</string>
 
 </resources>
