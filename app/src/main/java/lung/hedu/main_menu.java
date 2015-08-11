@@ -175,21 +175,7 @@ public class main_menu extends Activity {
         Temp_mainmenu_timer.setText("started");
         new MyAsyncTask().execute("");
         async_stopped = false;
- /*       Integer tel = 0;
-        while (async_stopped == false)
-        {
-            tel +=1;
-            try {
-                wait(1);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            if(tel > 5000)
-            {
-                async_stopped = true;
-            }
-        }
-*/
+
         Temp_mainmenu_timer.setText("started 2");
     }
 
@@ -224,6 +210,7 @@ public class main_menu extends Activity {
  //           Log.e("Async", " end");
             textbox_mainmenu_tv.setText(textbox_mainmenu_tv.getText()+" "+String_async);
             async_stopped = true;
+
         }
     }
 
