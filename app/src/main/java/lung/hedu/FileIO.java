@@ -2,64 +2,33 @@ package lung.hedu;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.print.pdf.PrintedPdfDocument;
 import android.util.Log;
-import android.content.Context.*;
-import android.view.View;
 
-import java.io.BufferedOutputStream;
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 
 /**
  * Created by Luuk on 7-8-2015.
  */
 public class FileIO
 {
-    public void saveFile(Context context, File file, String fileName, int mode){
-        OutputStream out = null;
-        try
-        {
-            out = new BufferedOutputStream(new FileOutputStream(file));
-        }
-        catch(FileNotFoundException exception)
-        {
-            Log.e("SaveFile", "The file " + file.getPath() + " was not found..");
-        }
-        catch(IOException exception)
-        {
-            exception.printStackTrace();
-            Log.e("SaveFile", "Caught exception: " + exception);
-        }
-        finally
-        {
-            if (out != null)
-            {
-                try
-                {
-                    out.close();
-                }
-                catch(Throwable ignore) {}
-            }
-        }
-    }
-
-    public static void saveStringFilePrivate(Context context, String fileName, String extention, String Data){
+    public static void saveStringFilePrivate(String fileName, String extention, String Data){
         FileOutputStream out = null;
         try
         {
-            out = context.openFileOutput(fileName +"."+ extention, context.MODE_PRIVATE);
+            out = ApplicationContextProvider.getContext().openFileOutput(fileName + "." + extention, context.MODE_PRIVATE);
             out.write(Data.getBytes());
         }
         catch(IOException exception)
         {
             exception.printStackTrace();
-            Log.e("SaveFile", "Caught exception: " + exception);
+            Log.e("SaveFile", "Caught exception: " + exception.toString());
         }
         finally
         {
@@ -74,7 +43,7 @@ public class FileIO
         }
     }
 
-    public static String loadStringFilePrivate(Context context, String fileName, String extention){
+    public static String loadStringFilePrivate(String fileName, String extention){
         FileInputStream in = null;
         InputStreamReader inS = null;
         BufferedReader read = null;
@@ -82,7 +51,7 @@ public class FileIO
         String buf = null;
         try
         {
-            in = context.openFileInput(fileName +"."+ extention);
+            in = ApplicationContextProvider.getContext().openFileInput(fileName + "." + extention);
             inS = new InputStreamReader(in);
             read = new BufferedReader(inS);
 
@@ -94,7 +63,7 @@ public class FileIO
         catch(IOException exception)
         {
             exception.printStackTrace();
-            Log.e("SaveFile", "Caught exception: " + exception);
+            Log.e("LoadFile", "Caught exception: " + exception.toString());
         }
         finally
         {
@@ -126,18 +95,18 @@ public class FileIO
         return result.toString();
     }
 
-    public void saveBMP(Context context, Bitmap bmp, String fileName, Bitmap.CompressFormat format, int quality, int mode)
+    public static void saveBMPPrivate(String fileName, Bitmap bmp, Bitmap.CompressFormat format, int quality)
     {
         FileOutputStream out = null;
         try
         {
-            out = context.openFileOutput(fileName, mode);
+            out = ApplicationContextProvider.getContext().openFileOutput(fileName + ".bmp", context.MODE_PRIVATE);
             bmp.compress(format, quality, out);
         }
         catch (IOException exception)
         {
             exception.printStackTrace();
-            Log.e("Main Activity", "Caught exception: " + exception);
+            Log.e("SaveBMP", "Caught exception: " + exception.toString());
         }
         finally
         {
@@ -152,11 +121,68 @@ public class FileIO
         }
     }
 
-    public File saveBMPwithPath(Context context, Bitmap bmp, String fileName, Bitmap.CompressFormat format, int quality, int mode)
+    public static Bitmap loadBMPPrivate(String fileName)
     {
-        saveBMP(context, bmp, fileName, format, quality, mode);
+        FileInputStream in = null;
+        BufferedInputStream buf = null;
+        Bitmap result = null;
 
-        return context.getFileStreamPath(fileName);
+        try
+        {
+            in = ApplicationContextProvider.getContext().openFileInput(fileName + ".bmp");
+            buf = new BufferedInputStream(in);
+            result = BitmapFactory.decodeStream(buf);
+        }
+        catch (Exception exception)
+        {
+            exception.printStackTrace();
+            Log.e("LoadBMP", "Caught exception: " + exception.toString());
+        }
+        finally
+        {
+            if(buf != null)
+            {
+                try
+                {
+                    buf.close();
+                }
+                catch(Throwable ignore) {}
+            }
+            if(in != null)
+            {
+                try
+                {
+                    in.close();
+                }
+                catch (Throwable ignore) {}
+            }
+        }
+        return result;
     }
 
+    public static void savePDFPrivate(String fileName, PrintedPdfDocument pdf)
+    {
+        FileOutputStream out = null;
+        try
+        {
+            out = ApplicationContextProvider.getContext().getApplicationContext().openFileOutput(fileName + ".pdf", context.MODE_PRIVATE);
+            pdf.writeTo(out);
+        }
+        catch (IOException exception)
+        {
+            exception.printStackTrace();
+            Log.e("SavePDF", "Caught exception: " + exception.toString());
+        }
+        finally
+        {
+            if(out != null)
+            {
+                try
+                {
+                    out.close();
+                }
+                catch (Throwable ignore) {}
+            }
+        }
+    }
 }

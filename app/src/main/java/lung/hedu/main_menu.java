@@ -4,9 +4,11 @@ import lung.hedu.util.SystemUiHider;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
@@ -16,7 +18,6 @@ import lung.hedu.FileIO;
 import static lung.hedu.FileIO.loadStringFilePrivate;
 import static lung.hedu.FileIO.saveStringFilePrivate;
 
-
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
@@ -24,6 +25,15 @@ import static lung.hedu.FileIO.saveStringFilePrivate;
  * @see SystemUiHider
  */
 public class main_menu extends Activity {
+
+// for testing TeG
+    public TextView textbox_mainmenu_tv;
+    public TextView Temp_mainmenu_timer;
+    public String out_put_testfile;
+    public Boolean async_stopped;
+    public final main_menu context_temp = this;
+
+
     /**
      * Whether or not the system UI should be auto-hidden after
      * {@link #AUTO_HIDE_DELAY_MILLIS} milliseconds.
