@@ -79,10 +79,31 @@
 
             <TextView
                 android:layout_width="fill_parent"
-                android:layout_height="64dp"
+                android:layout_height="118dp"
                 android:id="@+id/textbox_mainmenu"
                 android:text="Click to change this Textview Main Menu"
                 android:onClick="update_text_mainmenu"
+                android:longClickable="true"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:clickable="true"
+                android:textSize="20dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            style="?metaButtonBarStyle"
+            tools:ignore="UselessParent"
+            android:id="@+id/linearLayout3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center_horizontal"
+            android:background="@color/black_overlay"
+            android:orientation="horizontal" >
+
+            <TextView
+                android:layout_width="fill_parent"
+                android:layout_height="64dp"
+                android:id="@+id/Temp_mainmenu_timer"
                 android:longClickable="true"
                 android:focusable="true"
                 android:focusableInTouchMode="true"
