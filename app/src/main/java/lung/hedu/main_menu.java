@@ -220,6 +220,7 @@ public class main_menu extends Activity {
  //           Log.e("Async", " end");
             textbox_mainmenu_tv.setText(textbox_mainmenu_tv.getText()+" "+String_async);
             async_stopped = true;
+
         }
     }
 
