@@ -5,22 +5,14 @@ import lung.hedu.util.SystemUiHider;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.Button;
+import android.view.MenuItem;
+import android.support.v4.app.NavUtils;
 import android.widget.TextView;
-
-import java.io.Serializable;
-
-import lung.hedu.FileIO;
-
-import static lung.hedu.FileIO.loadStringFilePrivate;
-import static lung.hedu.FileIO.saveStringFilePrivate;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -28,15 +20,12 @@ import static lung.hedu.FileIO.saveStringFilePrivate;
  *
  * @see SystemUiHider
  */
-public class main_menu extends Activity {
+public class Questionnaire extends Activity {
 
-// for testing TeG
-    public TextView textbox_mainmenu_tv;
-    public String out_put_testfile;
-    public Boolean async_stopped;
-    public final main_menu context_temp = this;
-    public static final String give_text = "give_text_HeDu";
+    // ontvangen information between intents, test.
+    // for_main_menu_context = Intent.getStringExtra(main_menu.context_temp_across_activity);
 
+    public String from_main_menu = null;
 
     /**
      * Whether or not the system UI should be auto-hidden after
@@ -68,9 +57,13 @@ public class main_menu extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        from_main_menu = getIntent().getStringExtra(main_menu.give_text);
+
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.activity_main_menu);
+        setContentView(R.layout.activity_questionnaire);
+        setupActionBar();
 
         final View controlsView = findViewById(R.id.fullscreen_content_controls);
         final View contentView = findViewById(R.id.fullscreen_content);
@@ -138,13 +131,43 @@ public class main_menu extends Activity {
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
-
         // Trigger the initial hide() shortly after the activity has been
         // created, to briefly hint to the user that UI controls
         // are available.
         delayedHide(100);
+        TextView text_box_q_temp_tv = (TextView)findViewById(R.id.text_box_q_temp);
+        text_box_q_temp_tv.setText(from_main_menu);
     }
 
+    /**
+     * Set up the {@link android.app.ActionBar}, if the API is available.
+     */
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+    private void setupActionBar() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            // Show the Up button in the action bar.
+            getActionBar().setDisplayHomeAsUpEnabled(true);
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == android.R.id.home) {
+            // This ID represents the Home or Up button. In the case of this
+            // activity, the Up button is shown. Use NavUtils to allow users
+            // to navigate up one level in the application structure. For
+            // more details, see the Navigation pattern on Android Design:
+            //
+            // http://developer.android.com/design/patterns/navigation.html#up-vs-back
+            //
+            // TODO: If Settings has multiple levels, Up should navigate up
+            // that hierarchy.
+            NavUtils.navigateUpFromSameTask(this);
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
 
     /**
      * Touch listener to use for in-layout UI controls to delay hiding the
@@ -178,58 +201,5 @@ public class main_menu extends Activity {
         mHideHandler.postDelayed(mHideRunnable, delayMillis);
     }
 
-//    Button button_teun = (Button)findViewById(R.id.button_teun);
- //   button_teun.setText("Dusch ");
-
-
-    public void update_text_mainmenu(View v)
-    {
-        textbox_mainmenu_tv = (TextView)findViewById(R.id.textbox_mainmenu);
-        new MyAsyncTask().execute("");
-        async_stopped = false;
-
-    }
-
-    public class MyAsyncTask extends AsyncTask<String, String, String> {
-
-        protected void onPreExecute()
-        {
-            textbox_mainmenu_tv.setText("Started, writing...");
-        }
-        protected String doInBackground(String... String_async) {
-            // Some long-running task like downloading an image.
-            saveStringFilePrivate("First", "txt", "Hello World!");
-            publishProgress("Writing complete! reading...");
-            out_put_testfile = loadStringFilePrivate("First", "txt");
-            publishProgress("reading complete! proccesing...");
-            return out_put_testfile;
-
-        }
-
-        protected void onProgressUpdate(String... String_async) {
-            // Executes whenever publishProgress is called from doInBackground
-            // Used to update the progress indicator
- //           Log.e("Async", " onProgressUpdate");
-            textbox_mainmenu_tv.setText(textbox_mainmenu_tv.getText()+" "+String_async[0]);
-        }
-
-        protected void onPostExecute(String String_async) {
-            // This method is executed in the UIThread
-            // with access to the result of the long running task
- //           TextView textbox_mainmenu_tv = tv[0];
- //           textbox_mainmenu_tv.setText("terug: ");
- //           Log.e("Async", " end");
-            textbox_mainmenu_tv.setText(textbox_mainmenu_tv.getText()+" "+String_async);
-            async_stopped = true;
-
-        }
-    }
-    public void goto_questionnaire(View v)
-    {
-        Intent goto_questionnaire_intent = new Intent(this, Questionnaire.class);
-        // versturen information between intents, test.
-        goto_questionnaire_intent.putExtra(give_text, "Gelder");
-        startActivity(goto_questionnaire_intent);
-    }
 
 }
