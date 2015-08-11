@@ -14,6 +14,11 @@ import android.view.MenuItem;
 import android.support.v4.app.NavUtils;
 import android.widget.TextView;
 
+import lung.hedu.FileIO;
+
+import static lung.hedu.FileIO.loadStringFilePrivate;
+import static lung.hedu.FileIO.saveStringFilePrivate;
+
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
@@ -22,10 +27,9 @@ import android.widget.TextView;
  */
 public class Questionnaire extends Activity {
 
-    // ontvangen information between intents, test.
+    // recieve info between intents, test.
     // for_main_menu_context = Intent.getStringExtra(main_menu.context_temp_across_activity);
-
-    public String from_main_menu = null;
+    // public String from_main_menu = null;
 
     /**
      * Whether or not the system UI should be auto-hidden after
@@ -58,12 +62,13 @@ public class Questionnaire extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
-        from_main_menu = getIntent().getStringExtra(main_menu.give_text);
+        // recieve info between intents, test.
+        // from_main_menu = getIntent().getStringExtra(main_menu.give_text);
 
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_questionnaire);
-        setupActionBar();
+        // setupActionBar();
 
         final View controlsView = findViewById(R.id.fullscreen_content_controls);
         final View contentView = findViewById(R.id.fullscreen_content);
@@ -135,13 +140,14 @@ public class Questionnaire extends Activity {
         // created, to briefly hint to the user that UI controls
         // are available.
         delayedHide(100);
-        TextView text_box_q_temp_tv = (TextView)findViewById(R.id.text_box_q_temp);
-        text_box_q_temp_tv.setText(from_main_menu);
+
+        // recieve info between intents, test.
+
     }
 
     /**
      * Set up the {@link android.app.ActionBar}, if the API is available.
-     */
+
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     private void setupActionBar() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
@@ -149,7 +155,7 @@ public class Questionnaire extends Activity {
             getActionBar().setDisplayHomeAsUpEnabled(true);
         }
     }
-
+     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
@@ -201,5 +207,14 @@ public class Questionnaire extends Activity {
         mHideHandler.postDelayed(mHideRunnable, delayMillis);
     }
 
+    public void load_world1_q1a(View v)
+    {
+        String out_put_testfile = loadStringFilePrivate("world_1_q1a", "xml");
+        TextView text_box_q_temp_tv = (TextView)findViewById(R.id.text_box_q_temp);
+        text_box_q_temp_tv.setText(out_put_testfile);
+    }
+    public void load_XML(String input)
+    {
 
+    }
 }

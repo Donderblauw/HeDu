@@ -15,8 +15,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import java.io.Serializable;
-
 import lung.hedu.FileIO;
 
 import static lung.hedu.FileIO.loadStringFilePrivate;
@@ -33,9 +31,9 @@ public class main_menu extends Activity {
 // for testing TeG
     public TextView textbox_mainmenu_tv;
     public String out_put_testfile;
-    public Boolean async_stopped;
-    public final main_menu context_temp = this;
-    public static final String give_text = "give_text_HeDu";
+
+    // recieve info between intents, test.
+    // public static final String give_text = "give_text_HeDu";
 
 
     /**
@@ -185,9 +183,8 @@ public class main_menu extends Activity {
     public void update_text_mainmenu(View v)
     {
         textbox_mainmenu_tv = (TextView)findViewById(R.id.textbox_mainmenu);
-        new MyAsyncTask().execute("");
-        async_stopped = false;
-
+        String world_1_q1a = "\"<use_font value=\"niconne_regular.ttf\" set_size=\"28\"></use_font><world n=\"1\" value=\"test_world\"></world><question>Welcome, Choose a awnser.</question><awnser goto=\"test_world_q2a.xml\">This is option A.</awnser>wnser goto=\"test_world_q2b.xml\">This is option B.</awnser>\"";
+        new MyAsyncTask().execute(world_1_q1a);
     }
 
     public class MyAsyncTask extends AsyncTask<String, String, String> {
@@ -196,12 +193,12 @@ public class main_menu extends Activity {
         {
             textbox_mainmenu_tv.setText("Started, writing...");
         }
-        protected String doInBackground(String... String_async) {
-            // Some long-running task like downloading an image.
-            saveStringFilePrivate("First", "txt", "Hello World!");
+        protected String doInBackground(String... String_async_input) {
+
+            saveStringFilePrivate("world_1_q1a", "xml", String_async_input[0]);
             publishProgress("Writing complete! reading...");
-            out_put_testfile = loadStringFilePrivate("First", "txt");
-            publishProgress("reading complete! proccesing...");
+            // out_put_testfile = loadStringFilePrivate("First", "txt");
+            // publishProgress("reading complete! proccesing...");
             return out_put_testfile;
 
         }
@@ -209,18 +206,14 @@ public class main_menu extends Activity {
         protected void onProgressUpdate(String... String_async) {
             // Executes whenever publishProgress is called from doInBackground
             // Used to update the progress indicator
- //           Log.e("Async", " onProgressUpdate");
             textbox_mainmenu_tv.setText(textbox_mainmenu_tv.getText()+" "+String_async[0]);
         }
 
         protected void onPostExecute(String String_async) {
             // This method is executed in the UIThread
             // with access to the result of the long running task
- //           TextView textbox_mainmenu_tv = tv[0];
- //           textbox_mainmenu_tv.setText("terug: ");
- //           Log.e("Async", " end");
+
             textbox_mainmenu_tv.setText(textbox_mainmenu_tv.getText()+" "+String_async);
-            async_stopped = true;
 
         }
     }
@@ -228,7 +221,7 @@ public class main_menu extends Activity {
     {
         Intent goto_questionnaire_intent = new Intent(this, Questionnaire.class);
         // versturen information between intents, test.
-        goto_questionnaire_intent.putExtra(give_text, "Gelder");
+//        goto_questionnaire_intent.putExtra(give_text, "Gelder");
         startActivity(goto_questionnaire_intent);
     }
 

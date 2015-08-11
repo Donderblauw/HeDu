@@ -84,7 +84,7 @@
                 android:layout_width="fill_parent"
                 android:layout_height="118dp"
                 android:id="@+id/textbox_mainmenu"
-                android:text="Click to change this Textview Main Menu"
+                android:text="Set world1_q1a from hard code"
                 android:onClick="update_text_mainmenu"
                 android:longClickable="true"
                 android:focusable="true"
