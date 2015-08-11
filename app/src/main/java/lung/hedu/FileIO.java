@@ -98,9 +98,24 @@ public class FileIO
     public static void saveBMPPrivate(String fileName, Bitmap bmp, Bitmap.CompressFormat format, int quality)
     {
         FileOutputStream out = null;
+        String extention = null;
+
+        if(format == Bitmap.CompressFormat.JPEG)
+        {
+            extention = ".jpg";
+        }
+        else if(format == Bitmap.CompressFormat.PNG)
+        {
+            extention = ".png";
+        }
+        else if(format == Bitmap.CompressFormat.WEBP)
+        {
+            extention = ".webp";
+        }
+
         try
         {
-            out = ApplicationContextProvider.getContext().openFileOutput(fileName + ".bmp", ApplicationContextProvider.getContext().MODE_PRIVATE);
+            out = ApplicationContextProvider.getContext().openFileOutput(fileName + extention, ApplicationContextProvider.getContext().MODE_PRIVATE);
             bmp.compress(format, quality, out);
         }
         catch (IOException exception)
@@ -121,15 +136,29 @@ public class FileIO
         }
     }
 
-    public static Bitmap loadBMPPrivate(String fileName)
+    public static Bitmap loadBMPPrivate(String fileName, Bitmap.CompressFormat format)
     {
         FileInputStream in = null;
         BufferedInputStream buf = null;
         Bitmap result = null;
+        String extention = null;
+
+        if(format == Bitmap.CompressFormat.JPEG)
+        {
+            extention = ".jpg";
+        }
+        else if(format == Bitmap.CompressFormat.PNG)
+        {
+            extention = ".png";
+        }
+        else if(format == Bitmap.CompressFormat.WEBP)
+        {
+            extention = ".webp";
+        }
 
         try
         {
-            in = ApplicationContextProvider.getContext().openFileInput(fileName + ".bmp");
+            in = ApplicationContextProvider.getContext().openFileInput(fileName + extention);
             buf = new BufferedInputStream(in);
             result = BitmapFactory.decodeStream(buf);
         }

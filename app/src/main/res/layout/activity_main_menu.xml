@@ -41,7 +41,8 @@
                 android:layout_height="wrap_content"
                 android:text="Test Luuk"
                 android:background="#88000288"
-                android:textColor="#AAFFFF" />
+                android:textColor="#AAFFFF"
+                android:onClick="goToLuukTests" />
         </LinearLayout>
 
         <LinearLayout
