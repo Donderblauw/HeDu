@@ -174,6 +174,7 @@ public class main_menu extends Activity {
         saveStringFilePrivate(this, "First", "txt", "Hello World!");
         String str = loadStringFilePrivate(this, "First", "txt");
         textbox_mainmenu_tv.setText("Werkt!"+str);
+
     }
 
 }
