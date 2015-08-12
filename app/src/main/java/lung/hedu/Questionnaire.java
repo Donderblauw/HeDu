@@ -15,6 +15,7 @@ import android.view.View;
 import android.view.MenuItem;
 import android.support.v4.app.NavUtils;
 import android.widget.TextView;
+import android.graphics.Typeface;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
@@ -46,6 +47,8 @@ public class Questionnaire extends Activity {
     public String from_XML_parser_public;
     public String output_questionfile = null;
     public Document question_XML= null;
+    public Typeface font_face = null;
+    public Integer font_size = 20;
 
     /**
      * Whether or not the system UI should be auto-hidden after
@@ -226,12 +229,14 @@ public class Questionnaire extends Activity {
     public void load_world1_q1a(View v)
     {
         String out_put_testfile = loadStringFilePrivate("world_1_q1a", "xml");
-        String temp = XML_value_text_of_tagname("question");
+        String temp = XML_ini_questionairre();
 
         TextView text_box_q_temp_tv = (TextView)findViewById(R.id.text_box_q_temp);
         text_box_q_temp_tv.setText(temp);
 
     }
+
+    /*
     public String XML_value_text_of_tagname(String tag_name) {
         XmlPullParser XmlPullParser_temp = null;
         String text_return = "";
@@ -273,6 +278,13 @@ public class Questionnaire extends Activity {
                             }
                             child_xml = name;
                         }
+
+                        if(xml_atm.equals("use_font"))
+                        {
+                            String new_font = XmlPullParser_temp.getAttributeValue(null, "value").toString();
+                            font_size = (Integer) XmlPullParser_temp.getAttributeValue(null, "set_size");
+                            font_used(new_font);
+                        }
                         break;
 
                     case XmlPullParser.TEXT:
@@ -311,6 +323,93 @@ public class Questionnaire extends Activity {
         }
         return text_return;
     }
+*/
+
+    public String XML_ini_questionairre() {
+        XmlPullParser XmlPullParser_temp = null;
+        String text_return = "";
+
+        output_questionfile = "world_1_q1a.xml";
+        try {
+            XmlPullParser_temp = load_XML(output_questionfile);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (XmlPullParserException e) {
+            e.printStackTrace();
+        }
+
+        int event;
+        String text = null;
+
+        String parents_xml[] = new String[9];
+        Integer level_parent_atm = 0;
+        String xml_atm = "";
+        TextView tv_parents[] = new TextView[9];
+
+        try {
+            event = XmlPullParser_temp.getEventType();
+
+            while (event != XmlPullParser.END_DOCUMENT) {
+                String name = XmlPullParser_temp.getName();
+
+                switch (event) {
+                    case XmlPullParser.START_TAG:
+                        xml_atm = name;
+                        level_parent_atm = level_parent_atm+1;
+                        parents_xml[level_parent_atm] = xml_atm;
+
+
+                        if(xml_atm.equals("use_font"))
+                        {
+                            String new_font = XmlPullParser_temp.getAttributeValue(null, "value").toString();
+                            font_size = Integer.parseInt(XmlPullParser_temp.getAttributeValue(null, "set_size").toString());
+                            font_used(new_font);
+                        }
+                        else if(xml_atm.equals("question"))
+                        {
+
+                        }
+                        break;
+
+                    case XmlPullParser.TEXT:
+                        if(xml_atm.equals("question"))
+                        {
+                            text_return = XmlPullParser_temp.getText();
+                        }
+                        break;
+
+                    case XmlPullParser.END_TAG:
+/*
+                        if ()
+                        {
+
+                        }
+                        else if ()
+                        {
+
+                        }
+                        else
+                        {
+                        }
+*/
+                        level_parent_atm = level_parent_atm-1;
+                        xml_atm = parents_xml[level_parent_atm];
+                        break;
+                }
+
+                event = XmlPullParser_temp.next();
+
+            }
+
+
+        } catch (XmlPullParserException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return text_return;
+    }
+
 
     public XmlPullParser load_XML(String input) throws FileNotFoundException, XmlPullParserException {
 
@@ -326,5 +425,10 @@ public class Questionnaire extends Activity {
         myparser.setInput(in, null);
 
         return myparser;
+    }
+
+    public void font_used(String new_font)
+    {
+        font_face = Typeface.createFromAsset(getAssets(), new_font);
     }
 }
