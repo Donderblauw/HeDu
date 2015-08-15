@@ -48,7 +48,7 @@ public class pictureDecode
         this.lockLines[1] = false;
         this.lockLines[2] = false;
         this.lockLines[3] = false;
-        this.bufLength = (int) (this.picture2.getHeight() / 100);
+        this.bufLength = this.picture2.getHeight() / 100;
         this.numNeeded = (int) (bufLength * perctNeeded);
         this.perctNeeded = 0.8;
     }
@@ -60,7 +60,7 @@ public class pictureDecode
         this.lockLines[1] = false;
         this.lockLines[2] = false;
         this.lockLines[3] = false;
-        this.bufLength = (int) (this.picture2.getHeight() / 100);
+        this.bufLength = this.picture2.getHeight() / 100;
         this.numNeeded = (int) (bufLength * perctNeeded);
         this.perctNeeded = 0.8;
     }
@@ -69,8 +69,7 @@ public class pictureDecode
     {
         this.arrayPic = new int[this.getWidth()][this.getHeight()];
         int high = pictureGetHighestGrayish();
-        int colorRefTop = high;
-        Log.i("DPCC", "Boven tolerantie; " + colorRefTop);
+        Log.i("DPCC", "Boven tolerantie; " + high);
         int colorRefBottom = (int)(tolerance * high);
         Log.i("DPCC", "Onder tolerantie; " + colorRefBottom);
         int[] number = new int[2];
@@ -84,7 +83,7 @@ public class pictureDecode
             {
                 int color = this.getPixel(xPixel, yPixel);
                 int graytint = Color.blue(color) + Color.green(color) + Color.red(color);
-                if (graytint <= colorRefTop && graytint >= colorRefBottom)
+                if (graytint <= high && graytint >= colorRefBottom)
                 {
                     this.arrayPic[xPixel][yPixel] = 1;
                     number[0]++;
@@ -157,7 +156,7 @@ public class pictureDecode
 
         boolean check = true;
 
-        while((angleVert > 3 || angleHor > 3) && check == true)
+        while((angleVert > 3 || angleHor > 3) && check)
         {
             tolerance = tolerance + 0.05;
             if(tolerance >= 1)
@@ -168,19 +167,19 @@ public class pictureDecode
             Log.i("PictureDecode", "Tolerance changed to:"+tolerance);
             this.pictureCheckForColorGrayish(tolerance);
 
-            if(this.lockLines[0] == false)
+            if(!this.lockLines[0])
             {
                 this.calculateLeftLine();
             }
-            if(this.lockLines[1] == false)
+            if(!this.lockLines[1])
             {
                 this.calculateRightLine();
             }
-            if(this.lockLines[2] == false)
+            if(!this.lockLines[2])
             {
                 this.calculateTopLine();
             }
-            if(this.lockLines[3] == false)
+            if(!this.lockLines[3])
             {
                 this.calculateBottomLine();
             }
@@ -365,7 +364,7 @@ public class pictureDecode
             for(int xc = 0; xc < this.picture2.getWidth() - 1; xc++)
             {
                 value = this.arrayPic[xc][y];
-                if(value == 1 && allow == true)
+                if(value == 1 && allow)
                 {
                     if(xc == 0)
                     {
@@ -390,7 +389,7 @@ public class pictureDecode
                         break;
                     }
                 }
-                else if(value != 1 && allow == false)
+                else if(value != 1 && allow)
                 {
                     int num = 0;
                     for(int l = xc; l < (xc + this.bufLength); l++)
@@ -424,9 +423,7 @@ public class pictureDecode
 
         this.dotsLeft = LeftDots;
 
-        double[] leftLine = calculateSpecLine(LeftDots, false);
-
-        return leftLine;
+        return calculateSpecLine(LeftDots, false);
     }
 
     public void calculateRightLine()
@@ -465,7 +462,8 @@ public class pictureDecode
             for(int xc = this.picture2.getWidth() - 1; xc > 0; xc--)
             {
                 value = this.arrayPic[xc][y];
-                if(value == 1 && allow == true)
+                // TODO: check the integrety and meaning of this function
+                if(value == 1 && allow)
                 {
                     if(xc == 0)
                     {
@@ -490,7 +488,7 @@ public class pictureDecode
                         break;
                     }
                 }
-                else if(value != 1 && allow == false)
+                else if(value != 1 && !allow)
                 {
                     int num = 0;
                     for(int l = xc; l > (xc - this.bufLength); l--)
@@ -522,9 +520,7 @@ public class pictureDecode
 
         this.dotsRight = RightDots;
 
-        double[] rightLine = calculateSpecLine(RightDots, false);
-
-        return rightLine;
+        return calculateSpecLine(RightDots, false);
     }
 
     public void calculateTopLine()
@@ -563,7 +559,7 @@ public class pictureDecode
             for(int yc = 0; yc < this.picture2.getHeight() - 1; yc++)
             {
                 value = this.arrayPic[x][yc];
-                if(value == 1 && allow == true)
+                if(value == 1 && allow)
                 {
                     if(yc == 0)
                     {
@@ -588,7 +584,7 @@ public class pictureDecode
                         break;
                     }
                 }
-                else if(value != 1 && allow == false)
+                else if(value != 1 && !allow)
                 {
                     int num = 0;
                     for(int l = yc; l < (yc + this.bufLength); l++)
@@ -620,9 +616,7 @@ public class pictureDecode
 
         this.dotsTop = TopDots;
 
-        double[] topLine = calculateSpecLine(TopDots, true);
-
-        return topLine;
+        return calculateSpecLine(TopDots, true);
     }
 
     public void calculateBottomLine()
@@ -661,7 +655,7 @@ public class pictureDecode
             for(int yc = this.picture2.getHeight() - 1; yc > 0; yc--)
             {
                 value = this.arrayPic[x][yc];
-                if(value == 1 && allow == true)
+                if(value == 1 && allow)
                 {
                     if(yc == this.picture2.getHeight() - 1)
                     {
@@ -686,7 +680,7 @@ public class pictureDecode
                         break;
                     }
                 }
-                else if(value != 1 && allow == false)
+                else if(value != 1 && !allow)
                 {
                     int num = 0;
                     for(int l = yc; l > (yc - this.bufLength); l--)
@@ -716,13 +710,9 @@ public class pictureDecode
             }
         }
 
-        n = BottomDots.length;
-
         this.dotsBottom = BottomDots;
 
-        double[] bottomLine = calculateSpecLine(BottomDots, true);
-
-        return bottomLine;
+        return calculateSpecLine(BottomDots, true);
     }
 
     public void giveRow(int numRow)
@@ -755,7 +745,8 @@ public class pictureDecode
     {
         int times = 6;
         int numDots = Dots.length;
-        if(toX == false)
+        Log.i("Calc. Line", "numDots="+numDots);
+        if(!toX)
         {
             Dots = switchDotsXY(Dots);
         }
@@ -785,7 +776,7 @@ public class pictureDecode
             }
         }
 
-        if(toX == false)
+        if(!toX)
         {
             double a = -(line[1]/line[0]);
             double b = (1/line[0]);
@@ -817,7 +808,7 @@ public class pictureDecode
                 lowestR2 = Dots[i][2];
             }
         }
-        List<int[]> dotsList = new ArrayList<int[]>();
+        List<int[]> dotsList = new ArrayList<>();
         int limit = (int) (lowestR2 + (factor *(highestR2 - lowestR2)));
         for(int i = 1; i < numDots; i++)
         {
@@ -844,15 +835,14 @@ public class pictureDecode
     public Integer calculateR2dotToLine(int dotx, int doty, double b, double a, boolean factorIsToX)
     {
         double R = (((b*doty)+dotx)/((a*b*b)+a)) - dotx;
-        int R2 = (int) (R*R);
 
-        return R2;
+        return (int) (R*R);
     }
 
     public double[] calculateLine(int[][] Dots, boolean toX)
     {
         int numDots = Dots.length;
-        if(toX == false)
+        if(!toX)
         {
             Dots = switchDotsXY(Dots);
         }
@@ -862,9 +852,10 @@ public class pictureDecode
         double sx2 = 0;
         double sy2 = 0;
         double sxy = 0;
-        for(int i = 0; i < numDots; i++)
+        //for(int i = 0; i < numDots; i++)
+        for(int[] Dotvalues : Dots)
         {
-            int[] Dotvalues = Dots[i];
+            //int[] Dotvalues = Dots[i];
             sx = sx + (double)Dotvalues[0];
             sy = sy + (double)Dotvalues[1];
             sx2 = sx2 + ((double)Dotvalues[0] * (double)Dotvalues[0]);
@@ -880,10 +871,10 @@ public class pictureDecode
         double ssyy = sy2 - (numDots * gy * gy);
         double ssxy = sxy - (numDots * gx * gy);
 
-        double b = (double) (ssxy / ssxx);
-        double a = (double) (gy - (b * gx));
-        double r2 = (double) ((ssxy * ssxy) / (ssxx * ssyy));
-        if(toX == false)
+        double b = ssxy / ssxx;
+        double a = gy - (b * gx);
+        double r2 = (ssxy * ssxy) / (ssxx * ssyy);
+        if(!toX)
         {
             a = -(a/b);
             b = (1/b);
@@ -946,9 +937,11 @@ public class pictureDecode
     {
         int numDots = dots.length;
         Log.i("Decode Picture", "Show Dots of " + error);
-        for(int i = 0; i < numDots; i++)
+        //for(int i = 0; i < numDots; i++)
+        for(int[] dot : dots)
         {
-            this.arrayPic[ (dots[i][0]) ][ (dots[i][1]) ] = colorNumber;
+            //this.arrayPic[ (dots[i][0]) ][ (dots[i][1]) ] = colorNumber;
+            this.arrayPic[ (dot[0]) ][ (dot[1]) ] = colorNumber;
         }
     }
 
@@ -1061,20 +1054,6 @@ public class pictureDecode
         this.FieldCorners = Corners;
     }
 
-    public void enhanceField()
-    {
-        setFieldCorners();
-        int[] startPoint;
-        if(this.Lines[2][0] >= 0)
-        {
-            startPoint = getTopRightCorner();
-        }
-        else
-        {
-            startPoint = getTopLeftCorner();
-        }
-    }
-
     public void setField()
     {
         int heightMax = 0;
@@ -1113,12 +1092,13 @@ public class pictureDecode
         int height = heightMax - heightMin;
         this.startingPoint[0] = lengths[0];
         this.startingPoint[1] = heightMin;
+
         this.arrayFieldGray = new int[length][height];
         int highestGray = 0;
         int lowestGray = 768;
         this.arrayField = new int[length][height];
-        int valueTop, valueBottom, check = 0;
-        int x, y, n=0;
+        int valueTop, valueBottom;
+        int x, y, n=0, check;
 
         Log.i("SetField", "length=" + length + ",height=" + height);
         Log.i("SetField", "startpoint ["+lengths[0]+";"+heightMin+"]");
@@ -1225,10 +1205,10 @@ public class pictureDecode
         int[] middelpoint = new int[2];
         boolean paperHorizontal = true, fieldHorizontal = true;
 
-        middelpoint[0] = (int) (0.25 * (this.getTopLeftCorner()[0] + this.getTopRightCorner()[0] + this.getBottomLeftCorner()[0] + this.getBottomRightCorner()[0]));
-        middelpoint[1] = (int) (0.25 * (this.getTopLeftCorner()[1] + this.getTopRightCorner()[1] + this.getBottomLeftCorner()[1] + this.getBottomRightCorner()[1]));
+        middelpoint[0] = (int) (0.25 * (this.getTopLeftCorner()[0] + this.getTopRightCorner()[0] + this.getBottomLeftCorner()[0] + this.getBottomRightCorner()[0]) - this.startingPoint[0]);
+        middelpoint[1] = (int) (0.25 * (this.getTopLeftCorner()[1] + this.getTopRightCorner()[1] + this.getBottomLeftCorner()[1] + this.getBottomRightCorner()[1]) + this.arrayField[0].length - this.startingPoint[1]);
 
-        if(paperHorizontal == true && fieldHorizontal == true)
+        if(paperHorizontal && fieldHorizontal)
         {
             double b = 0.5 * (this.Lines[2][1] + this.Lines[3][1]);
             double a = middelpoint[1] - (b * middelpoint[0]);
@@ -1238,18 +1218,20 @@ public class pictureDecode
         }
     }
 
+    //TODO: fix number of pixels checked
     public double[] getLineFromField(double expectedA, double expectedB, int R, int ColorCode)
     {
         int length = this.arrayField.length;
         int height = this.arrayField[0].length;
         Log.e("FML", "length="+length+"; height="+height);
-        int bottom = 0, top = height, y;
-        boolean toX = false;
+        int left, right, x, num = 0;
+        boolean toX = true;
         if(expectedB > -1 && expectedB < 1)
         {
-            Log.i("FML", "switing X and Y!");
-            toX = true;
+            Log.i("FML", "switching X and Y!");
+            toX = false;
             int buf = length;
+            // TODO: check if this should be used
             length = height;
             height = buf;
             expectedA = -expectedA/expectedB;
@@ -1258,27 +1240,30 @@ public class pictureDecode
         int range = (int) Math.sqrt((R*R) + ( (R*R)/(expectedB*expectedB) ));
         Log.i("FML", "range="+range);
         int[] Dot = new int[2];
-        List<int[]> listDots = new ArrayList<int[]>();
-        for(int xPixel = 0; xPixel < length; xPixel++)
+        List<int[]> listDots = new ArrayList<>();
+        //TODO: this is wrong; this should check for yPixel
+        for(int yPixel = 0; yPixel < height; yPixel++)
         {
-            y = (int) (expectedA + (expectedB*xPixel));
+            x = (int) ((yPixel - expectedA) / expectedB);
             //Log.i("FML", "y="+y);
 
-            bottom = y - range;
-            if(bottom < 0)
+            left = x - range;
+            if(left < 0)
             {
-                bottom = 0;
+                left = 0;
             }
-            top = y + range;
-            if(top > height)
+            right = x + range;
+            if(right > height)
             {
-                top = height - 1;
+                right = height - 1;
             }
 
             //Log.i("FML", "range: "+bottom+" - "+top);
 
-            for(int yPixel = bottom; yPixel <= top; yPixel++)
+            for(int xPixel = left; xPixel <= right; xPixel++, num++)
             {
+                //Log.e("FML", "X = " + xPixel);
+
                 if(xPixel == 987)
                 {
                     Log.e("FML","This shouldn't be");
@@ -1288,22 +1273,24 @@ public class pictureDecode
                     Log.e("FML","This should not be");
                 }
 
-                if(this.arrayField[xPixel][yPixel] == 2 && toX == false)
+                if(this.arrayField[xPixel][yPixel] == 2 && toX)
                 {
                     Dot[0] = xPixel;
                     Dot[1] = yPixel;
-                    Log.i("FML", "Dot found ["+xPixel+";"+yPixel+"]");
+                    //Log.i("FML", "Dot found ["+xPixel+";"+yPixel+"]");
                     listDots.add(Dot);
                 }
-                else if(this.arrayField[yPixel][xPixel] == 2 && toX == true)
+                else if(this.arrayField[yPixel][xPixel] == 2 && !toX)
                 {
                     Dot[1] = xPixel;
                     Dot[0] = yPixel;
-                    Log.i("FML", "Dot found ["+yPixel+";"+xPixel+"]");
+                    //Log.i("FML", "Dot found ["+yPixel+";"+xPixel+"]");
                     listDots.add(Dot);
                 }
             }
         }
+
+        Log.i("FML", "Num of Dots checked: " + num);
 
         int[][] Dots = new int[listDots.size()][2];
         for(int n = 0; n < listDots.size(); n++)
@@ -1311,6 +1298,7 @@ public class pictureDecode
             Dot = listDots.get(n);
             Dots[n][0] = Dot[0];
             Dots[n][1] = Dot[1];
+            Log.i("FML", "Dot "+n+" added; ["+Dots[n][0]+";"+Dots[n][1]+"]");
         }
 
         double line[];
@@ -1324,9 +1312,11 @@ public class pictureDecode
 
     public void showDotsOnField(int dots[][])
     {
-        for(int i = 0; i < dots.length; i++)
+        //for(int i = 0; i < dots.length; i++)
+        for(int[] dot : dots)
         {
-            this.arrayField[dots[i][0]][dots[i][1]] = 4;
+            //this.arrayField[dots[i][0]][dots[i][1]] = 4;
+            this.arrayField[dot[0]][dot[1]] = 4;
         }
     }
 
