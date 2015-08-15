@@ -283,6 +283,7 @@ public class Questionnaire extends Activity {
                         }
                         else if(xml_atm.equals("question"))
                         {
+                            remove_views();
                             tv_parents[level_parent_atm] = create_questionview_remove_views();
                         }
                         else if(xml_atm.equals("awnser"))
@@ -348,7 +349,6 @@ public class Questionnaire extends Activity {
     public TextView create_questionview_remove_views()
     {
         LinearLayout lin_lay_q = (LinearLayout)findViewById(R.id.linearLayout_questuinnaire_vert);
-        lin_lay_q.removeAllViews();
         TextView question_tv = new TextView(this);
         question_tv.setId(101);
         question_tv.setTextSize(font_size);
@@ -359,6 +359,13 @@ public class Questionnaire extends Activity {
 
         lin_lay_q.addView(question_tv);
         return question_tv;
+
+    }
+
+    public void remove_views()
+    {
+        LinearLayout lin_lay_q = (LinearLayout)findViewById(R.id.linearLayout_questuinnaire_vert);
+        lin_lay_q.removeAllViews();
 
     }
     public TextView create_awnserview()
