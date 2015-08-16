@@ -6,6 +6,7 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.ListActivity;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -14,6 +15,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.MenuItem;
 import android.support.v4.app.NavUtils;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.graphics.Typeface;
@@ -50,7 +52,10 @@ public class Questionnaire extends Activity {
     public Typeface font_face = null;
     public Integer font_size = 20;
     public Integer awnser_id = 102;
+    public Integer squarre_size = 30;
     public String onclick_temp = null;
+    public Bitmap bitmap_field = null;
+    public Integer y_row_atm = -1;
 
     /**
      * Whether or not the system UI should be auto-hidden after
@@ -162,6 +167,7 @@ public class Questionnaire extends Activity {
         // are available.
 
         delayedHide(100);
+
 
         // recieve info between intents, test.
 
@@ -290,8 +296,30 @@ public class Questionnaire extends Activity {
                         {
                             String goto_temp = XmlPullParser_temp.getAttributeValue(null, "goto").toString();
                             onclick_temp = goto_temp;
-                            Log.e("temp", "setup " + onclick_temp);
+                            // Log.e("temp", "setup " + onclick_temp);
                             tv_parents[level_parent_atm] = create_awnserview();
+                        }
+                        else if(xml_atm.equals("map"))
+                        {
+                            // String goto_temp = XmlPullParser_temp.getAttributeValue(null, "goto").toString();
+                            // onclick_temp = goto_temp;
+                            Log.e("MAP", "setup ");
+                            Integer x_sqre = Integer.parseInt(XmlPullParser_temp.getAttributeValue(null, "x_sqre").toString());
+                            Integer y_sqre = Integer.parseInt(XmlPullParser_temp.getAttributeValue(null, "y_sqre").toString());
+
+                            remove_views();
+                            LinearLayout ll_temp = (LinearLayout) findViewById(R.id.linearLayout_questuinnaire_vert);
+                            ImageView field_img_view = draw_field.create_imageview_field(ll_temp);
+
+                            set_squarre_size(x_sqre, y_sqre);
+                            bitmap_field = draw_field.create_bitmap_field( ( (x_sqre ) * (squarre_size+2) +2 ) , ( (y_sqre) * (squarre_size+2)+2));
+
+                            field_img_view.setImageBitmap(bitmap_field);
+                        }
+                        else if(xml_atm.equals("row"))
+                        {
+                            y_row_atm = y_row_atm +1;
+                            Log.e("MAP", "y_row_atm "+y_row_atm);
                         }
                         break;
 
@@ -301,6 +329,9 @@ public class Questionnaire extends Activity {
                         }
                         else if (xml_atm.equals("awnser")) {
                             tv_parents[level_parent_atm].setText(XmlPullParser_temp.getText());
+                        }
+                        else if (xml_atm.equals("row")) {
+                            read_rows(XmlPullParser_temp.getText(), y_row_atm);
                         }
                     }
                         break;
@@ -378,13 +409,13 @@ public class Questionnaire extends Activity {
         question_tv.setHint(onclick_temp);
         // public Typeface font_face = null;
         // public Integer font_size = 20;
-        Log.e("temp", "ini onclick " + onclick_temp);
+//        Log.e("temp", "ini onclick " + onclick_temp);
         question_tv.setOnClickListener(new View.OnClickListener()
         {
             @Override
             public void onClick(View v)
             {
-                Log.e("temp", "cool " + onclick_temp);
+//                Log.e("temp", "cool " + onclick_temp);
                 LinearLayout lin_lay_q = (LinearLayout)findViewById(R.id.linearLayout_questuinnaire_vert);
 
                 TextView question_tv = new TextView(v.getContext());
@@ -411,4 +442,50 @@ public class Questionnaire extends Activity {
         return question_tv;
 
     }
+
+    public void set_squarre_size(Integer totx_squarres, Integer toty_squarres)
+    {
+        View fullscreen_element = findViewById(R.id.frame_layout_q);
+        Integer height = (Integer) (( fullscreen_element.getHeight() -3) / toty_squarres);
+        Integer width = (Integer) ((fullscreen_element.getWidth() -3) / totx_squarres);
+        if(height> width)
+        {
+            squarre_size = width;
+        }
+        else
+        {
+            squarre_size = height;
+        }
+//        Log.e("MAP", "height " + height);
+//        Log.e("MAP", "width " + width);
+        squarre_size =squarre_size -2;
+        if(squarre_size < 10)
+        {
+            squarre_size = 10;
+        }
+    }
+    public void read_rows(String input_xml, Integer y_tel_squarres)
+    {
+        input_xml = input_xml.replace("\n", "");
+        input_xml = input_xml.replace("\t", "");
+        input_xml = input_xml.replace(" ", "");
+        Integer tel_field_x = 0;
+        int found_value_i = 0;
+        int index_data_komma = (input_xml.indexOf(","));
+        while (index_data_komma != -1)
+        {
+            String found_value_s = input_xml.substring(0, index_data_komma);
+            found_value_i = Integer.parseInt(found_value_s);
+
+            input_xml = input_xml.substring((index_data_komma + 1), (input_xml.length()));
+
+            draw_field.draw_squarre(tel_field_x, y_tel_squarres, found_value_i, bitmap_field, squarre_size);
+
+            tel_field_x = tel_field_x+1;
+            index_data_komma = (input_xml.indexOf(","));
+        }
+
+
+    }
+
 }
