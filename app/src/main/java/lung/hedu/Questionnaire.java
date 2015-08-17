@@ -303,15 +303,18 @@ public class Questionnaire extends Activity {
                         {
                             // String goto_temp = XmlPullParser_temp.getAttributeValue(null, "goto").toString();
                             // onclick_temp = goto_temp;
-                            Log.e("MAP", "setup ");
-                            Integer x_sqre = Integer.parseInt(XmlPullParser_temp.getAttributeValue(null, "x_sqre").toString());
-                            Integer y_sqre = Integer.parseInt(XmlPullParser_temp.getAttributeValue(null, "y_sqre").toString());
+                            // Log.e("MAP", "setup ");
 
                             remove_views();
-                            LinearLayout ll_temp = (LinearLayout) findViewById(R.id.linearLayout_questuinnaire_vert);
-                            ImageView field_img_view = draw_field.create_imageview_field(ll_temp);
 
+                            Integer x_sqre = Integer.parseInt(XmlPullParser_temp.getAttributeValue(null, "x_sqre").toString());
+                            Integer y_sqre = Integer.parseInt(XmlPullParser_temp.getAttributeValue(null, "y_sqre").toString());
                             set_squarre_size(x_sqre, y_sqre);
+
+                            LinearLayout ll_temp = (LinearLayout) findViewById(R.id.linearLayout_questuinnaire_vert);
+                            ImageView field_img_view = draw_field.create_imageview_field(ll_temp, squarre_size);
+
+
                             bitmap_field = draw_field.create_bitmap_field( ( (x_sqre ) * (squarre_size+2) +2 ) , ( (y_sqre) * (squarre_size+2)+2));
 
                             field_img_view.setImageBitmap(bitmap_field);
@@ -463,6 +466,8 @@ public class Questionnaire extends Activity {
         {
             squarre_size = 10;
         }
+
+
     }
     public void read_rows(String input_xml, Integer y_tel_squarres)
     {
@@ -487,5 +492,6 @@ public class Questionnaire extends Activity {
 
 
     }
+
 
 }
