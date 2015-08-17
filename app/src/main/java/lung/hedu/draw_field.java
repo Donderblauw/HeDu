@@ -79,13 +79,7 @@ public class draw_field {
         Integer start_x = field_x * (squarre_size + 1);
         Integer start_y = field_y * (squarre_size + 1);
 
-        String color_squarre = "#448844";
-        if (found_value_i == 0) {
-            color_squarre = "#444444";
-        }
-        else if (found_value_i == 2) {
-            color_squarre = "#66ff66";
-        }
+        String[] color_squarre = map_preset_res.set_map_colors();
 
 
         Integer tel_x = 0;
@@ -93,7 +87,7 @@ public class draw_field {
             Integer tel_y = 0;
             while (tel_y < squarre_size) {
                 // Log.e("MAP", "field_x " + field_x+" tel_x "+tel_x);
-                field_bmp.setPixel(start_x + tel_x, start_y + tel_y, Color.parseColor(color_squarre));
+                field_bmp.setPixel(start_x + tel_x, start_y + tel_y, Color.parseColor(color_squarre[found_value_i]));
 
                 tel_y = tel_y + 1;
             }
