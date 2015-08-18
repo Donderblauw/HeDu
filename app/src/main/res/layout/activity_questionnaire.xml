@@ -25,7 +25,7 @@
 
         <LinearLayout
             android:orientation="vertical"
-            android:layout_width="match_parent"
+            android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:id="@+id/linearLayout_questuinnaire_vert">
 
@@ -45,8 +45,10 @@
 
 
         </LinearLayout>
-    </LinearLayout>
 
+
+
+    </LinearLayout>
 
     <!-- This FrameLayout insets its children based on system windows using
          android:fitsSystemWindows. -->

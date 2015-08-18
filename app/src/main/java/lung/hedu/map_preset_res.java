@@ -12,7 +12,7 @@ public class map_preset_res {
         map_colors[0] = "#444444";
 
         // 1 = available for walking
-        map_colors[1] = "#444444";
+        map_colors[1] = "#448844";
 
         // 2 = player pos
         map_colors[2] = "#66ff66";

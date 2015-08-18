@@ -20,6 +20,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.graphics.Typeface;
 
+import org.w3c.dom.Element;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -299,6 +300,15 @@ public class Questionnaire extends Activity {
                             // Log.e("temp", "setup " + onclick_temp);
                             tv_parents[level_parent_atm] = create_awnserview();
                         }
+                        else if(xml_atm.equals("add_line"))
+                        {
+                            Bundle inputExtras = tv_parents[(level_parent_atm-1)].getInputExtras(true);
+                            inputExtras.putString("add_line", XmlPullParser_temp.getAttributeValue(null, "line_id").toString());
+                            inputExtras.putString("add_value", XmlPullParser_temp.getAttributeValue(null, "add_value").toString());
+//                            Bundle inputExtras_ret = tv_parents[(level_parent_atm-1)].getInputExtras(true);
+//                            String found_extra = inputExtras_ret.getString("add_line" , "");
+//                            Log.e("temp", "setup " + found_extra+ " id"+tv_parents[(level_parent_atm-1)].getId());
+                        }
                         else if(xml_atm.equals("map"))
                         {
                             // String goto_temp = XmlPullParser_temp.getAttributeValue(null, "goto").toString();
@@ -322,7 +332,7 @@ public class Questionnaire extends Activity {
                         else if(xml_atm.equals("row"))
                         {
                             y_row_atm = y_row_atm +1;
-                            Log.e("MAP", "y_row_atm "+y_row_atm);
+                            // Log.e("MAP", "y_row_atm "+y_row_atm);
                         }
                         break;
 
@@ -340,7 +350,11 @@ public class Questionnaire extends Activity {
                         break;
 
                     case XmlPullParser.END_TAG:
-
+                        if(xml_atm.equals("awnser"))
+                        {
+                            LinearLayout lin_lay_q = (LinearLayout)findViewById(R.id.linearLayout_questuinnaire_vert);
+                            lin_lay_q.addView(tv_parents[level_parent_atm]);
+                        }
                         level_parent_atm = level_parent_atm-1;
                         xml_atm = parents_xml[level_parent_atm];
                         break;
@@ -390,7 +404,7 @@ public class Questionnaire extends Activity {
         // public Typeface font_face = null;
         // public Integer font_size = 20;
 
-
+        awnser_id = 102;
         lin_lay_q.addView(question_tv);
         return question_tv;
 
@@ -404,32 +418,31 @@ public class Questionnaire extends Activity {
     }
     public TextView create_awnserview()
     {
-        LinearLayout lin_lay_q = (LinearLayout)findViewById(R.id.linearLayout_questuinnaire_vert);
+
         TextView question_tv = new TextView(this);
         question_tv.setId(awnser_id);
         question_tv.setTextSize(font_size);
         question_tv.setTypeface(font_face);
         question_tv.setHint(onclick_temp);
+
         // public Typeface font_face = null;
         // public Integer font_size = 20;
 //        Log.e("temp", "ini onclick " + onclick_temp);
-        question_tv.setOnClickListener(new View.OnClickListener()
-        {
+        question_tv.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v)
-            {
+            public void onClick(View v) {
 //                Log.e("temp", "cool " + onclick_temp);
-                LinearLayout lin_lay_q = (LinearLayout)findViewById(R.id.linearLayout_questuinnaire_vert);
+                LinearLayout lin_lay_q = (LinearLayout) findViewById(R.id.linearLayout_questuinnaire_vert);
 
-                TextView question_tv = new TextView(v.getContext());
-                question_tv.setId(201 + awnser_id);
-                question_tv.setTextSize(font_size);
-                question_tv.setTypeface(font_face);
-                question_tv.setText(onclick_temp);
-                lin_lay_q.addView(question_tv);
-                TextView temp_tv = (TextView) v ;
+
+                TextView temp_tv = (TextView) v;
                 output_questionfile = (String) temp_tv.getHint();
-                // output_questionfile = onclick_temp;
+                Bundle inputExtras = temp_tv.getInputExtras(true);
+                String add_line = inputExtras.getString("add_line", "");
+                String add_value = inputExtras.getString("add_value", "");
+                // add_story_line(add_line, add_value);
+//                Log.e("temp", "cool " + found_extra);
+
                 XML_ini_questionairre();
 
 
@@ -438,8 +451,6 @@ public class Questionnaire extends Activity {
             }
         } ) ;
 
-
-        lin_lay_q.addView(question_tv);
         awnser_id = awnser_id +1;
 
         return question_tv;
@@ -489,9 +500,37 @@ public class Questionnaire extends Activity {
             tel_field_x = tel_field_x+1;
             index_data_komma = (input_xml.indexOf(","));
         }
-
-
     }
 
+    public void add_story_line(String add_line_id, String add_value)
+    {
+        Document reterned_doc = null;
+
+        try {
+            reterned_doc = XML_IO.open_document_xml("user_storylines");
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (XmlPullParserException e) {
+            e.printStackTrace();
+        }
+
+        reterned_doc.getParentNode();
+
+/*        Node parent_answer = node_answer.getParentNode();
+
+        Element new_answer_element = reterned_doc.createElement("add_line_id");
+//        new_answer_element.setAttribute("goto", "temp");
+        new_answer_element.appendChild(doc.createTextNode("option C"));
+        parent_answer.appendChild(new_answer_element);
+*/
+        try {
+            XML_IO.save_XML("user_storylines", reterned_doc);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (XmlPullParserException e) {
+            e.printStackTrace();
+        }
+
+    }
 
 }
