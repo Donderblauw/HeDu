@@ -20,7 +20,11 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.graphics.Typeface;
 
+import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -30,6 +34,9 @@ import org.w3c.dom.Document;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 
 import lung.hedu.FileIO;
 
@@ -57,6 +64,8 @@ public class Questionnaire extends Activity {
     public String onclick_temp = null;
     public Bitmap bitmap_field = null;
     public Integer y_row_atm = -1;
+    Document XML_user_info_doc = null;
+    public String this_world = "world_1";
 
     /**
      * Whether or not the system UI should be auto-hidden after
@@ -267,7 +276,8 @@ public class Questionnaire extends Activity {
         String parents_xml[] = new String[9];
         Integer level_parent_atm = 0;
         String xml_atm = "";
-        TextView tv_parents[] = new TextView[9];
+        TextView tv_parents[] = new TextView[19];
+        boolean tv_show[] = new boolean[19];
 
         try {
             event = XmlPullParser_temp.getEventType();
@@ -299,22 +309,30 @@ public class Questionnaire extends Activity {
                             onclick_temp = goto_temp;
                             // Log.e("temp", "setup " + onclick_temp);
                             tv_parents[level_parent_atm] = create_awnserview();
+                            tv_show[level_parent_atm] = true;
+                        }
+                        else if(xml_atm.equals("req"))
+                        {
+                            String req_tag_name = XmlPullParser_temp.getAttributeValue(null, "req_tag_name").toString();
+                            String req_id = XmlPullParser_temp.getAttributeValue(null, "req_id").toString();
+                            String req_v = XmlPullParser_temp.getAttributeValue(null, "req_v").toString();
+                            String found_v = find_value_in_xml(req_tag_name, req_id);
+                            tv_show[(level_parent_atm-1)] = false;
+                            if(found_v.equals(req_v))
+                            {
+                                tv_show[(level_parent_atm-1)] = true;
+                            }
+
                         }
                         else if(xml_atm.equals("add_line"))
                         {
                             Bundle inputExtras = tv_parents[(level_parent_atm-1)].getInputExtras(true);
                             inputExtras.putString("add_line", XmlPullParser_temp.getAttributeValue(null, "line_id").toString());
-                            inputExtras.putString("add_value", XmlPullParser_temp.getAttributeValue(null, "add_value").toString());
-//                            Bundle inputExtras_ret = tv_parents[(level_parent_atm-1)].getInputExtras(true);
-//                            String found_extra = inputExtras_ret.getString("add_line" , "");
-//                            Log.e("temp", "setup " + found_extra+ " id"+tv_parents[(level_parent_atm-1)].getId());
+                            inputExtras.putString("value", XmlPullParser_temp.getAttributeValue(null, "value").toString());
+                            inputExtras.putString("replace_add", XmlPullParser_temp.getAttributeValue(null, "replace_add").toString());
                         }
                         else if(xml_atm.equals("map"))
                         {
-                            // String goto_temp = XmlPullParser_temp.getAttributeValue(null, "goto").toString();
-                            // onclick_temp = goto_temp;
-                            // Log.e("MAP", "setup ");
-
                             remove_views();
 
                             Integer x_sqre = Integer.parseInt(XmlPullParser_temp.getAttributeValue(null, "x_sqre").toString());
@@ -332,7 +350,6 @@ public class Questionnaire extends Activity {
                         else if(xml_atm.equals("row"))
                         {
                             y_row_atm = y_row_atm +1;
-                            // Log.e("MAP", "y_row_atm "+y_row_atm);
                         }
                         break;
 
@@ -353,7 +370,9 @@ public class Questionnaire extends Activity {
                         if(xml_atm.equals("awnser"))
                         {
                             LinearLayout lin_lay_q = (LinearLayout)findViewById(R.id.linearLayout_questuinnaire_vert);
-                            lin_lay_q.addView(tv_parents[level_parent_atm]);
+                            if(tv_show[level_parent_atm] == true) {
+                                lin_lay_q.addView(tv_parents[level_parent_atm]);
+                            }
                         }
                         level_parent_atm = level_parent_atm-1;
                         xml_atm = parents_xml[level_parent_atm];
@@ -439,7 +458,15 @@ public class Questionnaire extends Activity {
                 output_questionfile = (String) temp_tv.getHint();
                 Bundle inputExtras = temp_tv.getInputExtras(true);
                 String add_line = inputExtras.getString("add_line", "");
-                String add_value = inputExtras.getString("add_value", "");
+                if(add_line != "") {
+                    String add_value = inputExtras.getString("value", "");
+                    String replace_add = inputExtras.getString("replace_add", "false");
+                    boolean replace_add_bool = false;
+                    if (replace_add.equals("true")) {
+                        replace_add_bool = true;
+                    }
+                    add_story_line("optionC", add_value, replace_add_bool, add_line);
+                }
                 // add_story_line(add_line, add_value);
 //                Log.e("temp", "cool " + found_extra);
 
@@ -502,34 +529,122 @@ public class Questionnaire extends Activity {
         }
     }
 
-    public void add_story_line(String add_line_id, String add_value)
+
+    public String find_value_in_xml(String add_line_id, String value_id)
+    {
+        String return_string = "";
+        Document reterned_doc = null;
+        if(XML_user_info_doc == null) {
+            try {
+                reterned_doc = XML_IO.open_document_xml("user_info_" + this_world);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (XmlPullParserException e) {
+                e.printStackTrace();
+            }
+        }
+        else {
+            reterned_doc = XML_user_info_doc;
+        }
+        NodeList nodes_find = reterned_doc.getElementsByTagName(add_line_id);
+        if(nodes_find != null)
+        {
+            Node node_find = nodes_find.item(0);
+            NamedNodeMap temp_atr = node_find.getAttributes();
+
+            Node node_temp_atr = temp_atr.getNamedItem(value_id);
+            if(node_temp_atr != null)
+            {
+                return_string = node_temp_atr.getTextContent();
+
+            }
+        }
+
+        return return_string;
+    }
+
+
+    public void add_story_line(String add_line_id, String add_value, Boolean Freplace_or_Tadd, String value_id)
     {
         Document reterned_doc = null;
+        if(XML_user_info_doc == null) {
+            try {
+                reterned_doc = XML_IO.open_document_xml("user_info_" + this_world);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (XmlPullParserException e) {
+                e.printStackTrace();
+            }
+        }
+        else {
+            reterned_doc = XML_user_info_doc;
+        }
+        if(reterned_doc == null) {
+            Element new_world_lines = reterned_doc.createElement(this_world + "_story_lines");
+            Node parent_lines_node = reterned_doc.appendChild(new_world_lines);
 
+            Element new_line = reterned_doc.createElement(add_line_id);
+            new_line.setAttribute(value_id, add_value);
+            parent_lines_node.appendChild(new_line);
+        }
+
+        else
+        {
+            NodeList nodes_world_lines = reterned_doc.getElementsByTagName(this_world+"_story_lines");
+            Node parent_lines_node = null;
+            if(nodes_world_lines.getLength() == 0) {
+                Element new_world_lines = reterned_doc.createElement(this_world + "_story_lines");
+                parent_lines_node = reterned_doc.appendChild(new_world_lines);
+            }
+            else
+            {
+                parent_lines_node = nodes_world_lines.item(0);
+            }
+
+            NodeList nodes_new_line = reterned_doc.getElementsByTagName(add_line_id);
+            if(nodes_new_line.getLength() == 0)
+            {
+                Element new_line = reterned_doc.createElement(add_line_id);
+                new_line.setAttribute(value_id, add_value);
+                parent_lines_node.appendChild(new_line);
+            }
+            else
+            {
+                Node node_found = nodes_new_line.item(0);
+
+                NamedNodeMap temp_atr = node_found.getAttributes();
+                Node node_temp_atr = temp_atr.getNamedItem(value_id);
+                if(node_temp_atr == null)
+                {
+                    Attr atribute_new = reterned_doc.createAttribute(add_value);
+                    node_temp_atr.appendChild(atribute_new);
+                }
+                else
+                {
+                    node_temp_atr.setTextContent(add_value);
+                }
+
+                if(Freplace_or_Tadd == true)
+                {
+                    String node_temp_atr_s = node_temp_atr.getTextContent();
+
+                    Integer node_temp_atr_i = Integer.parseInt(node_temp_atr_s);
+                    node_temp_atr_i = node_temp_atr_i + Integer.parseInt(add_value);
+                    node_temp_atr.setTextContent(node_temp_atr_i.toString());
+                }
+            }
+        }
+
+
+        XML_user_info_doc = reterned_doc;
         try {
-            reterned_doc = XML_IO.open_document_xml("user_storylines");
+            XML_IO.save_XML("user_info_"+this_world, reterned_doc);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (XmlPullParserException e) {
             e.printStackTrace();
         }
 
-        reterned_doc.getParentNode();
-
-/*        Node parent_answer = node_answer.getParentNode();
-
-        Element new_answer_element = reterned_doc.createElement("add_line_id");
-//        new_answer_element.setAttribute("goto", "temp");
-        new_answer_element.appendChild(doc.createTextNode("option C"));
-        parent_answer.appendChild(new_answer_element);
-*/
-        try {
-            XML_IO.save_XML("user_storylines", reterned_doc);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (XmlPullParserException e) {
-            e.printStackTrace();
-        }
 
     }
 

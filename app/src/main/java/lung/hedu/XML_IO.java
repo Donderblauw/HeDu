@@ -18,6 +18,7 @@ import java.io.IOException;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
@@ -77,10 +78,11 @@ public class XML_IO {
 */
     public static Document open_document_xml(String input) throws FileNotFoundException, XmlPullParserException {
 
-        String infile = FileIO.loadStringFilePrivate(input, ".xml");
+        String infile = FileIO.loadStringFilePrivate(input, "xml");
+//        Log.e("XML parser", "infile" + infile);
         if(infile.length() < 2)
         {
-            saveStringFilePrivate(input, ".xml", "");
+            saveStringFilePrivate(input, "xml", "");
         }
 
         input = input +".xml";
@@ -95,10 +97,22 @@ public class XML_IO {
             doc.getDocumentElement().normalize();
 
 
+
         }
         catch (Exception e)
         {
             Log.e("XML parser", "error load_XML" + e.toString());
+        }
+        if(doc == null)
+        {
+            DocumentBuilderFactory dbfactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder dbuilder = null;
+            try {
+                dbuilder = dbfactory.newDocumentBuilder();
+            } catch (ParserConfigurationException e) {
+                e.printStackTrace();
+            }
+            doc = dbuilder.newDocument();
         }
         return doc;
     }
@@ -106,7 +120,7 @@ public class XML_IO {
 
     public static void save_XML(String input, Document doc) throws FileNotFoundException, XmlPullParserException {
         try{
-
+            input = input+".xml";
             TransformerFactory save_new_answer_factory = TransformerFactory.newInstance();
             Transformer save_new_answer_transformer = save_new_answer_factory.newTransformer();
             DOMSource source = new DOMSource(doc);
