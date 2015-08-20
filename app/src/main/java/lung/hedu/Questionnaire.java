@@ -247,7 +247,7 @@ public class Questionnaire extends Activity {
 
     public void load_world1_q1a(View v)
     {
-        output_questionfile = "world_1_q1a.xml";
+        output_questionfile = "world_1_q1a";
         String out_put_testfile = loadStringFilePrivate("world_1_q1a", "xml");
         XML_ini_q_or_map("q", output_questionfile);
 
@@ -261,6 +261,10 @@ public class Questionnaire extends Activity {
         if(type_xml.equals("q"))
         {
             XML_ini_questionairre(XML_file);
+        }
+        else if(type_xml.equals("m"))
+        {
+            XML_ini_map(XML_file);
         }
     }
 
@@ -393,6 +397,80 @@ public class Questionnaire extends Activity {
 
 
         } catch (XmlPullParserException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return text_return;
+    }
+
+    public String XML_ini_map(String XML_file) {
+        XmlPullParser XmlPullParser_temp = null;
+        String text_return = "";
+       try {
+            XmlPullParser_temp = load_XML(XML_file);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (XmlPullParserException e) {
+            e.printStackTrace();
+        }
+
+        int event;
+        String parents_xml[] = new String[9];
+        Integer level_parent_atm = 0;
+        String xml_atm = "";
+
+        try {
+            event = XmlPullParser_temp.getEventType();
+
+            while (event != XmlPullParser.END_DOCUMENT) {
+                String name = XmlPullParser_temp.getName();
+
+                switch (event) {
+                    case XmlPullParser.START_TAG:
+                        xml_atm = name;
+                        level_parent_atm = level_parent_atm+1;
+                        parents_xml[level_parent_atm] = xml_atm;
+
+                        if(xml_atm.equals("map"))
+                        {
+                            remove_views();
+
+                            Integer x_sqre = Integer.parseInt(XmlPullParser_temp.getAttributeValue(null, "x_sqre").toString());
+                            Integer y_sqre = Integer.parseInt(XmlPullParser_temp.getAttributeValue(null, "y_sqre").toString());
+                            set_squarre_size(x_sqre, y_sqre);
+
+                            LinearLayout ll_temp = (LinearLayout) findViewById(R.id.linearLayout_questuinnaire_vert);
+                            ImageView field_img_view = draw_field.create_imageview_field(ll_temp, squarre_size);
+
+
+                            bitmap_field = draw_field.create_bitmap_field( ( (x_sqre ) * (squarre_size+2) +2 ) , ( (y_sqre) * (squarre_size+2)+2));
+
+                            field_img_view.setImageBitmap(bitmap_field);
+                        }
+                        else if(xml_atm.equals("row"))
+                        {
+                            y_row_atm = y_row_atm +1;
+                        }
+                        break;
+
+                    case XmlPullParser.TEXT: {
+                        if (xml_atm.equals("row")) {
+                            read_rows(XmlPullParser_temp.getText(), y_row_atm);
+                        }
+                    }
+                    break;
+
+                    case XmlPullParser.END_TAG:
+                        level_parent_atm = level_parent_atm-1;
+                        xml_atm = parents_xml[level_parent_atm];
+                        break;
+                }
+
+                event = XmlPullParser_temp.next();
+
+            }
+       } catch (XmlPullParserException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
@@ -563,13 +641,14 @@ public class Questionnaire extends Activity {
         if(nodes_find != null)
         {
             Node node_find = nodes_find.item(0);
-            NamedNodeMap temp_atr = node_find.getAttributes();
+            if(node_find != null) {
+                NamedNodeMap temp_atr = node_find.getAttributes();
 
-            Node node_temp_atr = temp_atr.getNamedItem(value_id);
-            if(node_temp_atr != null)
-            {
-                return_string = node_temp_atr.getTextContent();
+                Node node_temp_atr = temp_atr.getNamedItem(value_id);
+                if (node_temp_atr != null) {
+                    return_string = node_temp_atr.getTextContent();
 
+                }
             }
         }
 
