@@ -4,8 +4,7 @@ import lung.hedu.util.SystemUiHider;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.app.ListActivity;
-import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -14,10 +13,16 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.MenuItem;
 import android.support.v4.app.NavUtils;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.graphics.Typeface;
 
+import org.w3c.dom.Attr;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -27,8 +32,6 @@ import org.w3c.dom.Document;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-
-import lung.hedu.FileIO;
 
 import static lung.hedu.FileIO.loadStringFilePrivate;
 import static lung.hedu.FileIO.saveStringFilePrivate;
@@ -45,12 +48,16 @@ public class Questionnaire extends Activity {
     // for_main_menu_context = Intent.getStringExtra(main_menu.context_temp_across_activity);
     // public String from_main_menu = null;
 
-    public String output_questionfile = null;
-    public Document question_XML= null;
+//    public String output_questionfile = null;
     public Typeface font_face = null;
     public Integer font_size = 20;
     public Integer awnser_id = 102;
-    public String onclick_temp = null;
+    public Integer squarre_size = 30;
+//    public String onclick_temp = null;
+    public Bitmap bitmap_field = null;
+    public Integer y_row_atm = -1;
+    Document XML_user_info_doc = null;
+    public String this_world = "world_1";
 
     /**
      * Whether or not the system UI should be auto-hidden after
@@ -163,6 +170,7 @@ public class Questionnaire extends Activity {
 
         delayedHide(100);
 
+
         // recieve info between intents, test.
 
     }
@@ -231,23 +239,91 @@ public class Questionnaire extends Activity {
 
     public void load_world1_q1a(View v)
     {
-        output_questionfile = "world_1_q1a.xml";
+        String output_questionfile = "world_1_q1a";
         String out_put_testfile = loadStringFilePrivate("world_1_q1a", "xml");
-        String temp = XML_ini_questionairre();
+        XML_ini_q_or_map("q", output_questionfile);
 
      //   TextView text_box_q_temp_tv = (TextView)findViewById(R.id.text_box_q_temp);
      //   text_box_q_temp_tv.setText(temp);
 
     }
 
+    public void XML_ini_q_or_map(String type_xml, String XML_file)
+    {
+        if(type_xml.equals("q"))
+        {
+            XML_ini_questionairre(XML_file);
+        }
+        else if(type_xml.equals("m"))
+        {
+            XML_ini_map(XML_file);
+        }
+    }
+    public boolean check_req_type (String found_v, String req_type, String req_v, String then_tag_name, String then_id)
+    {
+        Boolean return_bool = false;
+/*
+        bt = bigger then xx
+        st = smaller then xx
+        eq = equal
+        bi = bigger > value
+        sm = smaller < value
+*/
+        if(req_type.equals("eq"))
+        {
+            if(req_v.equals(found_v))
+            {
+                return_bool = true;
+            }
+        }
+        else if(req_type.equals("sm"))
+        {
+            Integer found_v_i = Integer.parseInt(found_v);
+            Integer req_v_i = Integer.parseInt(req_v);
+            if(found_v_i < req_v_i)
+            {
+                return_bool = true;
+            }
+        }
+        else if(req_type.equals("bi"))
+        {
+            Integer found_v_i = Integer.parseInt(found_v);
+            Integer req_v_i = Integer.parseInt(req_v);
+            if(found_v_i > req_v_i)
+            {
+                return_bool = true;
+            }
+        }
+        else
+        {
+            String found_v_then = find_value_in_xml(then_tag_name, then_id);
+            Integer found_v_then_i = Integer.parseInt(found_v_then);
+            Integer found_v_i = Integer.parseInt(found_v);
+            if(req_type.equals("bt"))
+            {
+                if(found_v_i > found_v_then_i)
+                {
+                    return_bool = true;
+                }
+            }
+            else if(req_type.equals("st"))
+            {
+                if(found_v_i < found_v_then_i)
+                {
+                    return_bool = true;
+                }
+            }
+        }
 
-    public String XML_ini_questionairre() {
+        return return_bool;
+    }
+    public String XML_ini_questionairre(String XML_file) {
         XmlPullParser XmlPullParser_temp = null;
         String text_return = "";
 
 
         try {
-            XmlPullParser_temp = load_XML(output_questionfile);
+            XmlPullParser_temp = load_XML(XML_file);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (XmlPullParserException e) {
@@ -260,7 +336,8 @@ public class Questionnaire extends Activity {
         String parents_xml[] = new String[9];
         Integer level_parent_atm = 0;
         String xml_atm = "";
-        TextView tv_parents[] = new TextView[9];
+        TextView tv_parents[] = new TextView[19];
+        boolean tv_show[] = new boolean[19];
 
         try {
             event = XmlPullParser_temp.getEventType();
@@ -283,15 +360,44 @@ public class Questionnaire extends Activity {
                         }
                         else if(xml_atm.equals("question"))
                         {
+                            remove_views();
                             tv_parents[level_parent_atm] = create_questionview_remove_views();
                         }
                         else if(xml_atm.equals("awnser"))
                         {
                             String goto_temp = XmlPullParser_temp.getAttributeValue(null, "goto").toString();
-                            onclick_temp = goto_temp;
-                            Log.e("temp", "setup " + onclick_temp);
-                            tv_parents[level_parent_atm] = create_awnserview();
+                            // onclick_temp = goto_temp;
+                            String goto_temp_id = XmlPullParser_temp.getAttributeValue(null, "goto_id").toString();
+                            // Log.e("temp", "setup " + onclick_temp);
+                            tv_parents[level_parent_atm] = create_awnserview(goto_temp, goto_temp_id);
+                            tv_show[level_parent_atm] = true;
                         }
+                        else if(xml_atm.equals("req"))
+                        {
+                            String req_tag_name = XmlPullParser_temp.getAttributeValue(null, "req_tag_name");
+                            String req_id = XmlPullParser_temp.getAttributeValue(null, "req_id");
+                            String req_v = XmlPullParser_temp.getAttributeValue(null, "req_v");
+                            String req_type = XmlPullParser_temp.getAttributeValue(null, "req_type");
+                            String then_tag_name = XmlPullParser_temp.getAttributeValue(null, "then_tag_name");
+                            String then_id = XmlPullParser_temp.getAttributeValue(null, "then_id");
+
+                            String found_v = find_value_in_xml(req_tag_name, req_id);
+                            tv_show[(level_parent_atm-1)] = false;
+                            boolean test_result = check_req_type(found_v, req_type, req_v, then_tag_name, then_id);
+                            if(test_result == true)
+                            {
+                                tv_show[(level_parent_atm-1)] = true;
+                            }
+
+                        }
+                        else if(xml_atm.equals("add_line"))
+                        {
+                            Bundle inputExtras = tv_parents[(level_parent_atm-1)].getInputExtras(true);
+                            inputExtras.putString("add_line", XmlPullParser_temp.getAttributeValue(null, "line_id").toString());
+                            inputExtras.putString("value", XmlPullParser_temp.getAttributeValue(null, "value").toString());
+                            inputExtras.putString("replace_add", XmlPullParser_temp.getAttributeValue(null, "replace_add").toString());
+                        }
+
                         break;
 
                     case XmlPullParser.TEXT: {
@@ -305,7 +411,13 @@ public class Questionnaire extends Activity {
                         break;
 
                     case XmlPullParser.END_TAG:
-
+                        if(xml_atm.equals("awnser"))
+                        {
+                            LinearLayout lin_lay_q = (LinearLayout)findViewById(R.id.linearLayout_questuinnaire_vert);
+                            if(tv_show[level_parent_atm] == true) {
+                                lin_lay_q.addView(tv_parents[level_parent_atm]);
+                            }
+                        }
                         level_parent_atm = level_parent_atm-1;
                         xml_atm = parents_xml[level_parent_atm];
                         break;
@@ -324,11 +436,85 @@ public class Questionnaire extends Activity {
         return text_return;
     }
 
+    public String XML_ini_map(String XML_file) {
+        XmlPullParser XmlPullParser_temp = null;
+        String text_return = "";
+       try {
+            XmlPullParser_temp = load_XML(XML_file);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (XmlPullParserException e) {
+            e.printStackTrace();
+        }
+
+        int event;
+        String parents_xml[] = new String[9];
+        Integer level_parent_atm = 0;
+        String xml_atm = "";
+
+        try {
+            event = XmlPullParser_temp.getEventType();
+
+            while (event != XmlPullParser.END_DOCUMENT) {
+                String name = XmlPullParser_temp.getName();
+
+                switch (event) {
+                    case XmlPullParser.START_TAG:
+                        xml_atm = name;
+                        level_parent_atm = level_parent_atm+1;
+                        parents_xml[level_parent_atm] = xml_atm;
+
+                        if(xml_atm.equals("map"))
+                        {
+                            remove_views();
+
+                            Integer x_sqre = Integer.parseInt(XmlPullParser_temp.getAttributeValue(null, "x_sqre").toString());
+                            Integer y_sqre = Integer.parseInt(XmlPullParser_temp.getAttributeValue(null, "y_sqre").toString());
+                            set_squarre_size(x_sqre, y_sqre);
+
+                            LinearLayout ll_temp = (LinearLayout) findViewById(R.id.linearLayout_questuinnaire_vert);
+                            ImageView field_img_view = draw_field.create_imageview_field(ll_temp, squarre_size);
+
+
+                            bitmap_field = draw_field.create_bitmap_field( ( (x_sqre ) * (squarre_size+2) +2 ) , ( (y_sqre) * (squarre_size+2)+2));
+
+                            field_img_view.setImageBitmap(bitmap_field);
+                        }
+                        else if(xml_atm.equals("row"))
+                        {
+                            y_row_atm = y_row_atm +1;
+                        }
+                        break;
+
+                    case XmlPullParser.TEXT: {
+                        if (xml_atm.equals("row")) {
+                            read_rows(XmlPullParser_temp.getText(), y_row_atm);
+                        }
+                    }
+                    break;
+
+                    case XmlPullParser.END_TAG:
+                        level_parent_atm = level_parent_atm-1;
+                        xml_atm = parents_xml[level_parent_atm];
+                        break;
+                }
+
+                event = XmlPullParser_temp.next();
+
+            }
+       } catch (XmlPullParserException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return text_return;
+    }
+
 
     public XmlPullParser load_XML(String input) throws FileNotFoundException, XmlPullParserException {
 
         FileInputStream in = null;
-        in = ApplicationContextProvider.getContext().openFileInput(input);
+        in = ApplicationContextProvider.getContext().openFileInput(input+".xml");
 
         XmlPullParserFactory xmlFactoryObject;
 
@@ -348,7 +534,6 @@ public class Questionnaire extends Activity {
     public TextView create_questionview_remove_views()
     {
         LinearLayout lin_lay_q = (LinearLayout)findViewById(R.id.linearLayout_questuinnaire_vert);
-        lin_lay_q.removeAllViews();
         TextView question_tv = new TextView(this);
         question_tv.setId(101);
         question_tv.setTextSize(font_size);
@@ -356,40 +541,59 @@ public class Questionnaire extends Activity {
         // public Typeface font_face = null;
         // public Integer font_size = 20;
 
-
+        awnser_id = 102;
         lin_lay_q.addView(question_tv);
         return question_tv;
 
     }
-    public TextView create_awnserview()
+
+    public void remove_views()
     {
         LinearLayout lin_lay_q = (LinearLayout)findViewById(R.id.linearLayout_questuinnaire_vert);
+        lin_lay_q.removeAllViews();
+
+    }
+    public TextView create_awnserview(String onclick_temp, String goto_id)
+    {
+
         TextView question_tv = new TextView(this);
         question_tv.setId(awnser_id);
         question_tv.setTextSize(font_size);
         question_tv.setTypeface(font_face);
-        question_tv.setHint(onclick_temp);
+        // question_tv.setHint(onclick_temp);
+        Bundle inputExtras = question_tv.getInputExtras(true);
+        inputExtras.putString("onclick_temp",onclick_temp);
+        inputExtras.putString("goto_id",goto_id);
+
         // public Typeface font_face = null;
         // public Integer font_size = 20;
-        Log.e("temp", "ini onclick " + onclick_temp);
-        question_tv.setOnClickListener(new View.OnClickListener()
-        {
+//        Log.e("temp", "ini onclick " + onclick_temp);
+        question_tv.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v)
-            {
-                Log.e("temp", "cool " + onclick_temp);
-                LinearLayout lin_lay_q = (LinearLayout)findViewById(R.id.linearLayout_questuinnaire_vert);
+            public void onClick(View v) {
+//                Log.e("temp", "cool " + onclick_temp);
+                LinearLayout lin_lay_q = (LinearLayout) findViewById(R.id.linearLayout_questuinnaire_vert);
 
-                TextView question_tv = new TextView(v.getContext());
-                question_tv.setId(201 + awnser_id);
-                question_tv.setTextSize(font_size);
-                question_tv.setTypeface(font_face);
-                question_tv.setText(onclick_temp);
-                lin_lay_q.addView(question_tv);
-                TextView temp_tv = (TextView) v ;
-                output_questionfile = (String) temp_tv.getHint();
-                // output_questionfile = onclick_temp;
-                XML_ini_questionairre();
+
+                TextView temp_tv = (TextView) v;
+                Bundle inputExtras = temp_tv.getInputExtras(true);
+                String output_questionfile = inputExtras.getString("onclick_temp", "");
+                String goto_id = inputExtras.getString("goto_id", "");
+
+                String add_line = inputExtras.getString("add_line", "");
+                if(add_line != "") {
+                    String add_value = inputExtras.getString("value", "");
+                    String replace_add = inputExtras.getString("replace_add", "false");
+                    boolean replace_add_bool = false;
+                    if (replace_add.equals("true")) {
+                        replace_add_bool = true;
+                    }
+                    add_story_line("optionC", add_value, replace_add_bool, add_line);
+                }
+                // add_story_line(add_line, add_value);
+//                Log.e("temp", "cool " + found_extra);
+
+                XML_ini_q_or_map(goto_id, output_questionfile);
 
 
                 // XML_ini_questionairre();
@@ -397,11 +601,175 @@ public class Questionnaire extends Activity {
             }
         } ) ;
 
-
-        lin_lay_q.addView(question_tv);
         awnser_id = awnser_id +1;
 
         return question_tv;
 
     }
+
+    public void set_squarre_size(Integer totx_squarres, Integer toty_squarres)
+    {
+        View fullscreen_element = findViewById(R.id.frame_layout_q);
+        Integer height = ( fullscreen_element.getHeight() -3) / toty_squarres;
+        Integer width = (fullscreen_element.getWidth() -3) / totx_squarres;
+        if(height> width)
+        {
+            squarre_size = width;
+        }
+        else
+        {
+            squarre_size = height;
+        }
+//        Log.e("MAP", "height " + height);
+//        Log.e("MAP", "width " + width);
+        squarre_size =squarre_size -2;
+        if(squarre_size < 10)
+        {
+            squarre_size = 10;
+        }
+
+
+    }
+    public void read_rows(String input_xml, Integer y_tel_squarres)
+    {
+        input_xml = input_xml.replace("\n", "");
+        input_xml = input_xml.replace("\t", "");
+        input_xml = input_xml.replace(" ", "");
+        Integer tel_field_x = 0;
+        int found_value_i = 0;
+        int index_data_komma = (input_xml.indexOf(","));
+        while (index_data_komma != -1)
+        {
+            String found_value_s = input_xml.substring(0, index_data_komma);
+            found_value_i = Integer.parseInt(found_value_s);
+
+            input_xml = input_xml.substring((index_data_komma + 1), (input_xml.length()));
+
+            draw_field.draw_squarre(tel_field_x, y_tel_squarres, found_value_i, bitmap_field, squarre_size);
+
+            tel_field_x = tel_field_x+1;
+            index_data_komma = (input_xml.indexOf(","));
+        }
+    }
+
+
+    public String find_value_in_xml(String add_line_id, String value_id)
+    {
+        String return_string = "";
+        Document reterned_doc = null;
+        if(XML_user_info_doc == null) {
+            try {
+                reterned_doc = XML_IO.open_document_xml("user_info_" + this_world);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (XmlPullParserException e) {
+                e.printStackTrace();
+            }
+        }
+        else {
+            reterned_doc = XML_user_info_doc;
+        }
+        NodeList nodes_find = reterned_doc.getElementsByTagName(add_line_id);
+        if(nodes_find != null)
+        {
+            Node node_find = nodes_find.item(0);
+            if(node_find != null) {
+                NamedNodeMap temp_atr = node_find.getAttributes();
+
+                Node node_temp_atr = temp_atr.getNamedItem(value_id);
+                if (node_temp_atr != null) {
+                    return_string = node_temp_atr.getTextContent();
+
+                }
+            }
+        }
+
+        return return_string;
+    }
+
+
+    public void add_story_line(String add_line_id, String add_value, Boolean Freplace_or_Tadd, String value_id)
+    {
+        Document reterned_doc = null;
+        if(XML_user_info_doc == null) {
+            try {
+                reterned_doc = XML_IO.open_document_xml("user_info_" + this_world);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (XmlPullParserException e) {
+                e.printStackTrace();
+            }
+        }
+        else {
+            reterned_doc = XML_user_info_doc;
+        }
+        if(reterned_doc == null) {
+            Element new_world_lines = reterned_doc.createElement(this_world + "_story_lines");
+            Node parent_lines_node = reterned_doc.appendChild(new_world_lines);
+
+            Element new_line = reterned_doc.createElement(add_line_id);
+            new_line.setAttribute(value_id, add_value);
+            parent_lines_node.appendChild(new_line);
+        }
+
+        else
+        {
+            NodeList nodes_world_lines = reterned_doc.getElementsByTagName(this_world+"_story_lines");
+            Node parent_lines_node = null;
+            if(nodes_world_lines.getLength() == 0) {
+                Element new_world_lines = reterned_doc.createElement(this_world + "_story_lines");
+                parent_lines_node = reterned_doc.appendChild(new_world_lines);
+            }
+            else
+            {
+                parent_lines_node = nodes_world_lines.item(0);
+            }
+
+            NodeList nodes_new_line = reterned_doc.getElementsByTagName(add_line_id);
+            if(nodes_new_line.getLength() == 0)
+            {
+                Element new_line = reterned_doc.createElement(add_line_id);
+                new_line.setAttribute(value_id, add_value);
+                parent_lines_node.appendChild(new_line);
+            }
+            else
+            {
+                Node node_found = nodes_new_line.item(0);
+
+                NamedNodeMap temp_atr = node_found.getAttributes();
+                Node node_temp_atr = temp_atr.getNamedItem(value_id);
+                if(node_temp_atr == null)
+                {
+                    Attr atribute_new = reterned_doc.createAttribute(add_value);
+                    node_temp_atr.appendChild(atribute_new);
+                }
+                else
+                {
+                    node_temp_atr.setTextContent(add_value);
+                }
+
+                if(Freplace_or_Tadd == true)
+                {
+                    String node_temp_atr_s = node_temp_atr.getTextContent();
+
+                    Integer node_temp_atr_i = Integer.parseInt(node_temp_atr_s);
+                    node_temp_atr_i = node_temp_atr_i + Integer.parseInt(add_value);
+                    node_temp_atr.setTextContent(node_temp_atr_i.toString());
+                }
+            }
+        }
+
+
+        XML_user_info_doc = reterned_doc;
+        try {
+            XML_IO.save_XML("user_info_"+this_world, reterned_doc);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (XmlPullParserException e) {
+            e.printStackTrace();
+        }
+
+
+    }
+
 }

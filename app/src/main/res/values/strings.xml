@@ -9,4 +9,6 @@
 
     <string name="title_activity_luuk_tests">LuukTests</string>
 
+
+    <item type="id" name="drawfield_id" />
 </resources>

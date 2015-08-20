@@ -38,7 +38,7 @@
 
             <Button
                 style="?metaButtonBarButtonStyle"
-                android:id="@+id/button"
+                android:id="@+id/button_luuk"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:text="Test Luuk"
@@ -60,7 +60,7 @@
 
             <Button
                 style="?metaButtonBarButtonStyle"
-                android:id="@+id/button"
+                android:id="@+id/button_teun"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:text="Test Teun"
@@ -85,7 +85,7 @@
                 android:layout_width="fill_parent"
                 android:layout_height="118dp"
                 android:id="@+id/textbox_mainmenu"
-                android:text="Set world1_q1a from hard code"
+                android:text="Set 3 XML files"
                 android:onClick="update_text_mainmenu"
                 android:longClickable="true"
                 android:focusable="true"
