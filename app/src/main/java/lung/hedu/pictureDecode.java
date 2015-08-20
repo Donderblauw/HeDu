@@ -25,7 +25,7 @@ public class pictureDecode
     0 - left / links
     1 - right / rechts
     2 - top / boven
-    4 - bottom / onder
+    3 - bottom / onder
     */
     private double[][] Lines = new double[4][4];
     private boolean[] lockLines = new boolean[4];
@@ -189,88 +189,6 @@ public class pictureDecode
         }
 
         this.setFieldCorners();
-
-        /*double closestToTopLeft = 0;
-        int[] pixelTL = new int[2];
-        double closestToBottomLeft = 0;
-        int[] pixelBL = new int[2];
-        double closestToTopRight = 0;
-        int[] pixelTR = new int[2];
-        double closestToBottomRight = 0;
-        int[] pixelBR = new int[2];
-
-        int[] num = new int[4];
-
-        for(int xPixel = 0; xPixel < this.getWidth(); xPixel++)
-        {
-            for(int yPixel = 0; yPixel < this.getHeight(); yPixel++)
-            {
-                if(arrayPic[xPixel][yPixel] == 1)
-                {
-                    if(Math.sqrt((xPixel^2) + (yPixel^2)) < closestToTopLeft || closestToTopLeft == 0)
-                    {
-                        closestToTopLeft = Math.sqrt((xPixel^2) + (yPixel^2));
-                        pixelTL[0] = xPixel;
-                        pixelTL[1] = yPixel;
-                        num[0]++;
-                    }
-                    else if(Math.sqrt((xPixel^2) + ((this.getHeight() - yPixel)^2)) < closestToBottomLeft || closestToBottomLeft == 0)
-                    {
-                        closestToBottomLeft = Math.sqrt((xPixel^2) + ((this.getHeight() - yPixel)^2));
-                        pixelBL[0] = xPixel;
-                        pixelBL[1] = yPixel;
-                        num[1]++;
-                    }
-                    else if(Math.sqrt((xPixel^2) + ((this.getHeight() - yPixel)^2)) < closestToTopRight || closestToTopRight == 0)
-                    {
-                        closestToTopRight = Math.sqrt(((this.getWidth() - xPixel)^2) + (yPixel^2));
-                        pixelTR[0] = xPixel;
-                        pixelTR[1] = yPixel;
-                        num[2]++;
-                    }
-                    else if(Math.sqrt((xPixel^2) + ((this.getHeight() - yPixel)^2)) < closestToBottomRight || closestToBottomRight == 0)
-                    {
-                        closestToBottomRight = Math.sqrt(((this.getWidth() - xPixel)^2) + ((this.getHeight() - yPixel)^2));
-                        pixelBR[0] = xPixel;
-                        pixelBR[1] = yPixel;
-                        num[3]++;
-                    }
-                }
-            }
-        }
-
-        if(closestToTopLeft != 0 && closestToBottomLeft != 0 && closestToTopRight != 0 && closestToBottomRight != 0)
-        {
-            double StraitnessLeft = ((double)(pixelBL[0] - pixelTL[0]) / (pixelBL[1] - pixelTL[1]));
-            double StraitnessRight = ((double)(pixelBR[0] - pixelTR[0]) / (pixelBR[1] - pixelTR[1]));
-            double StraitnessTop = ((double)(pixelTR[1] - pixelTL[1]) / (pixelTR[0] - pixelTL[0]));
-            double StraitnessBottom = ((double)(pixelBR[1] - pixelBL[1]) / (pixelBR[0] - pixelBL[0]));
-            Log.i("Decoded picture check", "The StraitnessLeft is;" + StraitnessLeft);
-            Log.i("Decoded picture check", "The StraitnessRight is;" + StraitnessRight);
-            Log.i("Decoded picture check", "The StraitnessTop is;" + StraitnessTop);
-            Log.i("Decoded picture check", "The StraitnessBottom is;" + StraitnessBottom);
-
-            if(StraitnessLeft == StraitnessRight && StraitnessTop == StraitnessBottom && StraitnessTop == StraitnessLeft)
-            {
-                Log.i("Decoded picture check", "This looks like a perfect white rectangle.");
-            }
-            else if(Math.abs(StraitnessLeft - StraitnessRight) <= 1 && Math.abs(StraitnessTop - StraitnessBottom) <= 1)
-            {
-                Log.i("Decoded picture check", "This looks like a proper white rectangle.");
-            }
-            else if(Math.abs(StraitnessLeft - StraitnessRight) <= 1 || Math.abs(StraitnessTop - StraitnessBottom) <= 1)
-            {
-                Log.i("Decoded picture check", "This looks almost like a proper white rectangle.");
-            }
-            else
-            {
-                Log.i("Decoded picture check", "This ain't a proper white rectangle.");
-            }
-        }
-        else
-        {
-            Log.e("Decoded picture check", "Could not find the 4 corners of a white rectangle.");
-        }*/
     }
 
     public Bitmap ArrayToBitmap()
@@ -284,27 +202,27 @@ public class pictureDecode
                 {
                     if(this.arrayPic[x][y] == 1)
                     {
-                        bmp.setPixel(x, y, Color.BLUE);
+                        bmp.setPixel(x, this.getHeight() - 1 - y, Color.BLUE);
                     }
                     else if(this.arrayPic[x][y] == 0)
                     {
-                        bmp.setPixel(x, y, Color.GREEN);
+                        bmp.setPixel(x, this.getHeight() - 1 - y, Color.GREEN);
                     }
                     else if(this.arrayPic[x][y] == 2)
                     {
-                        bmp.setPixel(x, y, Color.RED);
+                        bmp.setPixel(x, this.getHeight() - 1 - y, Color.RED);
                     }
                     else if(this.arrayPic[x][y] == 3)
                     {
-                        bmp.setPixel(x, y, Color.MAGENTA);
+                        bmp.setPixel(x, this.getHeight() - 1 - y, Color.MAGENTA);
                     }
                     else if(this.arrayPic[x][y] == 4)
                     {
-                        bmp.setPixel(x, y, Color.BLACK);
+                        bmp.setPixel(x, this.getHeight() - 1 - y, Color.BLACK);
                     }
                     else
                     {
-                        bmp.setPixel(x, y, Color.BLACK);
+                        bmp.setPixel(x, this.getHeight() - 1 - y, Color.BLACK);
                     }
                 }
             }
@@ -411,19 +329,17 @@ public class pictureDecode
 
             if(y == end1)
             {
-                Log.e("CLL", "first part checked");
                 y = start2 -1;
             }
             else if(y == end2)
             {
-                Log.e("CLL", "second part checked");
                 y = start3 -1;
             }
         }
 
         this.dotsLeft = LeftDots;
 
-        return calculateSpecLine(LeftDots, false);
+        return calculateSpecLine(LeftDots, false, false);
     }
 
     public void calculateRightLine()
@@ -520,9 +436,10 @@ public class pictureDecode
 
         this.dotsRight = RightDots;
 
-        return calculateSpecLine(RightDots, false);
+        return calculateSpecLine(RightDots, false, false);
     }
 
+    //TODO: make it Bottom insteadof Top
     public void calculateTopLine()
     {
         double[] line = findTopLine();
@@ -556,15 +473,18 @@ public class pictureDecode
             TopDots[j][0] = x;
             int y = 0;
             allow = true;
-            for(int yc = 0; yc < this.picture2.getHeight() - 1; yc++)
+            //for(int yc = 0; yc < this.picture2.getHeight() - 1; yc++)
+            for(int yc = this.picture2.getHeight() - 1; yc > 0; yc--)
             {
                 value = this.arrayPic[x][yc];
                 if(value == 1 && allow)
                 {
-                    if(yc == 0)
+                    //if(yc == 0)
+                    if(yc == this.picture2.getHeight() - 1)
                     {
                         int num = 0;
-                        for(int l = yc; l < (yc + this.bufLength); l++)
+                        //for(int l = yc; l < (yc + this.bufLength); l++)
+                        for(int l = yc; l > (yc - this.bufLength); l--)
                         {
                             value2 = this.arrayPic[x][l];
                             if(value2 == 1)
@@ -587,7 +507,8 @@ public class pictureDecode
                 else if(value != 1 && !allow)
                 {
                     int num = 0;
-                    for(int l = yc; l < (yc + this.bufLength); l++)
+                    //for(int l = yc; l < (yc + this.bufLength); l++)
+                    for(int l = yc; l < (yc - this.bufLength); l--)
                     {
                         value2 = this.arrayPic[x][l];
                         if(value2 != 1)
@@ -616,9 +537,10 @@ public class pictureDecode
 
         this.dotsTop = TopDots;
 
-        return calculateSpecLine(TopDots, true);
+        return calculateSpecLine(TopDots, true, false);
     }
 
+    //TODO: make it Top insteadof Bottom
     public void calculateBottomLine()
     {
         double[] line = findBottomLine();
@@ -652,15 +574,18 @@ public class pictureDecode
             BottomDots[j][0] = x;
             int y = 0;
             allow = true;
-            for(int yc = this.picture2.getHeight() - 1; yc > 0; yc--)
+            //for(int yc = this.picture2.getHeight() - 1; yc > 0; yc--)
+            for(int yc = 0; yc < this.picture2.getHeight() - 1; yc++)
             {
                 value = this.arrayPic[x][yc];
                 if(value == 1 && allow)
                 {
-                    if(yc == this.picture2.getHeight() - 1)
+                    //if(yc == this.picture2.getHeight() - 1)
+                    if(yc == 0)
                     {
                         int num = 0;
-                        for(int l = yc; l > (yc - this.bufLength); l--)
+                        //for(int l = yc; l > (yc - this.bufLength); l--)
+                        for(int l = yc; l < (yc + this.bufLength); l++)
                         {
                             value2 = this.arrayPic[x][l];
                             if(value2 == 1)
@@ -683,7 +608,8 @@ public class pictureDecode
                 else if(value != 1 && !allow)
                 {
                     int num = 0;
-                    for(int l = yc; l > (yc - this.bufLength); l--)
+                    //for(int l = yc; l > (yc - this.bufLength); l--)
+                    for(int l = yc; l < (yc + this.bufLength); l++)
                     {
                         value2 = this.arrayPic[x][l];
                         if(value2 != 1)
@@ -712,7 +638,7 @@ public class pictureDecode
 
         this.dotsBottom = BottomDots;
 
-        return calculateSpecLine(BottomDots, true);
+        return calculateSpecLine(BottomDots, true, false);
     }
 
     public void giveRow(int numRow)
@@ -741,7 +667,7 @@ public class pictureDecode
         return Math.abs(pLine1 - pLine2);
     }
 
-    public double[] calculateSpecLine(int[][] Dots, boolean toX)
+    public double[] calculateSpecLine(int[][] Dots, boolean toX, boolean extraCheck)
     {
         int times = 6;
         int numDots = Dots.length;
@@ -783,12 +709,20 @@ public class pictureDecode
             line[0] = b;
             line[1] = a;
         }
-        Log.i("Picture Decode","Calculated line; y = "+line[1]+" + "+line[0]+"x with correlation r2 = "+line[2]+". Within "+times+" times");
-        double[] retLine = new double[4];
+        Log.i("Calc. Line" , "Calculated line; y = "+line[1]+" + "+line[0]+"x with correlation r2 = "+line[2]+". Within "+times+" times and with " +numDots+ " dots remaining");
+        double[] retLine = new double[5];
         retLine[0] = line[0];
         retLine[1] = line[1];
         retLine[2] = line[2];
         retLine[3] = times;
+        retLine[4] = numDots;
+
+        if(extraCheck)
+        {
+            Dots = switchDotsXY(Dots);
+            showDotsOnField(Dots);
+        }
+
         return retLine;
     }
 
@@ -828,7 +762,7 @@ public class pictureDecode
             newDots[i] = dotsList.get(i);
         }
 
-        Log.i("DPCC", dotsList.size() + " out of " + numDots + " dots passed.");
+        //Log.i("DPCC", dotsList.size() + " out of " + numDots + " dots passed.");
         return newDots;
     }
 
@@ -863,7 +797,7 @@ public class pictureDecode
             sxy = sxy + ((double)Dotvalues[0] * (double)Dotvalues[1]);
         }
 
-        //Je krijgt een lijn in vorm van y= 'a' + 'b' * x
+        //Je krijgt een lijn in vorm van y= 'a' + 'b' * x, ookwel y= '[1]' + '[0]' * x
         double gx = sx / numDots;
         double gy = sy / numDots;
 
@@ -891,6 +825,7 @@ public class pictureDecode
     {
         int numDots = Dots.length;
         int[][] newDots = new int[numDots][2];
+        Log.i("Calculate Line", "Switching dots X and Y components");
         for(int i = 0; i < numDots; i++)
         {
             int DotNewX = Dots[i][1];
@@ -986,32 +921,37 @@ public class pictureDecode
                 {
                     if(this.arrayField[x][y] == 1)
                     {
-                        bmp.setPixel(x, y, Color.BLUE);
+                        bmp.setPixel(x, height - 1 - y, Color.BLUE);
                         n++;
                     }
                     else if(this.arrayField[x][y] == 0)
                     {
-                        bmp.setPixel(x, y, Color.GREEN);
+                        bmp.setPixel(x, height - 1 - y, Color.GREEN);
                         n++;
                     }
                     else if(this.arrayField[x][y] == 2)
                     {
-                        bmp.setPixel(x, y, Color.RED);
+                        bmp.setPixel(x, height - 1 - y, Color.RED);
                         n++;
                     }
                     else if(this.arrayField[x][y] == 3)
                     {
-                        bmp.setPixel(x, y, Color.MAGENTA);
+                        bmp.setPixel(x, height - 1 - y, Color.MAGENTA);
                         n++;
                     }
                     else if(this.arrayField[x][y] == 4)
                     {
-                        bmp.setPixel(x, y, Color.BLACK);
+                        bmp.setPixel(x, height - 1 - y, Color.BLACK);
+                        n++;
+                    }
+                    else if(this.arrayField[x][y] == 5)
+                    {
+                        bmp.setPixel(x, height - 1 - y, Color.YELLOW);
                         n++;
                     }
                     else
                     {
-                        bmp.setPixel(x, y, Color.BLACK);
+                        bmp.setPixel(x, height - 1 - y, Color.BLACK);
                         n++;
                     }
                 }
@@ -1037,19 +977,19 @@ public class pictureDecode
 
         Corners[0][0] = (int) ((Lines[0][1] - Lines[2][1])/(Lines[2][0] - Lines[0][0]));
         Corners[0][1] = (int) ((Lines[0][1]*Lines[2][0] - Lines[2][1]*Lines[0][0])/(Lines[2][0] - Lines[0][0]));
-        Log.i("SetCorners","BL corner[0]=["+Corners[0][0]+","+Corners[0][1]+"]");
+        Log.i("SetCorners","TL corner[0]=["+Corners[0][0]+","+Corners[0][1]+"]");
 
         Corners[1][0] = (int) ((Lines[0][1] - Lines[3][1])/(Lines[3][0] - Lines[0][0]));
         Corners[1][1] = (int) ((Lines[0][1]*Lines[3][0] - Lines[3][1]*Lines[0][0])/(Lines[3][0] - Lines[0][0]));
-        Log.i("SetCorners","TL corner[1]=["+Corners[1][0]+","+Corners[1][1]+"]");
+        Log.i("SetCorners","BL corner[1]=["+Corners[1][0]+","+Corners[1][1]+"]");
 
         Corners[2][0] = (int) ((Lines[1][1] - Lines[2][1])/(Lines[2][0] - Lines[1][0]));
         Corners[2][1] = (int) ((Lines[1][1]*Lines[2][0] - Lines[2][1]*Lines[1][0])/(Lines[2][0] - Lines[1][0]));
-        Log.i("SetCorners","BR corner[2]=["+Corners[2][0]+","+Corners[2][1]+"]");
+        Log.i("SetCorners","TR corner[2]=["+Corners[2][0]+","+Corners[2][1]+"]");
 
         Corners[3][0] = (int) ((Lines[1][1] - Lines[3][1])/(Lines[3][0] - Lines[1][0]));
         Corners[3][1] = (int) ((Lines[1][1]*Lines[3][0] - Lines[3][1]*Lines[1][0])/(Lines[3][0] - Lines[1][0]));
-        Log.i("SetCorners","TR corner[3]=["+Corners[3][0]+","+Corners[3][1]+"]");
+        Log.i("SetCorners","BR corner[3]=["+Corners[3][0]+","+Corners[3][1]+"]");
 
         this.FieldCorners = Corners;
     }
@@ -1106,14 +1046,14 @@ public class pictureDecode
         for(int xPixel = 0; xPixel < length; xPixel++)
         {
             x = xPixel + lengths[0];
-            valueTop = (int) (this.Lines[3][1] + this.Lines[3][0]*x);
-            valueBottom = (int) (this.Lines[2][1] + this.Lines[2][0]*x);
+            valueTop = (int) (this.Lines[2][1] + this.Lines[2][0]*x);
+            valueBottom = (int) (this.Lines[3][1] + this.Lines[3][0]*x);
 
-            if(valueBottom > heightMin)
+            if(valueBottom < heightMin)
             {
                 valueBottom = heightMin;
             }
-            if(valueTop < heightMax)
+            if(valueTop > heightMax)
             {
                 valueTop = heightMax;
             }
@@ -1165,9 +1105,12 @@ public class pictureDecode
                     int color = this.getPixel(x, y);
                     int colorGray = Color.blue(color) + Color.green(color) + Color.red(color);
                     this.arrayFieldGray[xPixel][yPixel] = colorGray;
-                    if (colorGray < lowestGray) {
+                    if (colorGray < lowestGray)
+                    {
                         lowestGray = colorGray;
-                    } else if (colorGray > highestGray) {
+                    }
+                    else if (colorGray > highestGray)
+                    {
                         highestGray = colorGray;
                     }
                 }
@@ -1179,7 +1122,7 @@ public class pictureDecode
         n=0;
         for(int xPixel = 0; xPixel < length; xPixel++)
         {
-
+            boolean firstBlue = false;
             for (int yPixel = 0; yPixel < height; yPixel++)
             {
                 int gray = this.arrayFieldGray[xPixel][yPixel];
@@ -1187,65 +1130,326 @@ public class pictureDecode
                 {
                     n++;
                 }
-                else if(gray >= (int)(highestGray * (1-tolerance)) /*&& yPixel > valueBottom && yPixel < valueTop*/)
+                else if( gray >= (int)(highestGray * (1-tolerance)) )
                 {
                     this.arrayField[xPixel][yPixel] = 1;
+                    firstBlue = true;
+                }
+                else if(firstBlue)
+                {
+                    this.arrayField[xPixel][yPixel] = 2;
                 }
                 else
                 {
-                    this.arrayField[xPixel][yPixel] = 2;
+                    this.arrayField[xPixel][yPixel] = 1;
                 }
             }
         }
         Log.i("SetField", "n="+n);
+
+        for(int xPixel = 0; xPixel < length; xPixel++)
+        {
+            for (int yPixel = height - 1; yPixel > 0; yPixel--)
+            {
+                int colorCode = this.arrayField[xPixel][yPixel];
+                if(colorCode == 1)
+                {
+                    break;
+                }
+                else if(colorCode == 2)
+                {
+                    this.arrayField[xPixel][yPixel] = 1;
+                }
+            }
+        }
+        for(int yPixel = 0; yPixel < height; yPixel++)
+        {
+            for (int xPixel = 0; xPixel < length; xPixel++)
+            {
+                int colorCode = this.arrayField[xPixel][yPixel];
+                if(colorCode == 1)
+                {
+                    break;
+                }
+                else if(colorCode == 2)
+                {
+                    this.arrayField[xPixel][yPixel] = 1;
+                }
+            }
+        }
+        for(int yPixel = 0; yPixel < height; yPixel++)
+        {
+            for (int xPixel = length - 1; xPixel > 0; xPixel--)
+            {
+                int colorCode = this.arrayField[xPixel][yPixel];
+                if(colorCode == 1)
+                {
+                    break;
+                }
+                else if(colorCode == 2)
+                {
+                    this.arrayField[xPixel][yPixel] = 1;
+                }
+            }
+        }
     }
 
     public void decodeField()
     {
         int[] middelpoint = new int[2];
+        int length = this.arrayField.length;
+        int height = this.arrayField[0].length;
         boolean paperHorizontal = true, fieldHorizontal = true;
 
         middelpoint[0] = (int) (0.25 * (this.getTopLeftCorner()[0] + this.getTopRightCorner()[0] + this.getBottomLeftCorner()[0] + this.getBottomRightCorner()[0]) - this.startingPoint[0]);
-        middelpoint[1] = (int) (0.25 * (this.getTopLeftCorner()[1] + this.getTopRightCorner()[1] + this.getBottomLeftCorner()[1] + this.getBottomRightCorner()[1]) + this.arrayField[0].length - this.startingPoint[1]);
+        middelpoint[1] = (int) (0.25 * (this.getTopLeftCorner()[1] + this.getTopRightCorner()[1] + this.getBottomLeftCorner()[1] + this.getBottomRightCorner()[1]) - this.startingPoint[1]);
 
         if(paperHorizontal && fieldHorizontal)
         {
-            double b = 0.5 * (this.Lines[2][1] + this.Lines[3][1]);
+            List<double[]> listLinesV = new ArrayList<>();
+            double b = 0.5 * (this.Lines[0][0] + this.Lines[1][0]);
             double a = middelpoint[1] - (b * middelpoint[0]);
-            Log.e("FML", "a="+a+"; b="+b);
-            double[] groundLine = getLineFromField(a, b, 10, 2);
-            showLineOnField(groundLine, "Ground Line");
+            int range = 10;
+            int n = 0;
+            double aDiv = (-4 * range * b * Math.sqrt((1/(b*b))+1));
+            double xDivM = 0;
+            boolean toRight = true;
+
+            do
+            {
+                double[] line = getLineFromField(a, b, range, 2);
+                if(line[4] > (0.5 * height) )
+                {
+                    n++;
+                    listLinesV.add(line);
+                    showLineOnField(line, "Vertical line " + n, 5);
+                    b = line[0];
+                    a = line[1];
+                    aDiv = (-4 * range * b * Math.sqrt((1/(b*b))+1));
+                }
+                Log.i("decField", "numDotsFound = " + line[4]);
+
+                if(toRight)
+                {
+                    a += aDiv;
+                }
+                else
+                {
+                    a -= aDiv;
+                }
+
+                if((((0.25 * height)-a)/b) > length)
+                {
+                    a = middelpoint[1] - (b * middelpoint[0]) - aDiv;
+                    toRight = false;
+                }
+                else if((((0.5 * height)-a)/b) < 0)
+                {
+                    Log.e("Field decode", "Fatal: Could not find 2 vertical lines in given field!!!");
+                    break;
+                }
+            }
+            while( !(n >= 2) );
+
+            if(n >= 2)
+            {
+                if(!toRight)
+                {
+                    a += aDiv;
+                }
+                else
+                {
+                    a -= aDiv;
+                }
+
+                xDivM = Math.abs( (((height * 0.5) - listLinesV.get(0)[1]) / listLinesV.get(0)[0]) - (((height * 0.5) - listLinesV.get(1)[1]) / listLinesV.get(1)[0]) );
+                aDiv = Math.abs(xDivM * b);
+                if((toRight == true && b < 0) || (toRight == false && b > 0))
+                {
+                    a += aDiv;
+                }
+                else
+                {
+                    a -= aDiv;
+                }
+
+                while((((0.25 * height)-a)/b) > 0)
+                {
+                    double[] line2 = new double[2];
+                    line2[0] = b;
+                    line2[1] = a;
+
+                    double[] line = getLineFromField(a, b, range, 2);
+
+                    if(line[4] > (0.5 * height) )
+                    {
+                        n++;
+                        listLinesV.add(line);
+                        showLineOnField(line, "Vertical line " + n, 5);
+                        b = line[0];
+                        a = line[1];
+                        aDiv = Math.abs(xDivM * b);
+                    }
+                    Log.i("decField", "numDotsFound = " + line[4]);
+
+                    if((toRight == true && b < 0) || (toRight == false && b > 0))
+                    {
+                        a += aDiv;
+                    }
+                    else
+                    {
+                        a -= aDiv;
+                    }
+
+                    if((((0.5 * height)-a)/b) > length)
+                    {
+                        a = listLinesV.get(0)[1];
+                        b = listLinesV.get(0)[0];
+                        aDiv = Math.abs(xDivM * b);
+
+                        toRight = false;
+                        if(b > 0)
+                        {
+                            a += aDiv;
+                        }
+                        else
+                        {
+                            a -= aDiv;
+                        }
+                    }
+                }
+
+                //
+                // Check for horizontal lines
+                //
+                List<double[]> listLinesH = new ArrayList<>();
+                b = 0.5 * (this.Lines[2][0] + this.Lines[3][0]);
+                a = middelpoint[1] - (b * middelpoint[0]);
+                boolean toBottom = true;
+                n = 0;
+
+                do
+                {
+                    double[] line = getLineFromField(a, b, range, 2);
+                    if(line[4] > (0.25 * length) )
+                    {
+                        n++;
+                        listLinesH.add(line);
+                        showLineOnField(line, "Horizontal line " + n, 5);
+                        b = line[0];
+                        a = line[1];
+                        aDiv = (-4 * range * b * Math.sqrt((1/(b*b))+1));
+                    }
+                    Log.i("decField", "numDotsFound = " + line[4]);
+
+                    if(toBottom)
+                    {
+                        a -= aDiv;
+                    }
+                    else
+                    {
+                        a += aDiv;
+                    }
+
+                    if((a+ (b * 0.5 * length)) < 0)
+                    {
+                        a = middelpoint[1] - (b * middelpoint[0]) - aDiv;
+                        toBottom = false;
+                    }
+                    else if((a+ (b * 0.5 * length)) > height)
+                    {
+                        Log.e("Field decode", "Fatal: Could not find 1 horizontal line in given field!!!");
+                        break;
+                    }
+                }
+                while( !(n >= 1) );
+
+                if(n >= 1)
+                {
+                    if(toBottom)
+                    {
+                        a += aDiv;
+                    }
+                    else
+                    {
+                        a -= aDiv;
+                    }
+
+                    //TODO: find better soluution which uses the last found vertical lines
+                    //xDivM = Math.abs( (listLinesV.get(0)[1] + (0.5 * length * listLinesV.get(0)[0])) - (listLinesV.get(1)[1] + (0.5 * length * listLinesV.get(1)[0])) );
+                    aDiv = xDivM;
+                    if(toBottom)
+                    {
+                        a -= aDiv;
+                    }
+                    else
+                    {
+                        a += aDiv;
+                    }
+
+                    while((a+ (b * 0.5 * length)) < height && n <= 20)
+                    {
+                        double[] line2 = new double[2];
+                        line2[0] = b;
+                        line2[1] = a;
+
+                        double[] line = getLineFromField(a, b, range, 2);
+
+                        if(line[4] > (0.25 * length) )
+                        {
+                            n++;
+                            listLinesH.add(line);
+                            showLineOnField(line, "Horizontal Line " + n, 5);
+                            b = line[0];
+                            a = line[1];
+                        }
+                        Log.i("decField", "numDotsFound = " + line[4]);
+
+                        if(toBottom)
+                        {
+                            a -= aDiv;
+                        }
+                        else
+                        {
+                            a += aDiv;
+                        }
+
+                        if((a+ (b * 0.5 * length)) < 0)
+                        {
+                            a = listLinesH.get(0)[1];
+                            b = listLinesH.get(0)[0];
+
+                            toBottom = false;
+                            a += aDiv;
+                        }
+                    }
+                }
+            }
         }
     }
 
-    //TODO: fix number of pixels checked
     public double[] getLineFromField(double expectedA, double expectedB, int R, int ColorCode)
     {
         int length = this.arrayField.length;
         int height = this.arrayField[0].length;
-        Log.e("FML", "length="+length+"; height="+height);
+        Log.e("GLFF", "length = " + length + "; heigth  = " + height);
         int left, right, x, num = 0;
-        boolean toX = true;
+        boolean toX = false;
         if(expectedB > -1 && expectedB < 1)
         {
             Log.i("FML", "switching X and Y!");
-            toX = false;
+            toX = true;
             int buf = length;
-            // TODO: check if this should be used
             length = height;
             height = buf;
             expectedA = -expectedA/expectedB;
             expectedB = 1/expectedB;
         }
-        int range = (int) Math.sqrt((R*R) + ( (R*R)/(expectedB*expectedB) ));
-        Log.i("FML", "range="+range);
-        int[] Dot = new int[2];
+        int range = (int) Math.sqrt((R * R) + ((R * R) / (expectedB * expectedB)));
         List<int[]> listDots = new ArrayList<>();
-        //TODO: this is wrong; this should check for yPixel
         for(int yPixel = 0; yPixel < height; yPixel++)
         {
             x = (int) ((yPixel - expectedA) / expectedB);
-            //Log.i("FML", "y="+y);
 
             left = x - range;
             if(left < 0)
@@ -1253,59 +1457,41 @@ public class pictureDecode
                 left = 0;
             }
             right = x + range;
-            if(right > height)
+            if(right > length)
             {
-                right = height - 1;
+                right = length - 1;
             }
-
-            //Log.i("FML", "range: "+bottom+" - "+top);
 
             for(int xPixel = left; xPixel <= right; xPixel++, num++)
             {
-                //Log.e("FML", "X = " + xPixel);
+                int[] Dot = new int[2];
 
-                if(xPixel == 987)
-                {
-                    Log.e("FML","This shouldn't be");
-                }
-                else if(yPixel >= 987)
-                {
-                    Log.e("FML","This should not be");
-                }
-
-                if(this.arrayField[xPixel][yPixel] == 2 && toX)
+                if(!toX && this.arrayField[xPixel][yPixel] == 2)
                 {
                     Dot[0] = xPixel;
                     Dot[1] = yPixel;
-                    //Log.i("FML", "Dot found ["+xPixel+";"+yPixel+"]");
                     listDots.add(Dot);
                 }
-                else if(this.arrayField[yPixel][xPixel] == 2 && !toX)
+                else if(toX && this.arrayField[yPixel][xPixel] == 2)
                 {
                     Dot[1] = xPixel;
                     Dot[0] = yPixel;
-                    //Log.i("FML", "Dot found ["+yPixel+";"+xPixel+"]");
                     listDots.add(Dot);
                 }
             }
         }
-
-        Log.i("FML", "Num of Dots checked: " + num);
 
         int[][] Dots = new int[listDots.size()][2];
         for(int n = 0; n < listDots.size(); n++)
         {
-            Dot = listDots.get(n);
-            Dots[n][0] = Dot[0];
-            Dots[n][1] = Dot[1];
-            Log.i("FML", "Dot "+n+" added; ["+Dots[n][0]+";"+Dots[n][1]+"]");
+            Dots[n] = listDots.get(n);
         }
 
         double line[];
 
-        line = calculateSpecLine(Dots, toX);
+        line = calculateSpecLine(Dots, toX, false);
 
-        showDotsOnField(Dots);
+        //showDotsOnField(Dots);
 
         return line;
     }
@@ -1320,19 +1506,19 @@ public class pictureDecode
         }
     }
 
-    public void showLineOnField(double line[], String lineName)
+    public void showLineOnField(double line[], String lineName, int colorCode)
     {
         int numx = this.arrayField.length;
         int numy = this.arrayField[0].length;
         int n = 0;
-        if(line[1] < 1 && line[1] > -1)
+        if(line[0] < 1 && line[0] > -1)
         {
             for(int i = 0; i < numx; i++)
             {
-                int yvalue = (int) (line[0] + (line[1] * i));
+                int yvalue = (int) (line[1] + (line[0] * i));
                 if(numy > yvalue && 0 < yvalue)
                 {
-                    this.arrayPic[i][yvalue] = 3;
+                    this.arrayField[i][yvalue] = colorCode;
                     n++;
                 }
             }
@@ -1341,14 +1527,14 @@ public class pictureDecode
         {
             for(int i = 0; i < numy; i++)
             {
-                int xvalue = (int) ((i - line[0]) / line[1]);
+                int xvalue = (int) ((i - line[1]) / line[0]);
                 if(numx > xvalue && 0 < xvalue)
                 {
-                    this.arrayPic[xvalue][i] = 3;
+                    this.arrayField[xvalue][i] = colorCode;
                     n++;
                 }
             }
         }
-        Log.i("Decoded picture lines", lineName +"; drawn. "+ n +" pixels set.");
+        Log.i("Decoded picture lines", lineName +", y = " + line[1] + " + " + line[0] + " * x ; drawn. "+ n +" pixels set.");
     }
 }

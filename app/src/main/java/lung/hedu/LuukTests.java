@@ -208,7 +208,7 @@ public class LuukTests extends Activity {
 
     public void readField(View view)
     {
-        bmp = FileIO.loadBMPPrivate("veld2", Bitmap.CompressFormat.JPEG);
+        bmp = FileIO.loadBMPPrivate("veld4", Bitmap.CompressFormat.JPEG);
         if (bmp != null)
         {
             pictureDecode pic = new pictureDecode(bmp);
