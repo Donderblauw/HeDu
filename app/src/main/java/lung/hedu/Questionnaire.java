@@ -48,12 +48,12 @@ public class Questionnaire extends Activity {
     // for_main_menu_context = Intent.getStringExtra(main_menu.context_temp_across_activity);
     // public String from_main_menu = null;
 
-    public String output_questionfile = null;
+//    public String output_questionfile = null;
     public Typeface font_face = null;
     public Integer font_size = 20;
     public Integer awnser_id = 102;
     public Integer squarre_size = 30;
-    public String onclick_temp = null;
+//    public String onclick_temp = null;
     public Bitmap bitmap_field = null;
     public Integer y_row_atm = -1;
     Document XML_user_info_doc = null;
@@ -239,7 +239,7 @@ public class Questionnaire extends Activity {
 
     public void load_world1_q1a(View v)
     {
-        output_questionfile = "world_1_q1a";
+        String output_questionfile = "world_1_q1a";
         String out_put_testfile = loadStringFilePrivate("world_1_q1a", "xml");
         XML_ini_q_or_map("q", output_questionfile);
 
@@ -366,7 +366,7 @@ public class Questionnaire extends Activity {
                         else if(xml_atm.equals("awnser"))
                         {
                             String goto_temp = XmlPullParser_temp.getAttributeValue(null, "goto").toString();
-                            onclick_temp = goto_temp;
+                            // onclick_temp = goto_temp;
                             String goto_temp_id = XmlPullParser_temp.getAttributeValue(null, "goto_id").toString();
                             // Log.e("temp", "setup " + onclick_temp);
                             tv_parents[level_parent_atm] = create_awnserview(goto_temp, goto_temp_id);
@@ -560,7 +560,7 @@ public class Questionnaire extends Activity {
         question_tv.setId(awnser_id);
         question_tv.setTextSize(font_size);
         question_tv.setTypeface(font_face);
-        question_tv.setHint(onclick_temp);
+        // question_tv.setHint(onclick_temp);
         Bundle inputExtras = question_tv.getInputExtras(true);
         inputExtras.putString("onclick_temp",onclick_temp);
         inputExtras.putString("goto_id",goto_id);
@@ -577,7 +577,7 @@ public class Questionnaire extends Activity {
 
                 TextView temp_tv = (TextView) v;
                 Bundle inputExtras = temp_tv.getInputExtras(true);
-                output_questionfile = inputExtras.getString("onclick_temp", "");
+                String output_questionfile = inputExtras.getString("onclick_temp", "");
                 String goto_id = inputExtras.getString("goto_id", "");
 
                 String add_line = inputExtras.getString("add_line", "");
