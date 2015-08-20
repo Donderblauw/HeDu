@@ -249,21 +249,28 @@ public class Questionnaire extends Activity {
     {
         output_questionfile = "world_1_q1a.xml";
         String out_put_testfile = loadStringFilePrivate("world_1_q1a", "xml");
-        String temp = XML_ini_questionairre();
+        XML_ini_q_or_map("q", output_questionfile);
 
      //   TextView text_box_q_temp_tv = (TextView)findViewById(R.id.text_box_q_temp);
      //   text_box_q_temp_tv.setText(temp);
 
     }
 
+    public void XML_ini_q_or_map(String type_xml, String XML_file)
+    {
+        if(type_xml.equals("q"))
+        {
+            XML_ini_questionairre(XML_file);
+        }
+    }
 
-    public String XML_ini_questionairre() {
+    public String XML_ini_questionairre(String XML_file) {
         XmlPullParser XmlPullParser_temp = null;
         String text_return = "";
 
 
         try {
-            XmlPullParser_temp = load_XML(output_questionfile);
+            XmlPullParser_temp = load_XML(XML_file);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (XmlPullParserException e) {
@@ -307,8 +314,9 @@ public class Questionnaire extends Activity {
                         {
                             String goto_temp = XmlPullParser_temp.getAttributeValue(null, "goto").toString();
                             onclick_temp = goto_temp;
+                            String goto_temp_id = XmlPullParser_temp.getAttributeValue(null, "goto_id").toString();
                             // Log.e("temp", "setup " + onclick_temp);
-                            tv_parents[level_parent_atm] = create_awnserview();
+                            tv_parents[level_parent_atm] = create_awnserview(onclick_temp, goto_temp_id);
                             tv_show[level_parent_atm] = true;
                         }
                         else if(xml_atm.equals("req"))
@@ -396,7 +404,7 @@ public class Questionnaire extends Activity {
     public XmlPullParser load_XML(String input) throws FileNotFoundException, XmlPullParserException {
 
         FileInputStream in = null;
-        in = ApplicationContextProvider.getContext().openFileInput(input);
+        in = ApplicationContextProvider.getContext().openFileInput(input+".xml");
 
         XmlPullParserFactory xmlFactoryObject;
 
@@ -435,7 +443,7 @@ public class Questionnaire extends Activity {
         lin_lay_q.removeAllViews();
 
     }
-    public TextView create_awnserview()
+    public TextView create_awnserview(String onclick_temp, String goto_id)
     {
 
         TextView question_tv = new TextView(this);
@@ -443,6 +451,9 @@ public class Questionnaire extends Activity {
         question_tv.setTextSize(font_size);
         question_tv.setTypeface(font_face);
         question_tv.setHint(onclick_temp);
+        Bundle inputExtras = question_tv.getInputExtras(true);
+        inputExtras.putString("onclick_temp",onclick_temp);
+        inputExtras.putString("goto_id",goto_id);
 
         // public Typeface font_face = null;
         // public Integer font_size = 20;
@@ -455,8 +466,10 @@ public class Questionnaire extends Activity {
 
 
                 TextView temp_tv = (TextView) v;
-                output_questionfile = (String) temp_tv.getHint();
                 Bundle inputExtras = temp_tv.getInputExtras(true);
+                output_questionfile = inputExtras.getString("onclick_temp", "");
+                String goto_id = inputExtras.getString("goto_id", "");
+
                 String add_line = inputExtras.getString("add_line", "");
                 if(add_line != "") {
                     String add_value = inputExtras.getString("value", "");
@@ -470,7 +483,7 @@ public class Questionnaire extends Activity {
                 // add_story_line(add_line, add_value);
 //                Log.e("temp", "cool " + found_extra);
 
-                XML_ini_questionairre();
+                XML_ini_q_or_map(goto_id, output_questionfile);
 
 
                 // XML_ini_questionairre();

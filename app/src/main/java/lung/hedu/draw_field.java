@@ -104,7 +104,7 @@ public class draw_field {
         return field_bmp;
     }
 /*
-    public static void XML_ini_field() {
+    public static void XML_ini_field(XmlPullParser_temp) {
         XmlPullParser XmlPullParser_temp = null;
         String text_return = "";
 
