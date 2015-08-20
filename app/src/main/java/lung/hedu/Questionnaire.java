@@ -4,8 +4,6 @@ import lung.hedu.util.SystemUiHider;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.app.ListActivity;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Bundle;
@@ -35,11 +33,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-
-import lung.hedu.FileIO;
-
 import static lung.hedu.FileIO.loadStringFilePrivate;
 import static lung.hedu.FileIO.saveStringFilePrivate;
 
@@ -56,7 +49,6 @@ public class Questionnaire extends Activity {
     // public String from_main_menu = null;
 
     public String output_questionfile = null;
-    public Document question_XML= null;
     public Typeface font_face = null;
     public Integer font_size = 20;
     public Integer awnser_id = 102;
@@ -267,7 +259,64 @@ public class Questionnaire extends Activity {
             XML_ini_map(XML_file);
         }
     }
+    public boolean check_req_type (String found_v, String req_type, String req_v, String then_tag_name, String then_id)
+    {
+        Boolean return_bool = false;
+/*
+        bt = bigger then xx
+        st = smaller then xx
+        eq = equal
+        bi = bigger > value
+        sm = smaller < value
+*/
+        if(req_type.equals("eq"))
+        {
+            if(req_v.equals(found_v))
+            {
+                return_bool = true;
+            }
+        }
+        else if(req_type.equals("sm"))
+        {
+            Integer found_v_i = Integer.parseInt(found_v);
+            Integer req_v_i = Integer.parseInt(req_v);
+            if(found_v_i < req_v_i)
+            {
+                return_bool = true;
+            }
+        }
+        else if(req_type.equals("bi"))
+        {
+            Integer found_v_i = Integer.parseInt(found_v);
+            Integer req_v_i = Integer.parseInt(req_v);
+            if(found_v_i > req_v_i)
+            {
+                return_bool = true;
+            }
+        }
+        else
+        {
+            String found_v_then = find_value_in_xml(then_tag_name, then_id);
+            Integer found_v_then_i = Integer.parseInt(found_v_then);
+            Integer found_v_i = Integer.parseInt(found_v);
+            if(req_type.equals("bt"))
+            {
+                if(found_v_i > found_v_then_i)
+                {
+                    return_bool = true;
+                }
+            }
+            else if(req_type.equals("st"))
+            {
+                if(found_v_i < found_v_then_i)
+                {
+                    return_bool = true;
+                }
+            }
+        }
 
+        return return_bool;
+    }
     public String XML_ini_questionairre(String XML_file) {
         XmlPullParser XmlPullParser_temp = null;
         String text_return = "";
@@ -320,17 +369,22 @@ public class Questionnaire extends Activity {
                             onclick_temp = goto_temp;
                             String goto_temp_id = XmlPullParser_temp.getAttributeValue(null, "goto_id").toString();
                             // Log.e("temp", "setup " + onclick_temp);
-                            tv_parents[level_parent_atm] = create_awnserview(onclick_temp, goto_temp_id);
+                            tv_parents[level_parent_atm] = create_awnserview(goto_temp, goto_temp_id);
                             tv_show[level_parent_atm] = true;
                         }
                         else if(xml_atm.equals("req"))
                         {
-                            String req_tag_name = XmlPullParser_temp.getAttributeValue(null, "req_tag_name").toString();
-                            String req_id = XmlPullParser_temp.getAttributeValue(null, "req_id").toString();
-                            String req_v = XmlPullParser_temp.getAttributeValue(null, "req_v").toString();
+                            String req_tag_name = XmlPullParser_temp.getAttributeValue(null, "req_tag_name");
+                            String req_id = XmlPullParser_temp.getAttributeValue(null, "req_id");
+                            String req_v = XmlPullParser_temp.getAttributeValue(null, "req_v");
+                            String req_type = XmlPullParser_temp.getAttributeValue(null, "req_type");
+                            String then_tag_name = XmlPullParser_temp.getAttributeValue(null, "then_tag_name");
+                            String then_id = XmlPullParser_temp.getAttributeValue(null, "then_id");
+
                             String found_v = find_value_in_xml(req_tag_name, req_id);
                             tv_show[(level_parent_atm-1)] = false;
-                            if(found_v.equals(req_v))
+                            boolean test_result = check_req_type(found_v, req_type, req_v, then_tag_name, then_id);
+                            if(test_result == true)
                             {
                                 tv_show[(level_parent_atm-1)] = true;
                             }
@@ -343,26 +397,7 @@ public class Questionnaire extends Activity {
                             inputExtras.putString("value", XmlPullParser_temp.getAttributeValue(null, "value").toString());
                             inputExtras.putString("replace_add", XmlPullParser_temp.getAttributeValue(null, "replace_add").toString());
                         }
-                        else if(xml_atm.equals("map"))
-                        {
-                            remove_views();
 
-                            Integer x_sqre = Integer.parseInt(XmlPullParser_temp.getAttributeValue(null, "x_sqre").toString());
-                            Integer y_sqre = Integer.parseInt(XmlPullParser_temp.getAttributeValue(null, "y_sqre").toString());
-                            set_squarre_size(x_sqre, y_sqre);
-
-                            LinearLayout ll_temp = (LinearLayout) findViewById(R.id.linearLayout_questuinnaire_vert);
-                            ImageView field_img_view = draw_field.create_imageview_field(ll_temp, squarre_size);
-
-
-                            bitmap_field = draw_field.create_bitmap_field( ( (x_sqre ) * (squarre_size+2) +2 ) , ( (y_sqre) * (squarre_size+2)+2));
-
-                            field_img_view.setImageBitmap(bitmap_field);
-                        }
-                        else if(xml_atm.equals("row"))
-                        {
-                            y_row_atm = y_row_atm +1;
-                        }
                         break;
 
                     case XmlPullParser.TEXT: {
@@ -371,9 +406,6 @@ public class Questionnaire extends Activity {
                         }
                         else if (xml_atm.equals("awnser")) {
                             tv_parents[level_parent_atm].setText(XmlPullParser_temp.getText());
-                        }
-                        else if (xml_atm.equals("row")) {
-                            read_rows(XmlPullParser_temp.getText(), y_row_atm);
                         }
                     }
                         break;
@@ -578,8 +610,8 @@ public class Questionnaire extends Activity {
     public void set_squarre_size(Integer totx_squarres, Integer toty_squarres)
     {
         View fullscreen_element = findViewById(R.id.frame_layout_q);
-        Integer height = (Integer) (( fullscreen_element.getHeight() -3) / toty_squarres);
-        Integer width = (Integer) ((fullscreen_element.getWidth() -3) / totx_squarres);
+        Integer height = ( fullscreen_element.getHeight() -3) / toty_squarres;
+        Integer width = (fullscreen_element.getWidth() -3) / totx_squarres;
         if(height> width)
         {
             squarre_size = width;
