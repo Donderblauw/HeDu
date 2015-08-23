@@ -9,11 +9,17 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import java.io.IOException;
+import java.net.URISyntaxException;
 
 import lung.hedu.FileIO;
 
@@ -142,6 +148,8 @@ public class main_menu extends Activity {
         // are available.
         delayedHide(100);
 
+        // login();
+
     }
 
 
@@ -196,6 +204,7 @@ public class main_menu extends Activity {
         saveStringFilePrivate("test_world_q2b", "xml", world_1_q2a);
         String test_world_map1 ="<world n=\"1\" value=\"test_world\"><map x_sqre = \"5\"  y_sqre = \"3\" ><row>0,0,1,1,1,</row><row>0,1,1,1,1,</row><row>0,1,1,0,0,</row></map></world>";
         saveStringFilePrivate("test_world_map1", "xml", test_world_map1);
+
     }
 
     public class MyAsyncTask extends AsyncTask<String, String, String> {
@@ -259,6 +268,80 @@ public class main_menu extends Activity {
         return xml;
     }
          */
+
+    }
+
+    public void login(View v)
+    {
+        String login_name = XML_IO.find_value_in_userxml("login_info", "name");
+        textbox_mainmenu_tv = (TextView)findViewById(R.id.textbox_mainmenu);
+        textbox_mainmenu_tv.setText(login_name);
+        if(login_name.length() > 1)
+        {
+
+            LinearLayout ll_login = (LinearLayout) findViewById(R.id.linearLayout_login);
+            ll_login.removeAllViews();
+            TextView login_name_tv = new TextView(this);
+            login_name_tv.setText(login_name);
+            // public Typeface font_face = null;
+            // public Integer font_size = 20;
+
+            ll_login.addView(login_name_tv);
+
+        }
+
+    }
+    public void create_new(View v)
+    {
+        String php_file = "free_login.php";
+        String[] id_url_addon = {"qid", "nme"};
+
+        EditText tv_login_name = (EditText) findViewById(R.id.login_name);
+
+        String login_name = tv_login_name.getText().toString();
+        if(login_name.equals(null))
+        {
+            login_name = "leeg";
+        }
+        textbox_mainmenu_tv.setText(login_name);
+
+        if(login_name.matches("[a-zA-Z]*") ==true) {
+            if (login_name.length() > 2) {
+                if (login_name.length() < 12) {
+
+                    String android_id = Settings.Secure.getString(ApplicationContextProvider.getContext().getContentResolver(), Settings.Secure.ANDROID_ID);
+
+                    XML_IO.set_value_user_info("login_info", "name", login_name);
+
+ /*
+                    String[] data_url_addon = {android_id, login_name};
+
+                    try {
+                        String[] login_data = server_side_PHP.get_dataarray_server(php_file, id_url_addon, data_url_addon);
+                    } catch (ClassNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (URISyntaxException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+*/
+                    // login(v);
+
+                } else {
+                    textbox_mainmenu_tv.setText("Too long");
+                }
+            }
+            else
+            {
+                textbox_mainmenu_tv.setText("Too short");
+            }
+        }
+        else
+        {
+            textbox_mainmenu_tv.setText("please only use normal Chars.");
+        }
 
     }
 

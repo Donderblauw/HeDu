@@ -58,6 +58,7 @@ public class Questionnaire extends Activity {
     public Integer y_row_atm = -1;
     Document XML_user_info_doc = null;
     public String this_world = "world_1";
+    public Boolean check_if_XMLisset = false;
 
     /**
      * Whether or not the system UI should be auto-hidden after
@@ -476,7 +477,7 @@ public class Questionnaire extends Activity {
                             ImageView field_img_view = draw_field.create_imageview_field(ll_temp, squarre_size);
 
 
-                            bitmap_field = draw_field.create_bitmap_field( ( (x_sqre ) * (squarre_size+2) +2 ) , ( (y_sqre) * (squarre_size+2)+2));
+                            bitmap_field = draw_field.create_bitmap_field(((x_sqre) * (squarre_size + 2) + 2), ((y_sqre) * (squarre_size + 2) + 2));
 
                             field_img_view.setImageBitmap(bitmap_field);
                         }
@@ -659,7 +660,7 @@ public class Questionnaire extends Activity {
         Document reterned_doc = null;
         if(XML_user_info_doc == null) {
             try {
-                reterned_doc = XML_IO.open_document_xml("user_info_" + this_world);
+                reterned_doc = XML_IO.open_document_xml("user_info");
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             } catch (XmlPullParserException e) {
@@ -687,82 +688,115 @@ public class Questionnaire extends Activity {
         return return_string;
     }
 
-
-    public void add_story_line(String add_line_id, String add_value, Boolean Freplace_or_Tadd, String value_id)
+    public void check_world_excists()
     {
-        Document reterned_doc = null;
         if(XML_user_info_doc == null) {
             try {
-                reterned_doc = XML_IO.open_document_xml("user_info_" + this_world);
+                XML_user_info_doc = XML_IO.open_document_xml("user_info");
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             } catch (XmlPullParserException e) {
                 e.printStackTrace();
             }
         }
-        else {
-            reterned_doc = XML_user_info_doc;
-        }
-        if(reterned_doc == null) {
-            Element new_world_lines = reterned_doc.createElement(this_world + "_story_lines");
-            Node parent_lines_node = reterned_doc.appendChild(new_world_lines);
+        if(XML_user_info_doc == null) {
+            Element new_info_node = XML_user_info_doc.createElement("info");
+            Node info_node = XML_user_info_doc.appendChild(new_info_node);
 
-            Element new_line = reterned_doc.createElement(add_line_id);
+            Element new_worlds = XML_user_info_doc.createElement("worlds");
+            Node worlds_node = info_node.appendChild(new_worlds);
+
+            Element new_world_lines = XML_user_info_doc.createElement(this_world + "_story_lines");
+            Node parent_lines_node = worlds_node.appendChild(new_world_lines);
+        }
+
+        NodeList info_list = XML_user_info_doc.getElementsByTagName("info");
+        Node info_node = null;
+        if(info_list.getLength() == 0)
+        {
+            Element new_info = XML_user_info_doc.createElement("info");
+            info_node = XML_user_info_doc.appendChild(new_info);
+        }
+        else
+        {
+            info_node = info_list.item(0);
+        }
+
+        NodeList worlds_list = XML_user_info_doc.getElementsByTagName("worlds");
+        Node worlds_node = null;
+        if(worlds_list.getLength() == 0)
+        {
+            Element new_worlds = XML_user_info_doc.createElement("worlds");
+            worlds_node = info_node.appendChild(new_worlds);
+        }
+        else
+        {
+            worlds_node = worlds_list.item(0);
+        }
+
+        NodeList nodes_world_lines = XML_user_info_doc.getElementsByTagName(this_world+"_story_lines");
+        Node parent_lines_node = null;
+        if(nodes_world_lines.getLength() == 0)
+        {
+            Element new_world_lines = XML_user_info_doc.createElement(this_world + "_story_lines");
+            parent_lines_node = worlds_node.appendChild(new_world_lines);
+            try {
+                XML_IO.save_XML("user_info", XML_user_info_doc);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (XmlPullParserException e) {
+                e.printStackTrace();
+            }
+        }
+
+    }
+
+    public void add_story_line(String add_line_id, String add_value, Boolean Freplace_or_Tadd, String value_id)
+    {
+        if(check_if_XMLisset == false)
+        {
+            check_world_excists();
+            check_if_XMLisset = true;
+        }
+        NodeList nodes_world_lines = XML_user_info_doc.getElementsByTagName(this_world+"_story_lines");
+        Node parent_lines_node = nodes_world_lines.item(0);
+
+        NodeList nodes_new_line = XML_user_info_doc.getElementsByTagName(add_line_id);
+        if(nodes_new_line.getLength() == 0)
+        {
+            Element new_line = XML_user_info_doc.createElement(add_line_id);
             new_line.setAttribute(value_id, add_value);
             parent_lines_node.appendChild(new_line);
         }
-
         else
         {
-            NodeList nodes_world_lines = reterned_doc.getElementsByTagName(this_world+"_story_lines");
-            Node parent_lines_node = null;
-            if(nodes_world_lines.getLength() == 0) {
-                Element new_world_lines = reterned_doc.createElement(this_world + "_story_lines");
-                parent_lines_node = reterned_doc.appendChild(new_world_lines);
+            Node node_found = nodes_new_line.item(0);
+
+            NamedNodeMap temp_atr = node_found.getAttributes();
+            Node node_temp_atr = temp_atr.getNamedItem(value_id);
+            if(node_temp_atr == null)
+            {
+                Attr atribute_new = XML_user_info_doc.createAttribute(add_value);
+                // misschien moet dit node_found.appendChild(atribute_new) zijn.
+                node_temp_atr.appendChild(atribute_new);
             }
             else
             {
-                parent_lines_node = nodes_world_lines.item(0);
+                node_temp_atr.setTextContent(add_value);
             }
 
-            NodeList nodes_new_line = reterned_doc.getElementsByTagName(add_line_id);
-            if(nodes_new_line.getLength() == 0)
+            if(Freplace_or_Tadd == true)
             {
-                Element new_line = reterned_doc.createElement(add_line_id);
-                new_line.setAttribute(value_id, add_value);
-                parent_lines_node.appendChild(new_line);
-            }
-            else
-            {
-                Node node_found = nodes_new_line.item(0);
+                String node_temp_atr_s = node_temp_atr.getTextContent();
 
-                NamedNodeMap temp_atr = node_found.getAttributes();
-                Node node_temp_atr = temp_atr.getNamedItem(value_id);
-                if(node_temp_atr == null)
-                {
-                    Attr atribute_new = reterned_doc.createAttribute(add_value);
-                    node_temp_atr.appendChild(atribute_new);
-                }
-                else
-                {
-                    node_temp_atr.setTextContent(add_value);
-                }
-
-                if(Freplace_or_Tadd == true)
-                {
-                    String node_temp_atr_s = node_temp_atr.getTextContent();
-
-                    Integer node_temp_atr_i = Integer.parseInt(node_temp_atr_s);
-                    node_temp_atr_i = node_temp_atr_i + Integer.parseInt(add_value);
-                    node_temp_atr.setTextContent(node_temp_atr_i.toString());
-                }
+                Integer node_temp_atr_i = Integer.parseInt(node_temp_atr_s);
+                node_temp_atr_i = node_temp_atr_i + Integer.parseInt(add_value);
+                node_temp_atr.setTextContent(node_temp_atr_i.toString());
             }
         }
 
-
-        XML_user_info_doc = reterned_doc;
         try {
-            XML_IO.save_XML("user_info_"+this_world, reterned_doc);
+            XML_IO.save_XML("user_info", XML_user_info_doc);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (XmlPullParserException e) {

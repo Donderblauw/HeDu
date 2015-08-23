@@ -2,13 +2,15 @@ package lung.hedu;
 
 import android.util.Log;
 
+
+
+import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
-import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -115,6 +117,123 @@ public class XML_IO {
             doc = dbuilder.newDocument();
         }
         return doc;
+    }
+
+    public static String find_value_in_userxml(String add_line_id, String value_id)
+    {
+
+        String return_string = "?";
+        Document user_info_xml = null;
+        try {
+            user_info_xml = XML_IO.open_document_xml("user_info");
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (XmlPullParserException e) {
+            e.printStackTrace();
+        }
+
+        NodeList nodes_find = user_info_xml.getElementsByTagName(add_line_id);
+        if(nodes_find != null) {
+            Node node_find = nodes_find.item(0);
+            if (node_find != null) {
+                NamedNodeMap temp_atr = node_find.getAttributes();
+
+                Node node_temp_atr = temp_atr.getNamedItem(value_id);
+                if (node_temp_atr != null) {
+                    return_string = node_temp_atr.getTextContent();
+
+                }
+                else
+                {
+                    return_string = "no value_id";
+                }
+            }
+            else
+            {
+                return_string = "no add_line_id2";
+            }
+        }
+        else
+        {
+            return_string = "no add_line_id1";
+        }
+        user_info_xml = null;
+        return return_string;
+
+    }
+
+
+    public static void set_value_user_info(String add_line_id, String value_id, String add_value)
+    {
+
+         Document user_info_xml = null;
+        try {
+            user_info_xml = XML_IO.open_document_xml("user_info");
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (XmlPullParserException e) {
+            e.printStackTrace();
+        }
+
+
+        if(user_info_xml == null) {
+            Element new_info_node = user_info_xml.createElement("info");
+            Node info_node = user_info_xml.appendChild(new_info_node);
+
+            Element new_user_info = user_info_xml.createElement("user_info");
+            Node user_info_node = info_node.appendChild(new_user_info);
+
+            Element new_add_line_id = user_info_xml.createElement(add_line_id);
+            Node temp = user_info_node.appendChild(new_add_line_id);
+        }
+
+        NodeList info_list = user_info_xml.getElementsByTagName("info");
+        Node info_node = null;
+        if(info_list.getLength() == 0)
+        {
+            Element new_info = user_info_xml.createElement("info");
+            info_node = user_info_xml.appendChild(new_info);
+        }
+        else
+        {
+            info_node = info_list.item(0);
+        }
+
+        NodeList worlds_list = user_info_xml.getElementsByTagName("user_info");
+        Node node_found_userinfo = null;
+        if(worlds_list.getLength() == 0)
+        {
+            Element new_worlds = user_info_xml.createElement("user_info");
+            node_found_userinfo = info_node.appendChild(new_worlds);
+        }
+        else
+        {
+            node_found_userinfo = worlds_list.item(0);
+        }
+
+
+        NamedNodeMap temp_atr = node_found_userinfo.getAttributes();
+        Node node_temp_atr = temp_atr.getNamedItem(value_id);
+        if(node_temp_atr == null)
+        {
+            Element temp = (Element) node_found_userinfo;
+            temp.setAttribute(value_id, add_value);
+        }
+        else
+        {
+            node_temp_atr.setTextContent(add_value);
+        }
+
+
+
+        try {
+            XML_IO.save_XML("user_info", user_info_xml);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (XmlPullParserException e) {
+            e.printStackTrace();
+        }
+        user_info_xml = null;
     }
 
 
