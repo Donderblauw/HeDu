@@ -303,6 +303,7 @@ public class main_menu extends Activity {
         {
             login_name = "leeg";
         }
+        textbox_mainmenu_tv = (TextView)findViewById(R.id.textbox_mainmenu);
         textbox_mainmenu_tv.setText(login_name);
 
         if(login_name.matches("[a-zA-Z]*") ==true) {
