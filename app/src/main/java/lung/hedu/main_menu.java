@@ -148,7 +148,7 @@ public class main_menu extends Activity {
         // are available.
         delayedHide(100);
 
-        // login();
+        login();
 
     }
 
@@ -271,7 +271,7 @@ public class main_menu extends Activity {
 
     }
 
-    public void login(View v)
+    public void login()
     {
         String login_name = XML_IO.find_value_in_userxml("login_info", "name");
         textbox_mainmenu_tv = (TextView)findViewById(R.id.textbox_mainmenu);
@@ -314,11 +314,12 @@ public class main_menu extends Activity {
 
                     XML_IO.set_value_user_info("login_info", "name", login_name);
 
- /*
-                    String[] data_url_addon = {android_id, login_name};
 
+
+                    String[] data_url_addon = {android_id, login_name};
+                    String[] login_data = null;
                     try {
-                        String[] login_data = server_side_PHP.get_dataarray_server(php_file, id_url_addon, data_url_addon);
+                        login_data = server_side_PHP.get_dataarray_server(php_file, id_url_addon, data_url_addon);
                     } catch (ClassNotFoundException e) {
                         e.printStackTrace();
                     } catch (URISyntaxException e) {
@@ -327,8 +328,11 @@ public class main_menu extends Activity {
                         e.printStackTrace();
                     }
 
-*/
-                    // login(v);
+                    XML_IO.set_value_user_info("login_info", "id", login_data[0]);
+                    Log.e("temp", "login_data0 " + login_data[0]);
+                    Log.e("temp", "login_data1 " + login_data[1]);
+
+                    login();
 
                 } else {
                     textbox_mainmenu_tv.setText("Too long");

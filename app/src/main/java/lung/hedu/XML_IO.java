@@ -122,7 +122,7 @@ public class XML_IO {
     public static String find_value_in_userxml(String add_line_id, String value_id)
     {
 
-        String return_string = "?";
+        String return_string = null;
         Document user_info_xml = null;
         try {
             user_info_xml = XML_IO.open_document_xml("user_info");
@@ -145,17 +145,17 @@ public class XML_IO {
                 }
                 else
                 {
-                    return_string = "no value_id";
+                    // return_string = "no value_id";
                 }
             }
             else
             {
-                return_string = "no add_line_id2";
+                // return_string = "no add_line_id2";
             }
         }
         else
         {
-            return_string = "no add_line_id1";
+            // return_string = "no add_line_id1";
         }
         user_info_xml = null;
         return return_string;
