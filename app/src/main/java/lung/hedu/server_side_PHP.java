@@ -2,6 +2,7 @@ package lung.hedu;
 
 import android.os.StrictMode;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.View;
 
 import org.apache.http.HttpResponse;
@@ -25,7 +26,7 @@ public class server_side_PHP {
 
 
 
-    public static String [] get_dataarray_server(String php_file, String[] id_url_addon, String[] data_url_addon) throws ClassNotFoundException, URISyntaxException, IOException
+    public static ArrayList<String> get_dataarray_server(String php_file, String[] id_url_addon, String[] data_url_addon) throws ClassNotFoundException, URISyntaxException, IOException
     {
         String website_url = "hedu-free.uphero.com/phpfree/";
 /*        String login_name = "";
@@ -43,11 +44,13 @@ public class server_side_PHP {
             url_addon = url_addon + "&";
             tel = tel +1;
         }
-        String link = website_url + php_file + "?"+ url_addon;
+        String link = "http://"+website_url + php_file + "?"+ url_addon;
 
         HttpClient client = new DefaultHttpClient();
         HttpGet request = new HttpGet();
         request.setURI(new URI(link));
+
+        Log.e("php", "Link: " + link);
 
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
@@ -64,7 +67,7 @@ public class server_side_PHP {
         }
         in.close();
         String sb_string = sb.toString();
-
+        Log.e("php", "output_raw: " + sb_string);
         ArrayList<String> data_list = new ArrayList<String>();
         Integer offset = 0;
         tel = 0;
@@ -73,6 +76,7 @@ public class server_side_PHP {
         {
             Integer index_data_start = (sb_string.indexOf("%qa", offset) +5 );
             offset = index_data_start;
+            Log.e("php", "offset: " + offset);
             if(index_data_start == -1)
             {
                 stop = true;
@@ -80,13 +84,22 @@ public class server_side_PHP {
             else
             {
                 Integer index_data1_end = (sb_string.indexOf("%qa", index_data_start));
-                String data = sb_string.substring(index_data_start, index_data1_end);
-                data_list.add(data);
+                Log.e("php", "end: " + index_data1_end);
+                if(index_data1_end == -1)
+                {
+                    stop = true;
+                }
+                else
+                {
+                    String data = sb_string.substring(index_data_start, index_data1_end);
+                    data_list.add(data);
+                }
             }
         }
-        String [] return_array = data_list.toArray(new String[data_list.size()]);
+//        String [] return_array = data_list.toArray(new String[data_list.size()]);
+//        Log.e("php", "output_return: " + return_array.toString() );
 
-        return return_array;
+        return data_list;
 
     }
 

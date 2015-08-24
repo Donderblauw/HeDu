@@ -20,6 +20,7 @@ import android.widget.TextView;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 
 import lung.hedu.FileIO;
 
@@ -274,11 +275,12 @@ public class main_menu extends Activity {
     public void login()
     {
         String login_name = XML_IO.find_value_in_userxml("login_info", "name");
-        textbox_mainmenu_tv = (TextView)findViewById(R.id.textbox_mainmenu);
-        textbox_mainmenu_tv.setText(login_name);
-        if(login_name.length() > 1)
-        {
 
+
+        if(login_name != null)
+        {
+            textbox_mainmenu_tv = (TextView)findViewById(R.id.textbox_mainmenu);
+            textbox_mainmenu_tv.setText(login_name);
             LinearLayout ll_login = (LinearLayout) findViewById(R.id.linearLayout_login);
             ll_login.removeAllViews();
             TextView login_name_tv = new TextView(this);
@@ -317,7 +319,7 @@ public class main_menu extends Activity {
 
 
                     String[] data_url_addon = {android_id, login_name};
-                    String[] login_data = null;
+                    ArrayList<String> login_data = null;
                     try {
                         login_data = server_side_PHP.get_dataarray_server(php_file, id_url_addon, data_url_addon);
                     } catch (ClassNotFoundException e) {
@@ -328,9 +330,9 @@ public class main_menu extends Activity {
                         e.printStackTrace();
                     }
 
-                    XML_IO.set_value_user_info("login_info", "id", login_data[0]);
-                    Log.e("temp", "login_data0 " + login_data[0]);
-                    Log.e("temp", "login_data1 " + login_data[1]);
+                    XML_IO.set_value_user_info("login_info", "id", login_data.get(0).toString());
+                    Log.e("temp", "login_data0 " + login_data.get(0).toString());
+                    Log.e("temp", "login_data1 " + login_data.get(1).toString());
 
                     login();
 
