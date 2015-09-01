@@ -85,8 +85,8 @@
                 android:layout_width="fill_parent"
                 android:layout_height="118dp"
                 android:id="@+id/textbox_mainmenu"
-                android:text="Set 3 XML files"
-                android:onClick="update_text_mainmenu"
+                android:text="This does nothing :)"
+
                 android:longClickable="true"
                 android:focusable="true"
                 android:focusableInTouchMode="true"

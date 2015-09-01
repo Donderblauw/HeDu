@@ -32,6 +32,7 @@ import org.w3c.dom.Document;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Random;
 
 import static lung.hedu.FileIO.loadStringFilePrivate;
 import static lung.hedu.FileIO.saveStringFilePrivate;
@@ -48,17 +49,18 @@ public class Questionnaire extends Activity {
     // for_main_menu_context = Intent.getStringExtra(main_menu.context_temp_across_activity);
     // public String from_main_menu = null;
 
-//    public String output_questionfile = null;
+
     public Typeface font_face = null;
     public Integer font_size = 20;
     public Integer awnser_id = 102;
     public Integer squarre_size = 30;
-//    public String onclick_temp = null;
     public Bitmap bitmap_field = null;
     public Integer y_row_atm = -1;
+
     Document XML_user_info_doc = null;
-    public String this_world = "world_1";
+    public String this_world = "";
     public Boolean check_if_XMLisset = false;
+    public String username = "";
 
     /**
      * Whether or not the system UI should be auto-hidden after
@@ -170,7 +172,7 @@ public class Questionnaire extends Activity {
         // are available.
 
         delayedHide(100);
-
+        load_worlds_index();
 
         // recieve info between intents, test.
 
@@ -238,15 +240,17 @@ public class Questionnaire extends Activity {
         mHideHandler.postDelayed(mHideRunnable, delayMillis);
     }
 
-    public void load_world1_q1a(View v)
+    public String replace_q_texts (String input)
     {
-        String output_questionfile = "world_1_q1a";
-        String out_put_testfile = loadStringFilePrivate("world_1_q1a", "xml");
-        XML_ini_q_or_map("q", output_questionfile);
+        String output = input;
 
-     //   TextView text_box_q_temp_tv = (TextView)findViewById(R.id.text_box_q_temp);
-     //   text_box_q_temp_tv.setText(temp);
+        if(username.equals(""))
+        {
+            username = find_value_in_xml("login_info", "name");
+        }
+        output = output.replace("|qname", username);
 
+        return output;
     }
 
     public void XML_ini_q_or_map(String type_xml, String XML_file)
@@ -318,10 +322,10 @@ public class Questionnaire extends Activity {
 
         return return_bool;
     }
-    public String XML_ini_questionairre(String XML_file) {
+    public String XML_ini_questionairre(String XML_file_input) {
         XmlPullParser XmlPullParser_temp = null;
         String text_return = "";
-
+        String XML_file = this_world + "_" + XML_file_input;
 
         try {
             XmlPullParser_temp = load_XML(XML_file);
@@ -333,6 +337,8 @@ public class Questionnaire extends Activity {
 
         int event;
         String text = null;
+
+        String temp = FileIO.loadStringFilePrivate(XML_file,".xml");
 
         String parents_xml[] = new String[9];
         Integer level_parent_atm = 0;
@@ -402,11 +408,13 @@ public class Questionnaire extends Activity {
                         break;
 
                     case XmlPullParser.TEXT: {
+                        //|qname
+                        String text_inside_replaced = replace_q_texts(XmlPullParser_temp.getText());
                         if (xml_atm.equals("question")) {
-                            tv_parents[level_parent_atm].setText(XmlPullParser_temp.getText());
+                            tv_parents[level_parent_atm].setText(text_inside_replaced);
                         }
                         else if (xml_atm.equals("awnser")) {
-                            tv_parents[level_parent_atm].setText(XmlPullParser_temp.getText());
+                            tv_parents[level_parent_atm].setText(text_inside_replaced);
                         }
                     }
                         break;
@@ -437,9 +445,10 @@ public class Questionnaire extends Activity {
         return text_return;
     }
 
-    public String XML_ini_map(String XML_file) {
+    public String XML_ini_map(String XML_file_input) {
         XmlPullParser XmlPullParser_temp = null;
         String text_return = "";
+        String XML_file = this_world + "_" + XML_file_input;
        try {
             XmlPullParser_temp = load_XML(XML_file);
         } catch (FileNotFoundException e) {
@@ -561,18 +570,14 @@ public class Questionnaire extends Activity {
         question_tv.setId(awnser_id);
         question_tv.setTextSize(font_size);
         question_tv.setTypeface(font_face);
-        // question_tv.setHint(onclick_temp);
         Bundle inputExtras = question_tv.getInputExtras(true);
         inputExtras.putString("onclick_temp",onclick_temp);
         inputExtras.putString("goto_id",goto_id);
 
-        // public Typeface font_face = null;
-        // public Integer font_size = 20;
-//        Log.e("temp", "ini onclick " + onclick_temp);
+
         question_tv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                Log.e("temp", "cool " + onclick_temp);
                 LinearLayout lin_lay_q = (LinearLayout) findViewById(R.id.linearLayout_questuinnaire_vert);
 
 
@@ -592,12 +597,8 @@ public class Questionnaire extends Activity {
                     add_story_line("optionC", add_value, replace_add_bool, add_line);
                 }
                 // add_story_line(add_line, add_value);
-//                Log.e("temp", "cool " + found_extra);
 
                 XML_ini_q_or_map(goto_id, output_questionfile);
-
-
-                // XML_ini_questionairre();
 
             }
         } ) ;
@@ -734,7 +735,7 @@ public class Questionnaire extends Activity {
             worlds_node = worlds_list.item(0);
         }
 
-        NodeList nodes_world_lines = XML_user_info_doc.getElementsByTagName(this_world+"_story_lines");
+        NodeList nodes_world_lines = XML_user_info_doc.getElementsByTagName(this_world + "_story_lines");
         Node parent_lines_node = null;
         if(nodes_world_lines.getLength() == 0)
         {
@@ -805,5 +806,259 @@ public class Questionnaire extends Activity {
 
 
     }
+
+    public void load_worlds_index()
+    {
+        Document index_worlds_user = null;
+        LinearLayout lin_lay_q = (LinearLayout)findViewById(R.id.linearLayout_questuinnaire_vert);
+        try {
+            index_worlds_user = XML_IO.open_document_xml("index_worlds");
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (XmlPullParserException e) {
+            e.printStackTrace();
+        }
+
+        String worlds_index_version_user = XML_IO.find_value_in_doc(index_worlds_user, "worlds", "version");
+        if(worlds_index_version_user == null)
+        {
+            worlds_index_version_user = "0";
+        }
+        else
+        {
+            NodeList worlds_nodelist = index_worlds_user.getElementsByTagName("world");
+            Integer tel = 0;
+
+            lin_lay_q.removeAllViews();
+
+            while (tel < worlds_nodelist.getLength())
+            {
+                String world_name = worlds_nodelist.item(tel).getAttributes().getNamedItem("name").getTextContent();
+                TextView tv_adding_worlds = create_text_view_worlds_start(world_name, "Enter: ");
+                lin_lay_q.addView(tv_adding_worlds);
+                tel = tel+1;
+            }
+        }
+
+        TextView return_tv = new TextView(this);
+        return_tv.setId(awnser_id);
+        return_tv.setTextSize(font_size);
+        return_tv.setText("Load changes from server.");
+
+        return_tv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                load_worlds_index_server();
+            }
+        } ) ;
+
+        lin_lay_q.addView(return_tv);
+
+     }
+
+    public void load_worlds_index_server()
+    {
+
+        Document index_worlds_user = null;
+
+        try {
+            index_worlds_user = XML_IO.open_document_xml("index_worlds");
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (XmlPullParserException e) {
+            e.printStackTrace();
+        }
+
+        String worlds_index_version_user = XML_IO.find_value_in_doc(index_worlds_user, "worlds", "version");
+        if(worlds_index_version_user == null)
+        {
+            worlds_index_version_user = "0";
+        }
+
+        String worlds_index_version_server = "x";
+
+        {
+            Document index_worlds = null;
+            try {
+                index_worlds = server_side_PHP.load_wolrd_index("index_worlds");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            if(index_worlds == null)
+            {
+//                XML_IO.find_value_in_doc(index_worlds, "world", "name");
+            }
+            else {
+//                String found_world = XML_IO.find_value_in_doc(index_worlds, "world", "name");
+                NodeList worlds_nodelist = index_worlds.getElementsByTagName("world");
+                Integer tel = 0;
+                LinearLayout lin_lay_q = (LinearLayout)findViewById(R.id.linearLayout_questuinnaire_vert);
+                lin_lay_q.removeAllViews();
+
+                Document user_world_index = null;
+
+                while (tel < worlds_nodelist.getLength())
+                {
+                    String world_name = worlds_nodelist.item(tel).getAttributes().getNamedItem("name").getTextContent();
+                    String world_version = worlds_nodelist.item(tel).getAttributes().getNamedItem("version").getTextContent();
+
+                    String link_file_user = world_name+"_index";
+                    try {
+                        user_world_index = XML_IO.open_document_xml(link_file_user);
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (XmlPullParserException e) {
+                        e.printStackTrace();
+                    }
+                    String world_version_user = XML_IO.find_value_in_doc(user_world_index, "xml_files", "version");
+                    if(world_version.equals(world_version_user))
+                    {
+                        //start
+                        TextView tv_adding_worlds = create_text_view_worlds_start(world_name, "Enter: ");
+                        lin_lay_q.addView(tv_adding_worlds);
+                    }
+                    else {
+                        TextView tv_adding_worlds = create_text_view_worlds(world_name, "Download: ");
+                        lin_lay_q.addView(tv_adding_worlds);
+
+                    }
+                    tel = tel + 1;
+                }
+
+                try {
+                    XML_IO.save_XML("index_worlds", index_worlds);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                } catch (XmlPullParserException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        }
+        // textbox_mainmenu_tv.setText(result_tv);
+    }
+
+    public TextView create_text_view_worlds(String world_adding, String prefix)
+    {
+        TextView return_tv = new TextView(this);
+        return_tv.setId(awnser_id);
+        return_tv.setTextSize(font_size);
+        return_tv.setText(prefix+world_adding);
+        Bundle inputExtras = return_tv.getInputExtras(true);
+        inputExtras.putString("onclick_temp",world_adding);
+
+        return_tv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                LinearLayout lin_lay_q = (LinearLayout) findViewById(R.id.linearLayout_questuinnaire_vert);
+
+                TextView temp_tv = (TextView) v;
+                Bundle inputExtras = temp_tv.getInputExtras(true);
+                String world_to_load = inputExtras.getString("onclick_temp", "");
+                download_world(world_to_load);
+
+            }
+        } ) ;
+
+        awnser_id = awnser_id +1;
+
+        return return_tv;
+    }
+
+    public TextView create_text_view_worlds_start(String world_adding, String prefix)
+    {
+        TextView return_tv = new TextView(this);
+        return_tv.setId(awnser_id);
+        return_tv.setTextSize(font_size);
+        return_tv.setText(prefix+world_adding);
+        Bundle inputExtras = return_tv.getInputExtras(true);
+        inputExtras.putString("onclick_temp",world_adding);
+
+        return_tv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                LinearLayout lin_lay_q = (LinearLayout) findViewById(R.id.linearLayout_questuinnaire_vert);
+
+                TextView temp_tv = (TextView) v;
+                Bundle inputExtras = temp_tv.getInputExtras(true);
+                String world_to_load = inputExtras.getString("onclick_temp", "");
+                temp_tv.setText("clicked "+world_to_load);
+                // download_world(world_to_load); START WORLD
+                String document_world_index_s = world_to_load+"_index";
+                Document world_index = null;
+                try {
+                    world_index = XML_IO.open_document_xml(document_world_index_s);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                } catch (XmlPullParserException e) {
+                    e.printStackTrace();
+                }
+
+                this_world = world_to_load;
+
+                NodeList worlds_nodelist = world_index.getElementsByTagName("start_file");
+                Integer tel = 0;
+
+                Random rand = new Random();
+                int n = rand.nextInt(worlds_nodelist.getLength());
+
+                String world_name = worlds_nodelist.item(n).getAttributes().getNamedItem("name").getTextContent();
+                String qorm = worlds_nodelist.item(n).getAttributes().getNamedItem("qorm").getTextContent();
+
+                XML_ini_q_or_map(qorm, world_name);
+
+            }
+        } ) ;
+
+        awnser_id = awnser_id +1;
+
+        return return_tv;
+    }
+
+    public void download_world(String world_adding)
+    {
+        String link = world_adding + "/" + world_adding + "_index";
+        Document world_selected_index = null;
+        try {
+            world_selected_index = server_side_PHP.load_wolrd_index(link);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        NodeList worlds_nodelist = world_selected_index.getElementsByTagName("xml_file");
+        Integer tel = 0;
+        LinearLayout lin_lay_q = (LinearLayout)findViewById(R.id.linearLayout_questuinnaire_vert);
+        lin_lay_q.removeAllViews();
+
+        while (tel < worlds_nodelist.getLength())
+        {
+            String file_name = worlds_nodelist.item(tel).getAttributes().getNamedItem("name").getTextContent();
+//            TextView new_downloaded_tv = new TextView(this);
+            String link_file_adding =  world_adding + "/" + file_name;
+            String file_new_name =  world_adding + "_" + file_name;
+
+            String data_from_server = null;
+            try {
+                data_from_server = server_side_PHP.load_wolrd_index_string(link_file_adding);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            FileIO.saveStringFilePrivate(file_new_name, "xml",data_from_server);
+
+            tel = tel+1;
+        }
+
+        try {
+            XML_IO.save_XML(world_adding+"_index", world_selected_index);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (XmlPullParserException e) {
+            e.printStackTrace();
+        }
+        load_worlds_index();
+
+    }
+
 
 }
