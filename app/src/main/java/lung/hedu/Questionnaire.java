@@ -444,6 +444,45 @@ public class Questionnaire extends Activity {
         }
         return text_return;
     }
+    public void XML_ini_map_new(String XML_file_input)
+    {
+        Document map_doc = null;
+        try {
+            map_doc = XML_IO.open_document_xml(XML_file_input);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (XmlPullParserException e) {
+            e.printStackTrace();
+        }
+
+        remove_views();
+
+        Integer x_tot_sqre = Integer.parseInt(XML_IO.find_value_in_doc(map_doc, "map", "x_sqre").toString());
+        Integer y_tot_sqre = Integer.parseInt(XML_IO.find_value_in_doc(map_doc, "map", "y_sqre").toString());
+        Integer sqre_size = set_squarre_size(x_tot_sqre, y_tot_sqre);
+
+        LinearLayout ll_temp = (LinearLayout) findViewById(R.id.linearLayout_questuinnaire_vert);
+        ImageView field_img_view = draw_field.create_imageview_field(ll_temp, sqre_size);
+        bitmap_field = draw_field.create_bitmap_field(((x_tot_sqre) * (sqre_size + 2) + 2), ((y_tot_sqre) * (sqre_size + 2) + 2));
+        field_img_view.setImageBitmap(bitmap_field);
+
+        NodeList cells_map = map_doc.getElementsByTagName("cell");
+        Integer cells_tel = 0;
+        while (cells_tel < cells_map.getLength() )
+        {
+            Node row_node_atm = cells_map.item(cells_tel);
+            NamedNodeMap temp_atr = row_node_atm.getAttributes();
+
+            Node node_temp_atr = temp_atr.getNamedItem("x");
+            Integer x_pos_cell = Integer.parseInt(node_temp_atr.getTextContent().toString());
+            node_temp_atr = temp_atr.getNamedItem("y");
+            Integer y_pos_cell = Integer.parseInt(node_temp_atr.getTextContent().toString());
+            node_temp_atr = temp_atr.getNamedItem("def");
+            Integer def_cell = Integer.parseInt(node_temp_atr.getTextContent().toString());
+
+            cells_tel= cells_tel + 1;
+        }
+    }
 
     public String XML_ini_map(String XML_file_input) {
         XmlPullParser XmlPullParser_temp = null;
@@ -609,7 +648,7 @@ public class Questionnaire extends Activity {
 
     }
 
-    public void set_squarre_size(Integer totx_squarres, Integer toty_squarres)
+    public Integer set_squarre_size(Integer totx_squarres, Integer toty_squarres)
     {
         View fullscreen_element = findViewById(R.id.frame_layout_q);
         Integer height = ( fullscreen_element.getHeight() -3) / toty_squarres;
@@ -629,7 +668,7 @@ public class Questionnaire extends Activity {
         {
             squarre_size = 10;
         }
-
+        return squarre_size;
 
     }
     public void read_rows(String input_xml, Integer y_tel_squarres)
