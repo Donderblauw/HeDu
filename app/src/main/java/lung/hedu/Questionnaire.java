@@ -261,7 +261,7 @@ public class Questionnaire extends Activity {
         }
         else if(type_xml.equals("m"))
         {
-            XML_ini_map(XML_file);
+            XML_ini_map_new(XML_file);
         }
     }
     public boolean check_req_type (String found_v, String req_type, String req_v, String then_tag_name, String then_id)
@@ -446,9 +446,10 @@ public class Questionnaire extends Activity {
     }
     public void XML_ini_map_new(String XML_file_input)
     {
+        String XML_file = this_world + "_" + XML_file_input;
         Document map_doc = null;
         try {
-            map_doc = XML_IO.open_document_xml(XML_file_input);
+            map_doc = XML_IO.open_document_xml(XML_file);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (XmlPullParserException e) {
@@ -479,6 +480,8 @@ public class Questionnaire extends Activity {
             Integer y_pos_cell = Integer.parseInt(node_temp_atr.getTextContent().toString());
             node_temp_atr = temp_atr.getNamedItem("def");
             Integer def_cell = Integer.parseInt(node_temp_atr.getTextContent().toString());
+
+            draw_field.draw_squarre(x_pos_cell, y_pos_cell, def_cell, bitmap_field, sqre_size);
 
             cells_tel= cells_tel + 1;
         }
