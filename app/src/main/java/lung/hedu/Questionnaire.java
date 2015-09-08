@@ -474,6 +474,15 @@ public class Questionnaire extends Activity {
             Node row_node_atm = cells_map.item(cells_tel);
             NamedNodeMap temp_atr = row_node_atm.getAttributes();
 
+            Element row_element_atm = (Element) cells_map.item(cells_tel);
+            NodeList cells_req = row_element_atm.getElementsByTagName("cell_req");
+            Integer tel_cells_req = 0;
+            while (tel_cells_req < cells_req.getLength())
+            {
+                cells_req.item(tel_cells_req);
+                tel_cells_req = tel_cells_req + 1;
+            }
+
             Node node_temp_atr = temp_atr.getNamedItem("x");
             Integer x_pos_cell = Integer.parseInt(node_temp_atr.getTextContent().toString());
             node_temp_atr = temp_atr.getNamedItem("y");
