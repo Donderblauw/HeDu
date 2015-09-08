@@ -476,12 +476,6 @@ public class Questionnaire extends Activity {
 
             Element row_element_atm = (Element) cells_map.item(cells_tel);
             NodeList cells_req = row_element_atm.getElementsByTagName("cell_req");
-            Integer tel_cells_req = 0;
-            while (tel_cells_req < cells_req.getLength())
-            {
-                cells_req.item(tel_cells_req);
-                tel_cells_req = tel_cells_req + 1;
-            }
 
             Node node_temp_atr = temp_atr.getNamedItem("x");
             Integer x_pos_cell = Integer.parseInt(node_temp_atr.getTextContent().toString());
@@ -489,6 +483,36 @@ public class Questionnaire extends Activity {
             Integer y_pos_cell = Integer.parseInt(node_temp_atr.getTextContent().toString());
             node_temp_atr = temp_atr.getNamedItem("def");
             Integer def_cell = Integer.parseInt(node_temp_atr.getTextContent().toString());
+
+            Integer tel_cells_req = 0;
+            while (tel_cells_req < cells_req.getLength())
+            {
+                Node reqnode_atm = cells_req.item(tel_cells_req);
+                NamedNodeMap reqnode_atm_atr = reqnode_atm.getAttributes();
+                String req_tag_name = reqnode_atm_atr.getNamedItem("req_tag_name").getTextContent();
+                String req_id = reqnode_atm_atr.getNamedItem("req_id").getTextContent();
+                String req_v = reqnode_atm_atr.getNamedItem("req_v").getTextContent();
+                String req_type = reqnode_atm_atr.getNamedItem("req_type").getTextContent();
+                String then_tag_name = null;
+                if(reqnode_atm_atr.getNamedItem("then_tag_name") == null ) {}
+                else {then_tag_name = reqnode_atm_atr.getNamedItem("then_tag_name").getTextContent();}
+                String then_id = null;
+                if(reqnode_atm_atr.getNamedItem("then_id") == null) {}
+                else {then_tag_name = reqnode_atm_atr.getNamedItem("then_id").getTextContent();}
+                Integer set_def = 0;
+                if(reqnode_atm_atr.getNamedItem("set_def") == null){}
+                else {set_def = Integer.parseInt(reqnode_atm_atr.getNamedItem("set_def").getTextContent());}
+
+                String found_v = find_value_in_xml(req_tag_name, req_id);
+                boolean test_result = check_req_type(found_v, req_type, req_v, then_tag_name, then_id);
+                if(test_result == true)
+                {
+                    def_cell = set_def;
+                }
+
+                tel_cells_req = tel_cells_req + 1;
+            }
+
 
             draw_field.draw_squarre(x_pos_cell, y_pos_cell, def_cell, bitmap_field, sqre_size);
 
