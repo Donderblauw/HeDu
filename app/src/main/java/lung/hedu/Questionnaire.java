@@ -32,6 +32,7 @@ import org.w3c.dom.Document;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Random;
 
 import static lung.hedu.FileIO.loadStringFilePrivate;
@@ -49,6 +50,15 @@ public class Questionnaire extends Activity {
     // for_main_menu_context = Intent.getStringExtra(main_menu.context_temp_across_activity);
     // public String from_main_menu = null;
 
+    public Integer[][][] field_atm_array;
+
+    // array list 2d =
+    // 0 = name
+    // 1 = type (0 = empty 1 = normal 2 = player 3 = enemy 4 = neutral 5 = trigger)
+    // 2 = color
+    // 3 = trigger death
+    // 4 = trigger talk
+    public ArrayList<ArrayList<String>> field_ids_and_names = new ArrayList<ArrayList<String>>();
 
     public Typeface font_face = null;
     public Integer font_size = 20;
@@ -60,7 +70,7 @@ public class Questionnaire extends Activity {
     Document XML_user_info_doc = null;
     public String this_world = "";
     public Boolean check_if_XMLisset = false;
-    public String username = "";
+    public ArrayList username = new ArrayList();
 
     /**
      * Whether or not the system UI should be auto-hidden after
@@ -243,14 +253,30 @@ public class Questionnaire extends Activity {
     public String replace_q_texts (String input)
     {
         String output = input;
-
-        if(username.equals(""))
-        {
-            username = find_value_in_xml("login_info", "name");
-        }
-        output = output.replace("|qname", username);
-
+        String names = read_username ();
+        output = output.replace("|qname", names);
         return output;
+    }
+
+    public String read_username ()
+    {
+        if(username.size() == 0)
+        {
+            String username_s = find_value_in_xml("login_info", "name");
+            username.add(username_s);
+        }
+        Integer tel = 0;
+        String names = "";
+        while(tel < username.size())
+        {
+            names = names+username.get(tel);
+            tel = tel +1;
+            if(tel < username.size())
+            {
+                names = names+" and ";
+            }
+        }
+        return names;
     }
 
     public void XML_ini_q_or_map(String type_xml, String XML_file)
@@ -271,12 +297,23 @@ public class Questionnaire extends Activity {
         bt = bigger then xx
         st = smaller then xx
         eq = equal
+        nq = not equal
         bi = bigger > value
         sm = smaller < value
 */
         if(req_type.equals("eq"))
         {
             if(req_v.equals(found_v))
+            {
+                return_bool = true;
+            }
+        }
+        else if(req_type.equals("nq"))
+        {
+            if(req_v.equals(found_v))
+            {
+            }
+            else
             {
                 return_bool = true;
             }
@@ -444,8 +481,7 @@ public class Questionnaire extends Activity {
         }
         return text_return;
     }
-    public void XML_ini_map_new(String XML_file_input)
-    {
+    public void XML_ini_map_new(String XML_file_input) {
         String XML_file = this_world + "_" + XML_file_input;
         Document map_doc = null;
         try {
@@ -458,6 +494,30 @@ public class Questionnaire extends Activity {
 
         remove_views();
 
+        field_ids_and_names.add(new ArrayList());
+        field_ids_and_names.get(0).add("Empty");
+        field_ids_and_names.get(0).add("0");
+        field_ids_and_names.get(0).add("#444444");
+
+        field_ids_and_names.add(new ArrayList());
+        field_ids_and_names.get(1).add("Open");
+        field_ids_and_names.get(1).add("1");
+        field_ids_and_names.get(1).add("#448844");
+
+        Integer tel = 0;
+        if (username.size() == 0) {
+            read_username();
+        }
+        while (tel < username.size()) {
+            field_ids_and_names.add(new ArrayList());
+            Integer tot_arraylist = (field_ids_and_names.size()-1);
+
+            field_ids_and_names.get(tot_arraylist).add(String.valueOf(username.get(tel)));
+            field_ids_and_names.get(tot_arraylist).add("2");
+            field_ids_and_names.get(tot_arraylist).add("#66ff66");
+            tel = tel + 1;
+        }
+
         Integer x_tot_sqre = Integer.parseInt(XML_IO.find_value_in_doc(map_doc, "map", "x_sqre").toString());
         Integer y_tot_sqre = Integer.parseInt(XML_IO.find_value_in_doc(map_doc, "map", "y_sqre").toString());
         Integer sqre_size = set_squarre_size(x_tot_sqre, y_tot_sqre);
@@ -469,8 +529,7 @@ public class Questionnaire extends Activity {
 
         NodeList cells_map = map_doc.getElementsByTagName("cell");
         Integer cells_tel = 0;
-        while (cells_tel < cells_map.getLength() )
-        {
+        while (cells_tel < cells_map.getLength()) {
             Node row_node_atm = cells_map.item(cells_tel);
             NamedNodeMap temp_atr = row_node_atm.getAttributes();
 
@@ -485,41 +544,101 @@ public class Questionnaire extends Activity {
             Integer def_cell = Integer.parseInt(node_temp_atr.getTextContent().toString());
 
             Integer tel_cells_req = 0;
-            while (tel_cells_req < cells_req.getLength())
-            {
+            while (tel_cells_req < cells_req.getLength()) {
                 Node reqnode_atm = cells_req.item(tel_cells_req);
-                NamedNodeMap reqnode_atm_atr = reqnode_atm.getAttributes();
-                String req_tag_name = reqnode_atm_atr.getNamedItem("req_tag_name").getTextContent();
-                String req_id = reqnode_atm_atr.getNamedItem("req_id").getTextContent();
-                String req_v = reqnode_atm_atr.getNamedItem("req_v").getTextContent();
-                String req_type = reqnode_atm_atr.getNamedItem("req_type").getTextContent();
-                String then_tag_name = null;
-                if(reqnode_atm_atr.getNamedItem("then_tag_name") == null ) {}
-                else {then_tag_name = reqnode_atm_atr.getNamedItem("then_tag_name").getTextContent();}
-                String then_id = null;
-                if(reqnode_atm_atr.getNamedItem("then_id") == null) {}
-                else {then_tag_name = reqnode_atm_atr.getNamedItem("then_id").getTextContent();}
-                Integer set_def = 0;
-                if(reqnode_atm_atr.getNamedItem("set_def") == null){}
-                else {set_def = Integer.parseInt(reqnode_atm_atr.getNamedItem("set_def").getTextContent());}
 
-                String found_v = find_value_in_xml(req_tag_name, req_id);
-                boolean test_result = check_req_type(found_v, req_type, req_v, then_tag_name, then_id);
-                if(test_result == true)
-                {
+                NamedNodeMap reqnode_atm_atr = reqnode_atm.getAttributes();
+                Integer set_def = 0;
+                if (reqnode_atm_atr.getNamedItem("set_def") == null) {
+                } else {
+                    set_def = Integer.parseInt(reqnode_atm_atr.getNamedItem("set_def").getTextContent());
+                }
+
+                boolean test_result = check_reqcuirements(reqnode_atm);
+                if (test_result == true) {
                     def_cell = set_def;
                 }
 
                 tel_cells_req = tel_cells_req + 1;
             }
+            draw_field.draw_squarre(x_pos_cell, y_pos_cell, field_ids_and_names.get(def_cell).get(2), bitmap_field, sqre_size);
+            field_atm_array[x_pos_cell][y_pos_cell][0] = def_cell;
+
+            cells_tel = cells_tel + 1;
+        }
+
+        NodeList enemys_nodelist = map_doc.getElementsByTagName("enemy");
+        Integer tel_enemys = 0;
+        while (tel_enemys < enemys_nodelist.getLength())
+        {
+            Node enemy_node = enemys_nodelist.item(tel_enemys);
+            NamedNodeMap temp_atr = enemy_node.getAttributes();
+
+            Node node_temp_atr = temp_atr.getNamedItem("level");
+            Integer enemy_lvl = Integer.parseInt(node_temp_atr.getTextContent().toString());
+            node_temp_atr = temp_atr.getNamedItem("x_spawn");
+            Integer enemy_x_spawn = Integer.parseInt(node_temp_atr.getTextContent().toString());
+            node_temp_atr = temp_atr.getNamedItem("y_spawn");
+            Integer enemy_y_spawn = Integer.parseInt(node_temp_atr.getTextContent().toString());
+
+            Element enemy_element_atm = (Element) enemys_nodelist.item(tel_enemys);
+            NodeList enemy_req = enemy_element_atm.getElementsByTagName("req_enemy");
+
+            Boolean add_enemy = false;
+            Integer tel_enemy_req = 0;
+            while (tel_enemy_req < enemy_req.getLength()) {
+                Node reqnode_atm = enemy_req.item(tel_enemy_req);
+
+                boolean test_result = check_reqcuirements(reqnode_atm);
+                if (test_result == true) {
+                    add_enemy = true;
+                }
+
+                tel_enemy_req = tel_enemy_req + 1;
+            }
+            if(add_enemy == true)
+            {
+                add_random_enemy(enemy_lvl,enemy_x_spawn,enemy_y_spawn);
+            }
 
 
-            draw_field.draw_squarre(x_pos_cell, y_pos_cell, def_cell, bitmap_field, sqre_size);
 
-            cells_tel= cells_tel + 1;
+            tel_enemys = tel_enemys+1;
         }
     }
 
+    public void add_random_enemy(Integer level, Integer x_spawn, Integer y_spawn)
+    {
+        Log.e("add", "x="+x_spawn+" y="+y_spawn);
+
+    }
+
+    public Boolean check_reqcuirements(Node input_node)
+    {
+        Boolean return_bool = false;
+
+        NamedNodeMap reqnode_atm_atr = input_node.getAttributes();
+        String req_tag_name = reqnode_atm_atr.getNamedItem("req_tag_name").getTextContent();
+        String req_id = reqnode_atm_atr.getNamedItem("req_id").getTextContent();
+        String req_v = reqnode_atm_atr.getNamedItem("req_v").getTextContent();
+        String req_type = reqnode_atm_atr.getNamedItem("req_type").getTextContent();
+        String then_tag_name = null;
+        if (reqnode_atm_atr.getNamedItem("then_tag_name") == null) {
+        } else {
+            then_tag_name = reqnode_atm_atr.getNamedItem("then_tag_name").getTextContent();
+        }
+        String then_id = null;
+        if (reqnode_atm_atr.getNamedItem("then_id") == null) {
+        } else {
+            then_tag_name = reqnode_atm_atr.getNamedItem("then_id").getTextContent();
+        }
+
+        String found_v = find_value_in_xml(req_tag_name, req_id);
+        return_bool = check_req_type(found_v, req_type, req_v, then_tag_name, then_id);
+
+        return return_bool;
+    }
+/*
     public String XML_ini_map(String XML_file_input) {
         XmlPullParser XmlPullParser_temp = null;
         String text_return = "";
@@ -573,7 +692,7 @@ public class Questionnaire extends Activity {
 
                     case XmlPullParser.TEXT: {
                         if (xml_atm.equals("row")) {
-                            read_rows(XmlPullParser_temp.getText(), y_row_atm);
+                            // read_rows(XmlPullParser_temp.getText(), y_row_atm);
                         }
                     }
                     break;
@@ -594,7 +713,7 @@ public class Questionnaire extends Activity {
         }
         return text_return;
     }
-
+*/
 
     public XmlPullParser load_XML(String input) throws FileNotFoundException, XmlPullParserException {
 
@@ -669,7 +788,7 @@ public class Questionnaire extends Activity {
                     if (replace_add.equals("true")) {
                         replace_add_bool = true;
                     }
-                    add_story_line("optionC", add_value, replace_add_bool, add_line);
+                    add_story_line(this_world, add_value, replace_add_bool, add_line);
                 }
                 // add_story_line(add_line, add_value);
 
@@ -704,9 +823,11 @@ public class Questionnaire extends Activity {
         {
             squarre_size = 10;
         }
+        field_atm_array = new Integer[totx_squarres][toty_squarres][10];
         return squarre_size;
 
     }
+    /*
     public void read_rows(String input_xml, Integer y_tel_squarres)
     {
         input_xml = input_xml.replace("\n", "");
@@ -728,7 +849,7 @@ public class Questionnaire extends Activity {
             index_data_komma = (input_xml.indexOf(","));
         }
     }
-
+*/
 
     public String find_value_in_xml(String add_line_id, String value_id)
     {
