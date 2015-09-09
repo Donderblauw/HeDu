@@ -552,6 +552,76 @@ public class Questionnaire extends Activity {
             cells_tel = cells_tel + 1;
         }
 
+        NodeList startposition_nodelist = map_doc.getElementsByTagName("startposition");
+        Integer tel_startpos = 0;
+        ArrayList strt_priority_list = new ArrayList();
+        ArrayList strt_x_list = new ArrayList();
+        ArrayList strt_y_list = new ArrayList();
+        while(tel_startpos < startposition_nodelist.getLength())
+        {
+            Node start_pos_node = startposition_nodelist.item(tel_startpos);
+            NamedNodeMap temp_atr = start_pos_node.getAttributes();
+
+            Node node_temp_atr = temp_atr.getNamedItem("priority");
+            Integer start_pos_prio = Integer.parseInt(node_temp_atr.getTextContent().toString());
+            strt_priority_list.add(start_pos_prio);
+            node_temp_atr = temp_atr.getNamedItem("x");
+            Integer start_pos_x = Integer.parseInt(node_temp_atr.getTextContent().toString());
+            strt_x_list.add(start_pos_x);
+            node_temp_atr = temp_atr.getNamedItem("y");
+            Integer start_pos_y = Integer.parseInt(node_temp_atr.getTextContent().toString());
+            strt_y_list.add(start_pos_y);
+
+            tel_startpos = tel_startpos+1;
+        }
+
+        Integer found_startpos_id = find_highest_prio(strt_priority_list);
+        strt_x_list.get(found_startpos_id);
+        strt_y_list.get(found_startpos_id);
+
+/*
+        Integer tel = 0;
+        ArrayList rank_pos_start = new ArrayList();
+        ArrayList rank_pos_start_priosync = new ArrayList();
+
+
+        while(tel < strt_priority_list.size())
+        {
+            Integer temp = (Integer) strt_priority_list.get(tel);
+            Integer tel2 = 0;
+            Boolean last = true;
+
+            while(tel2 < rank_pos_start.size())
+            {
+                Integer temp2 = (Integer) rank_pos_start_priosync.get(tel2);
+                if(temp>temp2)
+                {
+                    rank_pos_start.add(tel2, tel);
+                    rank_pos_start_priosync.add(tel2, temp);
+                    tel2 = rank_pos_start.size();
+                    last = false;
+                }
+                else if(temp.equals(temp2))
+                {
+                    if((Math.random() < 0.5) == true)
+                    {
+                        rank_pos_start.add(tel2, tel);
+                        rank_pos_start_priosync.add(tel2, temp);
+                        tel2 = rank_pos_start.size();
+                    }
+                }
+                tel2 = tel2+1;
+            }
+            if(last == true)
+            {
+                rank_pos_start.add(tel);
+                rank_pos_start_priosync.add(temp);
+            }
+
+            tel = tel+1;
+        }
+        */
+
         Integer tel = 0;
         if (username.size() == 0) {
             read_username();
@@ -605,9 +675,57 @@ public class Questionnaire extends Activity {
         }
 
 
+
         draw_field_squarres();
 
     }
+
+    public Integer find_highest_prio(ArrayList priority_list)
+    {
+        Integer tel = 0;
+        ArrayList rank_pos_start = new ArrayList();
+        ArrayList rank_pos_start_priosync = new ArrayList();
+
+
+        while(tel < priority_list.size())
+        {
+            Integer temp = (Integer) priority_list.get(tel);
+            Integer tel2 = 0;
+            Boolean last = true;
+
+            while(tel2 < rank_pos_start.size())
+            {
+                Integer temp2 = (Integer) rank_pos_start_priosync.get(tel2);
+                if(temp>temp2)
+                {
+                    rank_pos_start.add(tel2, tel);
+                    rank_pos_start_priosync.add(tel2, temp);
+                    tel2 = rank_pos_start.size();
+                    last = false;
+                }
+                else if(temp.equals(temp2))
+                {
+                    if((Math.random() < 0.5) == true)
+                    {
+                        rank_pos_start.add(tel2, tel);
+                        rank_pos_start_priosync.add(tel2, temp);
+                        tel2 = rank_pos_start.size();
+                    }
+                }
+                tel2 = tel2+1;
+            }
+            if(last == true)
+            {
+                rank_pos_start.add(tel);
+                rank_pos_start_priosync.add(temp);
+            }
+
+            tel = tel+1;
+        }
+        Integer return_i = (Integer) rank_pos_start.get(0);
+        return return_i;
+    }
+
     public void draw_field_squarres()
     {
         Integer tel_x = 0;
