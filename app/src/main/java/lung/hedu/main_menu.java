@@ -310,7 +310,7 @@ public class main_menu extends Activity {
     public void goto_questionnaire(View v)
     {
         Intent goto_questionnaire_intent = new Intent(this, Questionnaire.class);
-        // versturen information between intents, test. ik snap het niet.
+        // versturen information between intents, test. ik snap het .
 //        goto_questionnaire_intent.putExtra(give_text, "Gelder");
         startActivity(goto_questionnaire_intent);
     }
@@ -351,7 +351,7 @@ public class main_menu extends Activity {
         textbox_mainmenu_tv = (TextView)findViewById(R.id.textbox_mainmenu);
         textbox_mainmenu_tv.setText(login_name);
 
-        if(login_name.matches("[a-zA-Z]*") ==true) {
+        if(login_name.matches("[a-zA-Z ]*") ==true) {
             if (login_name.length() > 2) {
                 if (login_name.length() < 12) {
 
@@ -360,7 +360,7 @@ public class main_menu extends Activity {
                     XML_IO.set_value_user_info("login_info", "name", login_name);
 
 
-
+                    login_name.replace(" ","_");
                     String[] data_url_addon = {android_id, login_name};
                     ArrayList<String> login_data = null;
                     try {
@@ -376,7 +376,7 @@ public class main_menu extends Activity {
                     XML_IO.set_value_user_info("login_info", "id", login_data.get(0).toString());
 //                    Log.e("temp", "login_data0 " + login_data.get(0).toString());
 //                    Log.e("temp", "login_data1 " + login_data.get(1).toString());
-
+                    login_name.replace("_", " ");
                     login();
 
                 } else {

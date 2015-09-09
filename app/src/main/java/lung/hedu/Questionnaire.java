@@ -65,7 +65,6 @@ public class Questionnaire extends Activity {
     public Integer awnser_id = 102;
     public Integer squarre_size = 30;
     public Bitmap bitmap_field = null;
-    public Integer y_row_atm = -1;
 
     Document XML_user_info_doc = null;
     public String this_world = "";
@@ -504,20 +503,6 @@ public class Questionnaire extends Activity {
         field_ids_and_names.get(1).add("1");
         field_ids_and_names.get(1).add("#448844");
 
-        Integer tel = 0;
-        if (username.size() == 0) {
-            read_username();
-        }
-        while (tel < username.size()) {
-            field_ids_and_names.add(new ArrayList());
-            Integer tot_arraylist = (field_ids_and_names.size()-1);
-
-            field_ids_and_names.get(tot_arraylist).add(String.valueOf(username.get(tel)));
-            field_ids_and_names.get(tot_arraylist).add("2");
-            field_ids_and_names.get(tot_arraylist).add("#66ff66");
-            tel = tel + 1;
-        }
-
         Integer x_tot_sqre = Integer.parseInt(XML_IO.find_value_in_doc(map_doc, "map", "x_sqre").toString());
         Integer y_tot_sqre = Integer.parseInt(XML_IO.find_value_in_doc(map_doc, "map", "y_sqre").toString());
         Integer sqre_size = set_squarre_size(x_tot_sqre, y_tot_sqre);
@@ -561,10 +546,25 @@ public class Questionnaire extends Activity {
 
                 tel_cells_req = tel_cells_req + 1;
             }
-            draw_field.draw_squarre(x_pos_cell, y_pos_cell, field_ids_and_names.get(def_cell).get(2), bitmap_field, sqre_size);
+
             field_atm_array[x_pos_cell][y_pos_cell][0] = def_cell;
 
             cells_tel = cells_tel + 1;
+        }
+
+        Integer tel = 0;
+        if (username.size() == 0) {
+            read_username();
+        }
+        while (tel < username.size()) {
+            field_ids_and_names.add(new ArrayList());
+            Integer tot_arraylist = (field_ids_and_names.size()-1);
+
+            field_ids_and_names.get(tot_arraylist).add(String.valueOf(username.get(tel)));
+            field_ids_and_names.get(tot_arraylist).add("2");
+            field_ids_and_names.get(tot_arraylist).add("#66ff66");
+            // set position field_atm_array
+            tel = tel + 1;
         }
 
         NodeList enemys_nodelist = map_doc.getElementsByTagName("enemy");
@@ -601,15 +601,47 @@ public class Questionnaire extends Activity {
                 add_random_enemy(enemy_lvl,enemy_x_spawn,enemy_y_spawn);
             }
 
-
-
             tel_enemys = tel_enemys+1;
         }
-    }
 
+
+        draw_field_squarres();
+
+    }
+    public void draw_field_squarres()
+    {
+        Integer tel_x = 0;
+        Integer tel_y = 0;
+        while (tel_x<field_atm_array.length)
+        {
+            tel_y = 0;
+            while(tel_y<field_atm_array[tel_x].length)
+            {
+                Integer id_ofcell_type = field_atm_array[tel_x][tel_y][0];
+                if(id_ofcell_type == null)
+                {
+                    id_ofcell_type = 0;
+                }
+                else {
+                    draw_field.draw_squarre(tel_x, tel_y, field_ids_and_names.get(id_ofcell_type).get(2), bitmap_field, squarre_size);
+                }
+                tel_y = tel_y +1;
+            }
+            tel_x = tel_x +1;
+        }
+
+    }
     public void add_random_enemy(Integer level, Integer x_spawn, Integer y_spawn)
     {
-        Log.e("add", "x="+x_spawn+" y="+y_spawn);
+        // Log.e("add", "x="+x_spawn+" y="+y_spawn);
+        field_ids_and_names.add(new ArrayList());
+        Integer new_enemy_id = (field_ids_and_names.size()-1);
+        String name = "random "+ level;
+        field_ids_and_names.get(new_enemy_id).add(name);
+        field_ids_and_names.get(new_enemy_id).add("3");
+        field_ids_and_names.get(new_enemy_id).add("#ff6666");
+
+        field_atm_array[x_spawn][y_spawn][0] = new_enemy_id;
 
     }
 
