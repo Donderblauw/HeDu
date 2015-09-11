@@ -4,15 +4,17 @@ import lung.hedu.util.SystemUiHider;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.MenuItem;
-import android.support.v4.app.NavUtils;
+// import android.support.v4.app.NavUtils;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -34,9 +36,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
-
-import static lung.hedu.FileIO.loadStringFilePrivate;
-import static lung.hedu.FileIO.saveStringFilePrivate;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -65,11 +64,21 @@ public class Questionnaire extends Activity {
     public Integer awnser_id = 102;
     public Integer squarre_size = 30;
     public Bitmap bitmap_field = null;
+    public ImageView bitmapview = null;
 
     Document XML_user_info_doc = null;
     public String this_world = "";
     public Boolean check_if_XMLisset = false;
-    public ArrayList username = new ArrayList();
+    public ArrayList<String> username = new ArrayList();
+
+    public Integer active_player_id = 0;
+
+    public ArrayList<String> world_atributs = new ArrayList<String>();
+    public ArrayList<Integer> user_def_atributs = new ArrayList<Integer>();
+    public ArrayList<Integer> enemy_def_atributs = new ArrayList<Integer>();
+    public ArrayList<ArrayList<String>>  enemy_interaction = new ArrayList<ArrayList<String>> ();
+    public ArrayList<ArrayList<String>>  atribute_trigger = new ArrayList<ArrayList<String>> ();
+    public ArrayList<ArrayList<ArrayList<ArrayList<Integer>>>>  atribute_modifications = new ArrayList<ArrayList<ArrayList<ArrayList<Integer>>>> ();
 
     /**
      * Whether or not the system UI should be auto-hidden after
@@ -197,7 +206,7 @@ public class Questionnaire extends Activity {
             getActionBar().setDisplayHomeAsUpEnabled(true);
         }
     }
-     */
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
@@ -216,7 +225,7 @@ public class Questionnaire extends Activity {
         }
         return super.onOptionsItemSelected(item);
     }
-
+     */
     /**
      * Touch listener to use for in-layout UI controls to delay hiding the
      * system UI. This is to prevent the jarring behavior of controls going away
@@ -508,9 +517,9 @@ public class Questionnaire extends Activity {
         Integer sqre_size = set_squarre_size(x_tot_sqre, y_tot_sqre);
 
         LinearLayout ll_temp = (LinearLayout) findViewById(R.id.linearLayout_questuinnaire_vert);
-        ImageView field_img_view = draw_field.create_imageview_field(ll_temp, sqre_size);
+        ImageView field_img_view = create_imageview_field(ll_temp, sqre_size);
         bitmap_field = draw_field.create_bitmap_field(((x_tot_sqre) * (sqre_size + 2) + 2), ((y_tot_sqre) * (sqre_size + 2) + 2));
-        field_img_view.setImageBitmap(bitmap_field);
+        bitmapview = field_img_view;
 
         NodeList cells_map = map_doc.getElementsByTagName("cell");
         Integer cells_tel = 0;
@@ -562,65 +571,37 @@ public class Questionnaire extends Activity {
             Node start_pos_node = startposition_nodelist.item(tel_startpos);
             NamedNodeMap temp_atr = start_pos_node.getAttributes();
 
-            Node node_temp_atr = temp_atr.getNamedItem("priority");
-            Integer start_pos_prio = Integer.parseInt(node_temp_atr.getTextContent().toString());
-            strt_priority_list.add(start_pos_prio);
-            node_temp_atr = temp_atr.getNamedItem("x");
-            Integer start_pos_x = Integer.parseInt(node_temp_atr.getTextContent().toString());
-            strt_x_list.add(start_pos_x);
-            node_temp_atr = temp_atr.getNamedItem("y");
-            Integer start_pos_y = Integer.parseInt(node_temp_atr.getTextContent().toString());
-            strt_y_list.add(start_pos_y);
+            Element start_pos_element_atm = (Element) startposition_nodelist.item(tel_startpos);
+            NodeList start_pos_req = start_pos_element_atm.getElementsByTagName("req_startposition");
+
+            Boolean add_start_pos = true;
+            Integer tel_start_pos_req = 0;
+            while (tel_start_pos_req < start_pos_req.getLength()) {
+                Node reqnode_atm = start_pos_req.item(tel_start_pos_req);
+
+                boolean test_result = check_reqcuirements(reqnode_atm);
+                add_start_pos = test_result;
+
+                tel_start_pos_req = tel_start_pos_req + 1;
+            }
+
+            if(add_start_pos == true)
+            {
+                Node node_temp_atr = temp_atr.getNamedItem("priority");
+                Integer start_pos_prio = Integer.parseInt(node_temp_atr.getTextContent().toString());
+                strt_priority_list.add(start_pos_prio);
+                node_temp_atr = temp_atr.getNamedItem("x");
+                Integer start_pos_x = Integer.parseInt(node_temp_atr.getTextContent().toString());
+                strt_x_list.add(start_pos_x);
+                node_temp_atr = temp_atr.getNamedItem("y");
+                Integer start_pos_y = Integer.parseInt(node_temp_atr.getTextContent().toString());
+                strt_y_list.add(start_pos_y);
+            }
 
             tel_startpos = tel_startpos+1;
         }
 
         Integer found_startpos_id = find_highest_prio(strt_priority_list);
-        strt_x_list.get(found_startpos_id);
-        strt_y_list.get(found_startpos_id);
-
-/*
-        Integer tel = 0;
-        ArrayList rank_pos_start = new ArrayList();
-        ArrayList rank_pos_start_priosync = new ArrayList();
-
-
-        while(tel < strt_priority_list.size())
-        {
-            Integer temp = (Integer) strt_priority_list.get(tel);
-            Integer tel2 = 0;
-            Boolean last = true;
-
-            while(tel2 < rank_pos_start.size())
-            {
-                Integer temp2 = (Integer) rank_pos_start_priosync.get(tel2);
-                if(temp>temp2)
-                {
-                    rank_pos_start.add(tel2, tel);
-                    rank_pos_start_priosync.add(tel2, temp);
-                    tel2 = rank_pos_start.size();
-                    last = false;
-                }
-                else if(temp.equals(temp2))
-                {
-                    if((Math.random() < 0.5) == true)
-                    {
-                        rank_pos_start.add(tel2, tel);
-                        rank_pos_start_priosync.add(tel2, temp);
-                        tel2 = rank_pos_start.size();
-                    }
-                }
-                tel2 = tel2+1;
-            }
-            if(last == true)
-            {
-                rank_pos_start.add(tel);
-                rank_pos_start_priosync.add(temp);
-            }
-
-            tel = tel+1;
-        }
-        */
 
         Integer tel = 0;
         if (username.size() == 0) {
@@ -633,6 +614,32 @@ public class Questionnaire extends Activity {
             field_ids_and_names.get(tot_arraylist).add(String.valueOf(username.get(tel)));
             field_ids_and_names.get(tot_arraylist).add("2");
             field_ids_and_names.get(tot_arraylist).add("#66ff66");
+
+            Integer tel_possible_start_places = 0;
+            Boolean found_place = false;
+            Boolean stop_loop = false;
+            Integer x_player = null;
+            Integer y_player = null;
+            while(stop_loop == false)
+            {
+                if(tel_possible_start_places < strt_x_list.size())
+                {
+                    x_player = (Integer) strt_x_list.get(found_startpos_id + tel_possible_start_places);
+                    y_player = (Integer) strt_y_list.get(found_startpos_id + tel_possible_start_places);
+                    found_place = suitable_place( x_player,  y_player);
+                    stop_loop = found_place;
+                }
+                else
+                {
+                    stop_loop = true;
+                }
+                tel_possible_start_places = tel_possible_start_places+1;
+            }
+            if(found_place == true)
+            {
+                field_atm_array[x_player][y_player][0] = tot_arraylist;
+                active_player_id = tot_arraylist;
+            }
             // set position field_atm_array
             tel = tel + 1;
         }
@@ -674,10 +681,25 @@ public class Questionnaire extends Activity {
             tel_enemys = tel_enemys+1;
         }
 
-
-
         draw_field_squarres();
 
+    }
+
+    public Boolean suitable_place(Integer x_player, Integer y_player)
+    {
+        Integer id_position = field_atm_array[x_player][y_player][0];
+        String id_type = field_ids_and_names.get(id_position).get(1);
+        Boolean good_place = false;
+        if(field_atm_array[x_player][y_player][0] == 1)
+        {
+            good_place = true;
+        }
+        else if(id_type.equals("5"))
+        {
+            good_place = true;
+        }
+
+        return good_place;
     }
 
     public Integer find_highest_prio(ArrayList priority_list)
@@ -741,12 +763,17 @@ public class Questionnaire extends Activity {
                     id_ofcell_type = 0;
                 }
                 else {
-                    draw_field.draw_squarre(tel_x, tel_y, field_ids_and_names.get(id_ofcell_type).get(2), bitmap_field, squarre_size);
+                    draw_squarre(tel_x, tel_y, field_ids_and_names.get(id_ofcell_type).get(2), bitmap_field, squarre_size);
                 }
                 tel_y = tel_y +1;
             }
             tel_x = tel_x +1;
         }
+        LinearLayout lin_lay_q = (LinearLayout)findViewById(R.id.linearLayout_questuinnaire_vert);
+        lin_lay_q.removeAllViews();
+        lin_lay_q.addView(bitmapview);
+        bitmapview.setImageBitmap(bitmap_field);
+ //       field_img_view.setImageBitmap(bitmap_field);
 
     }
     public void add_random_enemy(Integer level, Integer x_spawn, Integer y_spawn)
@@ -788,82 +815,6 @@ public class Questionnaire extends Activity {
 
         return return_bool;
     }
-/*
-    public String XML_ini_map(String XML_file_input) {
-        XmlPullParser XmlPullParser_temp = null;
-        String text_return = "";
-        String XML_file = this_world + "_" + XML_file_input;
-       try {
-            XmlPullParser_temp = load_XML(XML_file);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (XmlPullParserException e) {
-            e.printStackTrace();
-        }
-
-        int event;
-        String parents_xml[] = new String[9];
-        Integer level_parent_atm = 0;
-        String xml_atm = "";
-
-        try {
-            event = XmlPullParser_temp.getEventType();
-
-            while (event != XmlPullParser.END_DOCUMENT) {
-                String name = XmlPullParser_temp.getName();
-
-                switch (event) {
-                    case XmlPullParser.START_TAG:
-                        xml_atm = name;
-                        level_parent_atm = level_parent_atm+1;
-                        parents_xml[level_parent_atm] = xml_atm;
-
-                        if(xml_atm.equals("map"))
-                        {
-                            remove_views();
-
-                            Integer x_sqre = Integer.parseInt(XmlPullParser_temp.getAttributeValue(null, "x_sqre").toString());
-                            Integer y_sqre = Integer.parseInt(XmlPullParser_temp.getAttributeValue(null, "y_sqre").toString());
-                            set_squarre_size(x_sqre, y_sqre);
-
-                            LinearLayout ll_temp = (LinearLayout) findViewById(R.id.linearLayout_questuinnaire_vert);
-                            ImageView field_img_view = draw_field.create_imageview_field(ll_temp, squarre_size);
-
-
-                            bitmap_field = draw_field.create_bitmap_field(((x_sqre) * (squarre_size + 2) + 2), ((y_sqre) * (squarre_size + 2) + 2));
-
-                            field_img_view.setImageBitmap(bitmap_field);
-                        }
-                        else if(xml_atm.equals("row"))
-                        {
-                            y_row_atm = y_row_atm +1;
-                        }
-                        break;
-
-                    case XmlPullParser.TEXT: {
-                        if (xml_atm.equals("row")) {
-                            // read_rows(XmlPullParser_temp.getText(), y_row_atm);
-                        }
-                    }
-                    break;
-
-                    case XmlPullParser.END_TAG:
-                        level_parent_atm = level_parent_atm-1;
-                        xml_atm = parents_xml[level_parent_atm];
-                        break;
-                }
-
-                event = XmlPullParser_temp.next();
-
-            }
-       } catch (XmlPullParserException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return text_return;
-    }
-*/
 
     public XmlPullParser load_XML(String input) throws FileNotFoundException, XmlPullParserException {
 
@@ -1304,11 +1255,39 @@ public class Questionnaire extends Activity {
                 download_world(world_to_load);
 
             }
-        } ) ;
+        }) ;
 
         awnser_id = awnser_id +1;
 
         return return_tv;
+    }
+
+    public void ini_first_question_or_map(String world_to_load)
+    {
+        String document_world_index_s = world_to_load+"_index";
+        Document world_index = null;
+        try {
+            world_index = XML_IO.open_document_xml(document_world_index_s);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (XmlPullParserException e) {
+            e.printStackTrace();
+        }
+
+        this_world = world_to_load;
+
+        NodeList worlds_nodelist = world_index.getElementsByTagName("start_file");
+        Integer tel = 0;
+
+        Random rand = new Random();
+        int n = rand.nextInt(worlds_nodelist.getLength());
+
+        String world_name = worlds_nodelist.item(n).getAttributes().getNamedItem("name").getTextContent();
+        String qorm = worlds_nodelist.item(n).getAttributes().getNamedItem("qorm").getTextContent();
+
+        read_map_rules();
+
+        XML_ini_q_or_map(qorm, world_name);
     }
 
     public TextView create_text_view_worlds_start(String world_adding, String prefix)
@@ -1318,7 +1297,7 @@ public class Questionnaire extends Activity {
         return_tv.setTextSize(font_size);
         return_tv.setText(prefix+world_adding);
         Bundle inputExtras = return_tv.getInputExtras(true);
-        inputExtras.putString("onclick_temp",world_adding);
+        inputExtras.putString("onclick_temp", world_adding);
 
         return_tv.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -1328,33 +1307,12 @@ public class Questionnaire extends Activity {
                 TextView temp_tv = (TextView) v;
                 Bundle inputExtras = temp_tv.getInputExtras(true);
                 String world_to_load = inputExtras.getString("onclick_temp", "");
-                temp_tv.setText("clicked "+world_to_load);
+                // temp_tv.setText("clicked "+world_to_load);
                 // download_world(world_to_load); START WORLD
-                String document_world_index_s = world_to_load+"_index";
-                Document world_index = null;
-                try {
-                    world_index = XML_IO.open_document_xml(document_world_index_s);
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                } catch (XmlPullParserException e) {
-                    e.printStackTrace();
-                }
-
-                this_world = world_to_load;
-
-                NodeList worlds_nodelist = world_index.getElementsByTagName("start_file");
-                Integer tel = 0;
-
-                Random rand = new Random();
-                int n = rand.nextInt(worlds_nodelist.getLength());
-
-                String world_name = worlds_nodelist.item(n).getAttributes().getNamedItem("name").getTextContent();
-                String qorm = worlds_nodelist.item(n).getAttributes().getNamedItem("qorm").getTextContent();
-
-                XML_ini_q_or_map(qorm, world_name);
+                ini_first_question_or_map(world_to_load);
 
             }
-        } ) ;
+        }) ;
 
         awnser_id = awnser_id +1;
 
@@ -1403,6 +1361,486 @@ public class Questionnaire extends Activity {
             e.printStackTrace();
         }
         load_worlds_index();
+
+    }
+
+    public ImageView create_imageview_field (LinearLayout lin_lay_q, final Integer squarre_size_temp) {
+        lin_lay_q.removeAllViews();
+        Context context_this = ApplicationContextProvider.getContext();
+        ImageView new_image_view = new ImageView(context_this);
+        new_image_view.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        new_image_view.canScrollVertically(1);
+        new_image_view.setId(R.id.drawfield_id);
+
+        new_image_view.setOnTouchListener(new ImageView.OnTouchListener() {
+            final Integer squarre_size_q = squarre_size_temp;
+
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+//            	System.out.println("klikt");
+//                Log.e("MAP", "klik ");
+                // Integer squarre_size_q = Questionnaire.get_squarresize_q();
+
+                if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
+                    ImageView imageView = ((ImageView) v);
+
+                    if (imageView.getId() == R.id.drawfield_id) {
+
+                        ImageView imageView_temp = ((ImageView) v);
+                        float x_axis_f = event.getX() - imageView.getX();
+                        float y_axis_f = event.getY() - imageView.getY();
+                        Integer x_axis_I = (int) x_axis_f;
+                        Integer y_axis_I = (int) y_axis_f;
+                        Integer field_x = (int) Math.floor((double) x_axis_I / (double) (squarre_size_q + 1));
+                        Integer field_y = (int) Math.floor((double) y_axis_I / (double) (squarre_size_q + 1));
+
+
+                        Bitmap field_bmp = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
+// HIER MOET IETS
+                        // field_bmp = draw_squarre(field_x, field_y, "#cccccc", field_bmp, squarre_size_q);
+                        // imageView_temp.setImageBitmap(field_bmp);
+
+                        clicked_for_info(field_x, field_y);
+
+                    }
+                }
+                return true;
+            }
+        });
+//        new_image_view.setOnTouchListener
+
+        lin_lay_q.addView(new_image_view);
+        return new_image_view;
+    }
+
+    public void clicked_for_info(Integer x_clicked, Integer y_clicked)
+    {
+        Integer[] pos_active_player_id = xy_pos_id(active_player_id);
+        Integer id_ofcell_type_clicked = field_atm_array[x_clicked][y_clicked][0];
+        // 1 = type (0 = empty 1 = normal 2 = player 3 = enemy 4 = neutral 5 = trigger)
+        String type_clicked = field_ids_and_names.get(id_ofcell_type_clicked).get(1);
+
+        Integer distance = 0;
+        if(pos_active_player_id[2] == 1)
+        {
+            distance = range_to(pos_active_player_id[0], pos_active_player_id[1], x_clicked, y_clicked);
+        }
+        boolean walkable = false;
+        if(type_clicked.equals("1"))
+        {
+            walkable=true;
+        }
+        else if(type_clicked.equals("5"))
+        {
+            walkable=true;
+        }
+        if(walkable == true)
+        {
+            Integer move_range = 1;
+            if(distance <= move_range)
+            {
+                move_player(x_clicked, y_clicked, pos_active_player_id[0], pos_active_player_id[1]);
+            }
+        }
+        if(type_clicked.equals("3"))
+        {
+            //
+            LinearLayout lin_lay_q = (LinearLayout)findViewById(R.id.linearLayout_questuinnaire_vert);
+
+            Integer tel_interactions = 0;
+            while (tel_interactions < enemy_interaction.size())
+            {
+                TextView add_enemy_interactions = new TextView(this);
+                add_enemy_interactions.setId((201 + tel_interactions));
+                String name_interaction = enemy_interaction.get(tel_interactions).get(0);
+                add_enemy_interactions.setText(name_interaction);
+                Bundle inputExtras = add_enemy_interactions.getInputExtras(true);
+                inputExtras.putString("id_interactions", tel_interactions.toString());
+                inputExtras.putString("id_enemy", id_ofcell_type_clicked.toString());
+                inputExtras.putString("active_player", active_player_id.toString());
+
+                add_enemy_interactions.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        TextView temp_tv = (TextView) v;
+                        Bundle inputExtras = temp_tv.getInputExtras(true);
+                        String id_interaction_s = inputExtras.getString("id_interactions", "");
+                        if (id_interaction_s != "") {
+                            Integer id_interaction = Integer.parseInt(id_interaction_s);
+                            Integer id_enemy = Integer.parseInt(inputExtras.getString("id_enemy", ""));
+                            Integer id_active_player = Integer.parseInt(inputExtras.getString("active_player", ""));
+                            aply_math_to_interaction(id_interaction, id_enemy, id_active_player);
+
+                        }
+
+                        end_turn();
+                    }
+                }) ;
+
+                lin_lay_q.addView(add_enemy_interactions);
+
+
+
+
+
+                tel_interactions = tel_interactions +1;
+            }
+
+        }
+
+    }
+
+    public void aply_math_to_interaction(Integer id_interaction, Integer id_enemy, Integer id_active_player)
+    {
+
+        String math_problem = enemy_interaction.get(id_interaction).get(1);
+        String math_problemoriginal = math_problem;
+        math_problem = math_problem.replace("\n", "");
+        math_problem = math_problem.replace("\t", "");
+        Integer first_quote = 0;
+        Integer second_quote = 0;
+
+
+        // first resolve randoms
+        Integer first_open_squarre = math_problem.indexOf("[");
+        Integer first_close_squarre = math_problem.indexOf("]");
+
+        String inside_squarre = math_problem.substring((first_open_squarre + 1), first_close_squarre);
+        String awnser = replace_brackets(inside_squarre);
+        math_problem = math_problem.substring(0, first_open_squarre) + awnser + math_problem.substring(first_close_squarre+1);
+
+
+        first_quote = (math_problem.indexOf("\""));
+        math_problem = math_problem.substring(first_quote + 1);
+        first_quote = (math_problem.indexOf("\""));
+        String type_ofirst_perator = math_problem.substring(0, 1);
+        String name_first_atribute = math_problem.substring(1, first_quote);
+        math_problem = math_problem.substring(first_quote +1);
+        Integer atribute_to_set = find_atribute_if_from_string(name_first_atribute);
+
+        // solve () first.
+        Integer first_open_round = math_problem.indexOf("(");
+        while(first_open_round != -1)
+        {
+            first_open_round = math_problem.indexOf("(");
+            Integer first_close_round = math_problem.indexOf(")");
+
+            Boolean stop_loop = false;
+            while (stop_loop == false)
+            {
+                stop_loop = true;
+                Integer next_open_tag = math_problem.indexOf("(", first_open_round + 1);
+                if(next_open_tag < first_close_round ) {
+                    if(next_open_tag != -1)
+                    {
+                        first_open_round = next_open_tag;
+                        stop_loop = false;
+                    }
+                }
+
+            }
+
+            Integer round_brace_awnser_i = calculate_from_string(math_problem.substring((first_open_round + 1), first_close_round));
+            String round_brace_awnser_s = "\"v" + round_brace_awnser_i.toString() + "\"";
+
+            math_problem = math_problem.substring(0, first_open_round) + round_brace_awnser_s + math_problem.substring(first_close_round+1);
+            first_open_round = math_problem.indexOf("(");
+
+        }
+
+        Integer awnser_mathproblem = calculate_from_string(math_problem);
+
+        if(type_ofirst_perator.equals("e"))
+        {
+            enemy_def_atributs.set(atribute_to_set, awnser_mathproblem);
+
+        }
+        else if(type_ofirst_perator.equals("p"))
+        {
+            user_def_atributs.set(atribute_to_set, awnser_mathproblem);
+        }
+
+
+    }
+
+    public String replace_brackets(String input)
+    {
+        String return_string = "";
+        Integer total_chance = 0;
+        ArrayList<Integer> chance_synchrome_id = new ArrayList<Integer>();
+        ArrayList<Integer> atribute_synchrome_id = new ArrayList<Integer>();
+        ArrayList<Integer> awnser_synchrome_id = new ArrayList<Integer>();
+        Integer first_quote_inside_squarre = (input.indexOf("\""));
+        Integer first_open_curve = input.indexOf("{");
+
+        while(first_open_curve != -1)
+        {
+            first_quote_inside_squarre = (input.indexOf("\""));
+            input = input.substring(first_quote_inside_squarre + 1);
+            first_quote_inside_squarre = (input.indexOf("\""));
+            String type_operator_is = input.substring(0, 1);
+            String name_atribute_is = input.substring(1, first_quote_inside_squarre);
+            Integer atribute_id_temp_is = find_atribute_if_from_string(name_atribute_is);
+
+            atribute_synchrome_id.add(atribute_id_temp_is);
+
+            if (type_operator_is.equals("e"))
+            {
+                // Integer found_chance = enemy_def_atributs.get(atribute_id_temp_is)
+                chance_synchrome_id.add( enemy_def_atributs.get(atribute_id_temp_is));
+                total_chance = total_chance +  enemy_def_atributs.get(atribute_id_temp_is);
+            }
+            else if (type_operator_is.equals("p"))
+            {
+                chance_synchrome_id.add( user_def_atributs.get(atribute_id_temp_is));
+                total_chance = total_chance +   user_def_atributs.get(atribute_id_temp_is);
+            }
+            first_open_curve = input.indexOf("{");
+            Integer first_close_curve = input.indexOf("}");
+
+            String inside_curve = input.substring((first_open_curve + 1), first_close_curve);
+            Integer awnser_inside_curve = calculate_from_string(inside_curve);
+
+            // input = input.substring(0, first_open_curve) + input.substring(first_close_curve + 1);
+
+            awnser_synchrome_id.add(awnser_inside_curve);
+            input = input.substring(first_close_curve + 1);
+
+            first_open_curve = input.indexOf("{");
+        }
+
+        Random rand = new Random();
+        int determained_random = rand.nextInt(total_chance);
+
+        Integer count_tot_chances = 0;
+        Integer tel_temp = 0;
+        while(return_string.equals(""))
+        {
+            count_tot_chances = count_tot_chances + chance_synchrome_id.get(tel_temp);
+            if(count_tot_chances > determained_random)
+            {
+                return_string = "\"v"+awnser_synchrome_id.get(tel_temp).toString()+ "\"";
+
+            }
+            tel_temp = tel_temp +1;
+            if(tel_temp >= (chance_synchrome_id.size()-1))
+            {
+                return_string = "\"v"+awnser_synchrome_id.get(tel_temp).toString()+ "\"";
+            }
+        }
+
+        return return_string;
+    }
+
+    public Integer calculate_from_string (String input)
+    {
+        Integer awnser = 0;
+        Integer first_quote = input.indexOf("\"");
+
+        Integer found_atribute_value = 0;
+        String privious_opperator = "=";
+
+        while (first_quote != -1)
+        {
+            first_quote = (input.indexOf("\""));
+            input = input.substring(first_quote + 1);
+            first_quote = (input.indexOf("\""));
+
+            String type_operator = input.substring(0, 1);
+            String name_atribute = input.substring(1, first_quote);
+            Integer atribute_id_temp = find_atribute_if_from_string(name_atribute);
+            boolean do_the_math = false;
+
+            if(type_operator.equals("e"))
+            {
+                found_atribute_value = enemy_def_atributs.get(atribute_id_temp);
+                //
+                // atribute_modifications
+                //
+                do_the_math = true;
+            }
+            else if(type_operator.equals("p"))
+            {
+                found_atribute_value = user_def_atributs.get(atribute_id_temp);
+                do_the_math = true;
+            }
+            else if(type_operator.equals("v"))
+            {
+                awnser = awnser + Integer.parseInt(name_atribute);
+            }
+            else
+            {
+                privious_opperator = type_operator;
+            }
+
+            if(do_the_math == true)
+            {
+                if(privious_opperator.equals("="))
+                {
+                    awnser = found_atribute_value;
+                }
+                else if(privious_opperator.equals("+"))
+                {
+                    awnser = awnser + found_atribute_value;
+                }
+                else if(privious_opperator.equals("-"))
+                {
+                    awnser = awnser - found_atribute_value;
+                }
+
+            }
+            input = input.substring(first_quote + 1);
+            first_quote = (input.indexOf("\""));
+        }
+        return awnser;
+    }
+
+    public Integer find_atribute_if_from_string(String name_atribute)
+    {
+        Integer return_int =0;
+        Integer tel = 0;
+        while(tel < world_atributs.size())
+        {
+            if( name_atribute.equals(world_atributs.get(tel)) )
+            {
+                return_int = tel;
+            }
+            tel = tel+1;
+        }
+        return return_int;
+    }
+
+    public void move_player(Integer x_to, Integer y_to, Integer x_from, Integer y_from)
+    {
+        field_atm_array[x_to][y_to][0] = field_atm_array[x_from][y_from][0];
+        field_atm_array[x_from][y_from][0] = 1;
+        end_turn();
+    }
+
+    public void end_turn()
+    {
+        draw_field_squarres();
+    }
+
+    public static Bitmap draw_squarre(Integer field_x, Integer field_y, String color_given, Bitmap field_bmp, Integer squarre_size) {
+//        imageView img_view_temp = (imageView)findViewById(R.id.drawfield_id);
+//        Bitmap field_bmp = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
+
+        Integer start_x = field_x * (squarre_size + 1);
+        Integer start_y = field_y * (squarre_size + 1);
+
+        // String[] color_squarre = map_preset_res.set_map_colors();
+        int color_sqre = Color.parseColor(color_given);
+
+        Integer tel_x = 0;
+        while (tel_x < squarre_size) {
+            Integer tel_y = 0;
+            while (tel_y < squarre_size) {
+                // Log.e("MAP", "field_x " + field_x+" tel_x "+tel_x);
+                field_bmp.setPixel(start_x + tel_x, start_y + tel_y, color_sqre);
+
+                tel_y = tel_y + 1;
+            }
+            tel_x = tel_x + 1;
+        }
+        return field_bmp;
+    }
+
+    public Integer range_to(Integer x_ini, Integer y_ini, Integer x_target, Integer y_target)
+    {
+        Integer difference_x_abs = Math.abs(x_ini - x_target);
+        Integer difference_y_abs = Math.abs(y_ini - y_target);
+        Integer return_is_next = difference_x_abs + difference_y_abs;
+        return return_is_next;
+    }
+
+    public Integer[] xy_pos_id(Integer id_to_find)
+    {
+        Integer[] return_xy = {0,0,0};
+        Integer tel_x = 0;
+        Integer tel_y = 0;
+        while (tel_x<field_atm_array.length)
+        {
+            tel_y = 0;
+            while(tel_y<field_atm_array[tel_x].length)
+            {
+                Integer id_ofcell_type = field_atm_array[tel_x][tel_y][0];
+                if(id_ofcell_type == id_to_find)
+                {
+                    return_xy[0] = tel_x;
+                    return_xy[1] = tel_y;
+                    return_xy[2] = 1;
+                }
+
+                tel_y = tel_y +1;
+            }
+            tel_x = tel_x +1;
+        }
+        return return_xy;
+    }
+
+    public void read_map_rules()
+    {
+        Document map_rules = null;
+        try {
+            map_rules = XML_IO.open_document_xml(this_world + "_map_rules");
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (XmlPullParserException e) {
+            e.printStackTrace();
+        }
+        NodeList atribute_nodelist = map_rules.getElementsByTagName("atribute");
+        Integer tel_atributes =0;
+        while(tel_atributes < atribute_nodelist.getLength())
+        {
+            NamedNodeMap temp_atribut = atribute_nodelist.item(tel_atributes).getAttributes();
+            String atribute_name_temp = temp_atribut.getNamedItem("name").getTextContent();
+            String atribute_user_def_temp = temp_atribut.getNamedItem("user_def").getTextContent();
+            String atribute_enemy_def_temp = temp_atribut.getNamedItem("enemy_def").getTextContent();
+            world_atributs.add(atribute_name_temp);
+            user_def_atributs.add(Integer.parseInt(atribute_user_def_temp));
+            enemy_def_atributs.add(Integer.parseInt(atribute_enemy_def_temp));
+
+            tel_atributes = tel_atributes+1;
+        }
+        NodeList enemy_interactions_nl = map_rules.getElementsByTagName("Enemy_interaction");
+        Integer tel_enemy_interaction =0;
+        while(tel_enemy_interaction < enemy_interactions_nl.getLength())
+        {
+            NamedNodeMap temp_atribut = enemy_interactions_nl.item(tel_enemy_interaction).getAttributes();
+            String enemy_interactions_name_temp = temp_atribut.getNamedItem("name").getTextContent();
+
+            enemy_interaction.add(new ArrayList());
+            Integer arraylist_atm = (enemy_interaction.size() - 1);
+            enemy_interaction.get(arraylist_atm).add(enemy_interactions_name_temp);
+
+            Element interaction_element_atm = (Element) enemy_interactions_nl.item(tel_enemy_interaction);
+            NodeList math_interaction = interaction_element_atm.getElementsByTagName("math");
+
+            Integer tel_math_problems = 0;
+            while (tel_math_problems < math_interaction.getLength())
+            {
+                String math_problem_s = math_interaction.item(tel_math_problems).getTextContent();
+                enemy_interaction.get(arraylist_atm).add(math_problem_s);
+                tel_math_problems = tel_math_problems+1;
+            }
+
+            tel_enemy_interaction = tel_enemy_interaction+1;
+        }
+
+        NodeList atribute_trigger_nl = map_rules.getElementsByTagName("atribute_trigger");
+        Integer tel_atribute_trigger =0;
+        while(tel_atribute_trigger < atribute_trigger_nl.getLength())
+        {
+            NamedNodeMap temp_atribut = atribute_trigger_nl.item(tel_atribute_trigger).getAttributes();
+            String atribute_trigger_name_temp = temp_atribut.getNamedItem("name").getTextContent();
+
+            atribute_trigger.add(new ArrayList());
+            Integer arraylist_atm = (atribute_trigger.size() - 1);
+            atribute_trigger.get(arraylist_atm).add(atribute_trigger_name_temp);
+
+            tel_atribute_trigger = tel_atribute_trigger+1;
+        }
 
     }
 

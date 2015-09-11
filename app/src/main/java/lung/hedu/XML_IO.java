@@ -53,9 +53,6 @@ public class XML_IO {
             DocumentBuilder dbuilder = dbfactory.newDocumentBuilder();
             doc = dbuilder.parse(in);
             doc.getDocumentElement().normalize();
-
-
-
         }
         catch (Exception e)
         {

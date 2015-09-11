@@ -351,16 +351,16 @@ public class main_menu extends Activity {
         textbox_mainmenu_tv = (TextView)findViewById(R.id.textbox_mainmenu);
         textbox_mainmenu_tv.setText(login_name);
 
-        if(login_name.matches("[a-zA-Z ]*") ==true) {
+        if(login_name.matches("[a-z A-Z 0-9 -]*") ==true) {
             if (login_name.length() > 2) {
-                if (login_name.length() < 12) {
+                if (login_name.length() < 16) {
 
                     String android_id = Settings.Secure.getString(ApplicationContextProvider.getContext().getContentResolver(), Settings.Secure.ANDROID_ID);
 
                     XML_IO.set_value_user_info("login_info", "name", login_name);
 
 
-                    login_name.replace(" ","_");
+                    login_name = login_name.replaceAll(" ", "_");
                     String[] data_url_addon = {android_id, login_name};
                     ArrayList<String> login_data = null;
                     try {
@@ -376,7 +376,7 @@ public class main_menu extends Activity {
                     XML_IO.set_value_user_info("login_info", "id", login_data.get(0).toString());
 //                    Log.e("temp", "login_data0 " + login_data.get(0).toString());
 //                    Log.e("temp", "login_data1 " + login_data.get(1).toString());
-                    login_name.replace("_", " ");
+                    login_name = login_name.replaceAll("_", " ");
                     login();
 
                 } else {
