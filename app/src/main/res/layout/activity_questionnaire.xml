@@ -1,7 +1,8 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
     android:layout_height="match_parent" android:background="#0099cc"
-    tools:context="lung.hedu.Questionnaire" android:id="@+id/frame_layout_q" >
+    tools:context="lung.hedu.Questionnaire" android:id="@+id/frame_layout_q"
+    android:nestedScrollingEnabled="false">
 
     <!-- The primary full-screen view. This can be replaced with whatever view
          is needed to present your content, e.g. VideoView, SurfaceView,
@@ -23,32 +24,34 @@
         android:orientation="horizontal" >
 
 
-        <LinearLayout
-            android:orientation="vertical"
-            android:layout_width="fill_parent"
+        <ScrollView
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/linearLayout_questuinnaire_vert">
+            android:id="@+id/scrollView" >
 
-
-            <TextView
+            <LinearLayout
+                android:orientation="vertical"
                 android:layout_width="fill_parent"
-                android:layout_height="118dp"
-                android:id="@+id/text_box_q_temp"
-                android:text="Does nothing again."
-                android:longClickable="true"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:clickable="true"
-                android:textSize="20dp"
-                android:nestedScrollingEnabled="true" />
-                <!-- android:onClick="load_world1_q1a" -->
+                android:layout_height="wrap_content"
+                android:id="@+id/linearLayout_questuinnaire_vert">
 
 
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="118dp"
+                    android:id="@+id/text_box_q_temp"
+                    android:text="Does nothing again."
+                    android:longClickable="true"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:clickable="true"
+                    android:textSize="20dp"
+                    android:nestedScrollingEnabled="true" />
+                    <!-- android:onClick="load_world1_q1a" -->
 
+            </LinearLayout>
 
-        </LinearLayout>
-
-
+        </ScrollView>
 
     </LinearLayout>
 
