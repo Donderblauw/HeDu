@@ -11,6 +11,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.speech.tts.TextToSpeech;
 import android.view.MotionEvent;
 import android.view.View;
 // import android.support.v4.app.NavUtils;
@@ -35,6 +36,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Random;
 
 /**
@@ -103,6 +105,14 @@ public class Questionnaire extends Activity {
     public Integer map_time = 0;
     public ArrayList<Integer> speed_atm = new ArrayList<Integer>();
 
+    public TextToSpeech text_to_speak = new TextToSpeech(ApplicationContextProvider.getContext(), new TextToSpeech.OnInitListener() {
+        @Override
+        public void onInit(int status) {
+            if(status != TextToSpeech.ERROR) {
+                text_to_speak.setLanguage(Locale.UK);
+            }
+        }
+    });
     /**
      * Whether or not the system UI should be auto-hidden after
      * {@link #AUTO_HIDE_DELAY_MILLIS} milliseconds.
@@ -501,6 +511,8 @@ public class Questionnaire extends Activity {
                         String text_inside_replaced = replace_q_texts(XmlPullParser_temp.getText());
                         if (xml_atm.equals("question")) {
                             tv_parents[level_parent_atm].setText(text_inside_replaced);
+                            // text_to_speak.setLanguage(Locale.US);
+                            text_to_speak.speak(text_inside_replaced, TextToSpeech.QUEUE_ADD, null);
                         }
                         else if (xml_atm.equals("awnser")) {
                             tv_parents[level_parent_atm].setText(text_inside_replaced);
@@ -1058,8 +1070,7 @@ public class Questionnaire extends Activity {
             } catch (XmlPullParserException e) {
                 e.printStackTrace();
             }
-        }
-        else {
+        } else {
             reterned_doc = XML_user_info_doc;
         }
         NodeList nodes_find = reterned_doc.getElementsByTagName(add_line_id);
@@ -1329,8 +1340,7 @@ public class Questionnaire extends Activity {
         // textbox_mainmenu_tv.setText(result_tv);
     }
 
-    public TextView create_text_view_worlds(String world_adding, String prefix)
-    {
+    public TextView create_text_view_worlds(String world_adding, String prefix) {
         TextView return_tv = new TextView(this);
         return_tv.setId(awnser_id);
         return_tv.setTextSize(font_size);
