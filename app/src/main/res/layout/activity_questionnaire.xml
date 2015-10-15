@@ -13,6 +13,12 @@
         android:text="Background"
         android:visibility="gone" />
 
+    <ScrollView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/scrollView" >
+
+
     <LinearLayout
         style="?metaButtonBarStyle"
         tools:ignore="UselessParent"
@@ -21,13 +27,9 @@
         android:layout_height="wrap_content"
         android:layout_gravity="top|center_horizontal"
         android:background="@color/black_overlay"
-        android:orientation="horizontal" >
+        android:orientation="vertical" >
 
 
-        <ScrollView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/scrollView" >
 
             <LinearLayout
                 android:orientation="vertical"
@@ -45,15 +47,79 @@
                     android:focusable="true"
                     android:focusableInTouchMode="true"
                     android:clickable="true"
-                    android:textSize="20dp"
-                    android:nestedScrollingEnabled="true" />
+                    android:textSize="20dp" />
                     <!-- android:onClick="load_world1_q1a" -->
 
             </LinearLayout>
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/temp_sound">
 
-        </ScrollView>
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/text_box_temp_sound"
+                    android:text="Init sound."
+                    android:longClickable="true"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:clickable="true"
+                    android:textSize="20dp"
+                    android:onClick="run_sound" />
+
+
+            </LinearLayout>
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/temp_sound">
+
+
+            <TextView
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/text_box__sound_y"
+                android:text="record voice YES."
+                android:longClickable="true"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:clickable="true"
+                android:textSize="20dp"
+                android:onClick="sound_record_yes" />
+
+
+        </LinearLayout>
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/temp_sound">
+
+
+            <TextView
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/text_box_temp_sound"
+                android:text="record voice NO."
+                android:longClickable="true"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:clickable="true"
+                android:textSize="20dp"
+                android:onClick="sound_record_no" />
+
+
+        </LinearLayout>
+
+
 
     </LinearLayout>
+
+    </ScrollView>`
 
     <!-- This FrameLayout insets its children based on system windows using
          android:fitsSystemWindows. -->

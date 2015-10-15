@@ -12,6 +12,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.speech.tts.TextToSpeech;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 // import android.support.v4.app.NavUtils;
@@ -154,6 +155,7 @@ public class Questionnaire extends Activity {
 
         final View controlsView = findViewById(R.id.fullscreen_content_controls);
         final View contentView = findViewById(R.id.fullscreen_content);
+
 
         // Set up an instance of SystemUiHider to control the system UI for
         // this activity.
@@ -2864,5 +2866,70 @@ public class Questionnaire extends Activity {
 
         return smallest_steps_found;
     }
+/*
+    public interface AsyncResponse {
+        void processFinish(Integer[] output);
+    }
+
+*/
+    public void run_sound(View v)
+    {
+        Log.e("result", "start");
+        new record_voice.time_counter().execute();
+        Log.e("result", "end");
+
+    }
+
+    public void sound_record_yes(View v)
+    {
+
+        text_to_speak.speak("say yes", TextToSpeech.QUEUE_FLUSH, null);
+        Integer[] found_yes_parameters = record_voice.record_sound();
+
+        Integer retry = 3;
+        if(found_yes_parameters[7] == 0)
+        {
+            if(retry >0 )
+            {
+                found_yes_parameters = record_voice.record_sound();
+                retry = retry-1;
+            }
+            else
+            {
+                text_to_speak.speak("I did not hear your, hit the button to try again", TextToSpeech.QUEUE_FLUSH, null);
+            }
+        }
+
+        if(found_yes_parameters[7] > 0)
+        {
+            Integer tel = 0;
+            while(tel < 12)
+            {
+                XML_IO.set_value_user_info("recorded_yes","yes"+tel.toString(),found_yes_parameters[tel].toString());
+                tel = tel +1;
+            }
+
+        }
+
+//        Log.e("result", "start");
+//        new record_voice.time_counter().execute();
+//        Log.e("result", "end");
+
+    }
+    /*
+        static public void temp(Integer[] result)
+    {
+        LinearLayout lin_lay_q = (LinearLayout)findViewById(R.id.linearLayout_questuinnaire_vert);
+        int tel = 0 ;
+        while (tel < 12)
+        {
+            Log.e("result");
+            tel = tel +1;
+        }
+    }
+
+*/
+
+
 }
 //TODO teaxt to speech: http://code.tutsplus.com/tutorials/android-sdk-using-the-text-to-speech-engine--mobile-8540

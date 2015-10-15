@@ -188,7 +188,7 @@ public class XML_IO {
 
         NodeList new_added = user_info_xml.getElementsByTagName(add_line_id);
         Node node_found_new_added = null;
-        if(worlds_list.getLength() == 0)
+        if(new_added.getLength() == 0)
         {
             Element new_add_line_id = user_info_xml.createElement(add_line_id);
             node_found_new_added = node_found_userinfo.appendChild(new_add_line_id);
@@ -198,11 +198,12 @@ public class XML_IO {
             node_found_new_added = worlds_list.item(0);
         }
 
-        NamedNodeMap temp_atr = node_found_userinfo.getAttributes();
+        // NamedNodeMap temp_atr = node_found_userinfo.getAttributes();
+        NamedNodeMap temp_atr = node_found_new_added.getAttributes();
         Node node_temp_atr = temp_atr.getNamedItem(value_id);
         if(node_temp_atr == null)
         {
-            Element temp = (Element) node_found_new_added;
+            Element temp = (Element) user_info_xml.getElementsByTagName(add_line_id).item(0);
             temp.setAttribute(value_id, add_value);
         }
         else
