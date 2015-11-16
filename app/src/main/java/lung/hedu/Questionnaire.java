@@ -152,7 +152,7 @@ public class Questionnaire extends Activity {
 
         setContentView(R.layout.activity_questionnaire);
         // setupActionBar();
-
+/*
         final View controlsView = findViewById(R.id.fullscreen_content_controls);
         final View contentView = findViewById(R.id.fullscreen_content);
 
@@ -211,6 +211,8 @@ public class Questionnaire extends Activity {
             }
         });
 
+        */
+
         // Upon interacting with UI controls, delay any scheduled hide()
         // operations to prevent the jarring behavior of controls going away
         // while interacting with the UI.
@@ -224,7 +226,7 @@ public class Questionnaire extends Activity {
         // created, to briefly hint to the user that UI controls
         // are available.
 
-        delayedHide(100);
+        // delayedHide(100);
         load_worlds_index();
 
         // recieve info between intents, test.
@@ -266,6 +268,7 @@ public class Questionnaire extends Activity {
      * system UI. This is to prevent the jarring behavior of controls going away
      * while interacting with activity UI.
      */
+    /*
     View.OnTouchListener mDelayHideTouchListener = new View.OnTouchListener() {
         @Override
         public boolean onTouch(View view, MotionEvent motionEvent) {
@@ -283,16 +286,17 @@ public class Questionnaire extends Activity {
             mSystemUiHider.hide();
         }
     };
-
+*/
     /**
      * Schedules a call to hide() in [delay] milliseconds, canceling any
      * previously scheduled calls.
      */
+    /*
     private void delayedHide(int delayMillis) {
         mHideHandler.removeCallbacks(mHideRunnable);
         mHideHandler.postDelayed(mHideRunnable, delayMillis);
     }
-
+*/
     public String replace_q_texts (String input)
     {
         String output = input;
@@ -2905,30 +2909,193 @@ public class Questionnaire extends Activity {
             Integer tel = 0;
             while(tel < 12)
             {
-                XML_IO.set_value_user_info("recorded_yes","yes"+tel.toString(),found_yes_parameters[tel].toString());
+                text_to_speak.speak("Thank you", TextToSpeech.QUEUE_FLUSH, null);
+                XML_IO.set_value_user_info("recorded_yes", "yes" + tel.toString(), found_yes_parameters[tel].toString());
                 tel = tel +1;
             }
 
         }
 
-//        Log.e("result", "start");
-//        new record_voice.time_counter().execute();
-//        Log.e("result", "end");
+    }
+
+
+    public void sound_record_no(View v)
+    {
+
+        text_to_speak.speak("say NO", TextToSpeech.QUEUE_FLUSH, null);
+        Integer[] found_yes_parameters = record_voice.record_sound();
+
+        Integer retry = 3;
+        if(found_yes_parameters[7] == 0)
+        {
+            if(retry >0 )
+            {
+                found_yes_parameters = record_voice.record_sound();
+                retry = retry-1;
+            }
+            else
+            {
+                text_to_speak.speak("I did not hear your, hit the button to try again", TextToSpeech.QUEUE_FLUSH, null);
+            }
+        }
+
+        if(found_yes_parameters[7] > 0)
+        {
+            Integer tel = 0;
+            while(tel < 12)
+            {
+                text_to_speak.speak("Thank you", TextToSpeech.QUEUE_FLUSH, null);
+                XML_IO.set_value_user_info("recorded_no", "no" + tel.toString(), found_yes_parameters[tel].toString());
+                tel = tel +1;
+            }
+
+        }
 
     }
-    /*
-        static public void temp(Integer[] result)
+
+    public void check_spoken(View v)
     {
-        LinearLayout lin_lay_q = (LinearLayout)findViewById(R.id.linearLayout_questuinnaire_vert);
-        int tel = 0 ;
-        while (tel < 12)
-        {
-            Log.e("result");
-            tel = tel +1;
+        Integer[] spoken = record_voice.record_sound();
+        // int value_return = 0;
+        int tel_sound_id = 0;
+        Integer number_of_sounds = 2;
+        String find_set_value = "yes";
+        Integer known_sounds[][] = new Integer[number_of_sounds][13];
+        while(tel_sound_id < 12) {
+            known_sounds[0][tel_sound_id] = Integer.valueOf(XML_IO.find_value_in_userxml("recorded_" + find_set_value, find_set_value + tel_sound_id));
         }
-    }
+
+        Integer tel_unique_mod = 0;
+        Integer distance_to_spoken[][] = new Integer[number_of_sounds][13];
+        Integer unique_mod[][] =  new Integer[4][13];
+
+        while (tel_unique_mod < 12)
+        {
+            Integer average_dist_temp = 0;
+            Integer dist_temp = 0;
+            Integer dist_temp_abs = 0;
+            Integer min_temp = null;
+            Integer max_temp = null;
+            Integer tel_sound_unique = 0;
+            while(tel_sound_unique<number_of_sounds)
+            {
+                Integer mod_atm = known_sounds[tel_sound_unique][tel_unique_mod];
+                dist_temp = spoken[tel_unique_mod] - mod_atm;
+                dist_temp_abs = Math.abs(spoken[tel_unique_mod] - mod_atm);
+                distance_to_spoken[tel_sound_unique][tel_unique_mod] = dist_temp;
+
+                average_dist_temp = average_dist_temp + dist_temp;
+                if(mod_atm < min_temp ||  min_temp == null)
+                {
+                    min_temp = mod_atm;
+                }
+                if(mod_atm > max_temp ||  max_temp == null)
+                {
+                    max_temp = mod_atm;
+                }
+
+                tel_sound_unique++;
+            }
+            // check of spoken geen extreem is.
+            if(spoken[tel_unique_mod] > max_temp)
+            {
+                max_temp = spoken[tel_unique_mod];
+            }
+            if(spoken[tel_unique_mod] < min_temp)
+            {
+                min_temp = spoken[tel_unique_mod];
+            }
+
+            average_dist_temp = average_dist_temp / number_of_sounds;
+            Integer dif_range = Math.abs(max_temp) + Math.abs(min_temp);
+
+
+            tel_unique_mod++;
+        }
+
+        /*
+        Integer deltas_sounds[][] =  new Integer[4][13];
+
+            int chance_yes = 0;
+            int chance_no = 0;
+            int tot_delta_yes_no = 0;
+            int tel = 0;
+            Integer modifier[] =  new Integer[13];
+            modifier[0] = 4;
+            modifier[1] = 1;
+            modifier[2] = 4;
+            modifier[3] = 1;
+            modifier[4] = 1;
+            modifier[5] = 1;
+            modifier[6] = 4;
+            modifier[7] = 1;
+            modifier[8] = 2;
+            modifier[9] = 1;
+            modifier[10] = 2;
+            modifier[11] = 1;
+
+            while(tel <12)
+            {
+                delta_yes_no[tel] = Math.abs(known_yes[tel] - known_no[tel]);
+                int avg_all_three = Math.abs(known_yes[tel] + known_no[tel] + spoken[tel])/3;
+                tot_delta_yes_no = (int)((double)tot_delta_yes_no + (double)((delta_yes_no[tel] * modifier[tel])/(double)(avg_all_three)));
+                int delta_yes = Math.abs(spoken[tel]-known_yes[tel]);
+                int delta_no = Math.abs(spoken[tel]-known_no[tel]);
+                if(delta_yes < delta_no)
+                {
+                    if(delta_yes > 0)
+                    {
+                        chance_yes = chance_yes + (delta_yes_no[tel] / delta_yes)*modifier[tel];
+                    }
+                    else
+                    {
+                        chance_yes = chance_yes + (delta_yes_no[tel])*modifier[tel];
+                    }
+                }
+                else
+                {
+                    if(delta_no > 0)
+                    {
+                        chance_no = chance_no +  (delta_yes_no[tel] / delta_no)*modifier[tel];
+                    }
+                    else
+                    {
+                        chance_no = chance_no +  (delta_yes_no[tel])*modifier[tel];
+                    }
+                }
+                System.out.println("spoken:" + spoken[tel]+" yes:"+known_yes[tel]+" no:"+known_no[tel] +" Cyes:"+chance_yes +" Cno:"+chance_no+" delta"+tot_delta_yes_no);
+                tel = tel +1;
+            }
+            int delta_chance = Math.abs(chance_yes-chance_no);
+
+            int req_noise = (int) (((double)tot_delta_yes_no/ 1)*1);
+            if(req_noise < delta_chance)
+            {
+                if(chance_yes > chance_no)
+                {
+                    value_return = 2;
+                }
+                else
+                {
+                    value_return = 3;
+                }
+                System.out.println("Good! yes"+chance_yes+" no"+chance_no+ " noise:"+delta_chance+ " > "+req_noise);
+            }
+            else
+            {
+                value_return = 1;
+                System.out.println("nope! yes"+chance_yes+" no"+chance_no+ " noise:"+delta_chance+ " < "+req_noise);
+            }
 
 */
+        }
+
+        // return value_return;
+
+        // 0 = none set
+        // 1 = to mutch noise
+        // 2 = yes
+        // 3 = no
 
 
 }

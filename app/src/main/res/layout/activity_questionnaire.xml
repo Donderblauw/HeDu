@@ -6,17 +6,19 @@
 
     <!-- The primary full-screen view. This can be replaced with whatever view
          is needed to present your content, e.g. VideoView, SurfaceView,
-         TextureView, etc. -->
-    <TextView android:id="@+id/fullscreen_content" android:layout_width="match_parent"
+         TextureView, etc.
+             <TextView android:id="@+id/" android:layout_width="match_parent"
         android:layout_height="match_parent" android:keepScreenOn="true" android:textColor="#33b5e5"
         android:textStyle="bold" android:textSize="50sp" android:gravity="center"
         android:text="Background"
-        android:visibility="gone" />
+        android:visibility="gone" >
+         -->
+
 
     <ScrollView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/scrollView" >
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/fullscreen_content" >
 
 
     <LinearLayout
@@ -55,7 +57,7 @@
                 android:orientation="vertical"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/temp_sound">
+                android:id="@+id/temp_soundll1">
 
 
                 <TextView
@@ -76,7 +78,7 @@
             android:orientation="vertical"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/temp_sound">
+            android:id="@+id/temp_soundll2">
 
 
             <TextView
@@ -97,13 +99,13 @@
             android:orientation="vertical"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/temp_sound">
+            android:id="@+id/temp_soundll3">
 
 
             <TextView
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/text_box_temp_sound"
+                android:id="@+id/text_box_temp_soundNO"
                 android:text="record voice NO."
                 android:longClickable="true"
                 android:focusable="true"
@@ -115,13 +117,40 @@
 
         </LinearLayout>
 
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/temp_soundll4">
+
+
+            <TextView
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/text_box_temp_soundNO"
+                android:text="Check yes/no."
+                android:longClickable="true"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:clickable="true"
+                android:textSize="20dp"
+                android:onClick="check_spoken" />
+
+
+        </LinearLayout>
+
+
 
 
     </LinearLayout>
 
     </ScrollView>`
 
-    <!-- This FrameLayout insets its children based on system windows using
+
+
+    <!--
+     </TextView>
+     This FrameLayout insets its children based on system windows using
          android:fitsSystemWindows. -->
 
 </FrameLayout>

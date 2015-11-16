@@ -298,30 +298,33 @@ public class record_voice {
             int numCrossing, p;
             short audioData[];
             int bufferSize;
-            int total = 150;
-            Integer tel_freq_peak[][] = new Integer[total][2];
+            int total_sound_frag = 100;
+            int amound_subfrags = 24;
+            int total_classes = total_sound_frag * amound_subfrags;
+            Integer tel_freq_peak[][] = new Integer[total_classes][2];
             int numert = 8000;
 
-            bufferSize = AudioRecord.getMinBufferSize(numert, AudioFormat.CHANNEL_CONFIGURATION_MONO, AudioFormat.ENCODING_PCM_16BIT) ; //get the buffer size to use with this audio record
+            bufferSize = AudioRecord.getMinBufferSize(numert, AudioFormat.CHANNEL_CONFIGURATION_MONO, AudioFormat.ENCODING_PCM_16BIT) *3; //get the buffer size to use with this audio record
 
-            recorder = new AudioRecord(MediaRecorder.AudioSource.VOICE_RECOGNITION, numert, AudioFormat.CHANNEL_CONFIGURATION_MONO, AudioFormat.ENCODING_PCM_16BIT, bufferSize); //instantiate the AudioRecorder
+            recorder = new AudioRecord(MediaRecorder.AudioSource.MIC, numert, AudioFormat.CHANNEL_CONFIGURATION_MONO, AudioFormat.ENCODING_PCM_16BIT, bufferSize); //instantiate the AudioRecorder
 
             audioData = new short[bufferSize]; //short array that pcm data is put into.
-            short audioData2[][] = new short[total][bufferSize]; //short array that pcm data is put into.
+            short audioData2[][] = new short[total_sound_frag][bufferSize]; //short array that pcm data is put into.
 
             recorder.startRecording();
 
             if (recorder.getState() == android.media.AudioRecord.STATE_INITIALIZED) // check to see if the recorder has initialized yet.
-                if (recorder.getRecordingState() == android.media.AudioRecord.RECORDSTATE_STOPPED)
-                    recorder.startRecording();  //check to see if the Recorder has stopped or is not recording, and make it record.
+            if (recorder.getRecordingState() == android.media.AudioRecord.RECORDSTATE_STOPPED)
+                recorder.startRecording();  //check to see if the Recorder has stopped or is not recording, and make it record.
 
-            boolean loze_first12 = false;
+            // boolean loze_first12 = false;
 
 
             tel = 0;
-            while (tel < total) {  //loop while recording is needed
+            while (tel < total_sound_frag) {  //loop while recording is needed
                 {
-                    recorder.read(audioData, 0, (bufferSize/4));
+                    recorder.read(audioData2[tel], 0, (bufferSize));
+                    /*
                     if(loze_first12 == false)
                     {
                         if(tel == 12)
@@ -333,38 +336,90 @@ public class record_voice {
                     else {
 
                         loze_first12 = true;
-                        for (p = 0; p < (bufferSize / 4); p += 1) {
+
+                        for (p = 0; p < (bufferSize); p += 1) {
                             audioData2[tel][p] = audioData[p];
 
+
                         }
-                    }
+                        */
+                    //}
                     tel = tel + 1;
                 }//else recorder started
             } //while recording
             // Log.e("result", "done");
             tel = 0;
-            int frequency = 0;
 
-            while (tel < total) {
+
+            double tot_cycle = java.lang.Math.floor( bufferSize / amound_subfrags)/2;
+        // unkwn div 2
+
+            while (tel < total_sound_frag)
+            {
+
+                int tel_subfrag = 0;
+                while(tel_subfrag < amound_subfrags)
                 {
+                    int frequency = 0;
                     numCrossing = 0;
-                    int numSamples = 0;
+                    // int numSamples = 0;
                     int peaks = 0;
-                    // int mod = (int) (bufferSize / 4) * 4;
+//                    boolean peaked_neg = false;
+//                    boolean peaked_pos = false;
+                    int noise_quick = 0;
+                    int tel_added_class = (tel* amound_subfrags )+tel_subfrag;
 
-                    for (p = 0; p < bufferSize; p++) {
-                        peaks = peaks + java.lang.Math.abs(audioData2[tel][p]); //add together highes and lows from each sample
-                        if (audioData2[tel][p] > 0 && audioData2[tel][p + 1] <= 0) numCrossing++;
-                        if (audioData2[tel][p] < 0 && audioData2[tel][p + 1] >= 0) numCrossing++;
-                        numSamples++;
+                    for (p = 0; p < tot_cycle; p++) {
+
+                        int p_atm = p + ((int)tot_cycle * tel_subfrag);
+
+
+                        //Log.e("results_p", "tel:"+tel+" p:"+p+" audio:"+audioData2[tel][p_atm]+" buffersize:"+bufferSize);
+                        // int abs_delta = java.lang.Math.abs(audioData2[tel][p_atm] - audioData2[tel][p_atm - 1]);
+/*
+                        if (p < 24) {
+                            noise_quick = noise_quick + (abs_delta / 24);
+                        } else {
+
+                            //if (java.lang.Math.abs(audioData2[tel][p_atm]) > (noise_quick * 3)) {
+                                if (java.lang.Math.abs(audioData2[tel][p_atm]) < 0) {
+                                    if (peaked_pos) {
+                                        peaked_pos = false;
+                                        peaked_neg = true;
+                                        numCrossing++;
+                                    }
+                                } else {
+                                    if (peaked_neg) {
+                                        peaked_pos = true;
+                                        peaked_neg = false;
+                                        numCrossing++;
+                                    }
+                                }
+                            //}
+
+                        */
+                        if (audioData2[tel][p_atm] > 0 && audioData2[tel][p_atm + 1] <= 0)
+                            numCrossing++;
+                        if (audioData2[tel][p_atm] < 0 && audioData2[tel][p_atm + 1] >= 0)
+                            numCrossing++;
+
+
+                        //}
+                        peaks = peaks + java.lang.Math.abs(audioData2[tel][p_atm]); //add together highes and lows from each sample
+                        // numSamples++;
                     }
-                    peaks = peaks / numSamples;
-                    frequency = (numert / numSamples) * (numCrossing / 2);  // Set the audio Frequency to half the number of zero crossings, times the number of samples our buffersize is per second.
-                    tel_freq_peak[tel][0] = frequency;
-                    tel_freq_peak[tel][1] = (peaks * frequency);
-                    tel = tel + 1;
+                    peaks = peaks / (int)tot_cycle;
+                    frequency = (int) ((numCrossing * tot_cycle) /tot_cycle);  // Set the audio Frequency to half the number of zero crossings, times the number of samples our buffersize is per second.
+                    tel_freq_peak[tel_added_class][0] = frequency;
+                    tel_freq_peak[tel_added_class][1] = (peaks * frequency);
+
+                    // Log.e("result", tel_subfrag+" peak:"+peaks+" freq:"+frequency+" noise:"+ noise_quick);
+
+                    tel_subfrag++;
                 }
+                tel = tel + 1;
             }
+
 
 //        publishProgress("Stoped recording, proccessing");
 
@@ -385,7 +440,7 @@ public class record_voice {
             int close_to_stdev_peak = 0;
             int treshold = 0;
             int treshold_test = 0;
-            while (tel < total) {
+            while (tel < total_classes) {
                 avg_feq = avg_feq + tel_freq_peak[tel][0];
                 avg_peak = avg_peak + tel_freq_peak[tel][1];
 
@@ -419,11 +474,11 @@ public class record_voice {
 
                 tel = tel + 1;
             }
-            avg_feq = (avg_feq / total);
-            avg_peak = (avg_peak / total);
+            avg_feq = (avg_feq / total_classes);
+            avg_peak = (avg_peak / total_classes);
 
-            int noise_limit_peak = (int) (lowest_peak + (double) ((double) close_to_stdev_peak / total))*2;
-            int noise_limit_freq = (int) (double) ((double) close_to_stdev_feq / total);
+            int noise_limit_peak = (int) (lowest_peak + (double) ((double) close_to_stdev_peak / total_classes))*2;
+            int noise_limit_freq = (int) (double) ((double) close_to_stdev_feq / total_classes);
 
             boolean stop = false;
 
@@ -448,11 +503,12 @@ public class record_voice {
 
             tel = 0;
             int delta_up = 0;
-            // String to_text = "avg_feq=" + avg_feq + " lim=" + noise_limit_freq + " std=" + close_to_stdev_feq + " ---- avg_peak=" + avg_peak + " lim=" + noise_limit_peak + " \n";
-            // Log.e("result", to_text);
-            while (tel < total) {
-                // Log.e("result", ""+tel_freq_peak[tel][1]);
+             // String to_text = "avg_feq=" + avg_feq + " lim=" + noise_limit_freq + " std=" + close_to_stdev_feq + " ---- avg_peak=" + avg_peak + " lim=" + noise_limit_peak + " \n";
+             // Log.e("result", to_text);
+            while (tel < total_classes) {
+
                 if (tel_freq_peak[tel][1] > noise_limit_peak && stop == false) {
+                    // Log.e("result", ""+tel_freq_peak[tel][1]);
                     second_below_treshold = false;
 
                     if (new_fragment == false)
