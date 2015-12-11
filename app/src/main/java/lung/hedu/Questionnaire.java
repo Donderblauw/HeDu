@@ -2959,15 +2959,23 @@ public class Questionnaire extends Activity {
         // int value_return = 0;
         int tel_sound_id = 0;
         Integer number_of_sounds = 2;
+        Integer sound_parameters = 12;
+
+        // loop throug known sounds TODO.
         String find_set_value = "yes";
-        Integer known_sounds[][] = new Integer[number_of_sounds][13];
-        while(tel_sound_id < 12) {
+        Integer known_sounds[][] = new Integer[number_of_sounds][sound_parameters+1];
+        while(tel_sound_id < sound_parameters) {
             known_sounds[0][tel_sound_id] = Integer.valueOf(XML_IO.find_value_in_userxml("recorded_" + find_set_value, find_set_value + tel_sound_id));
+            tel_sound_id = tel_sound_id+1;
         }
 
         Integer tel_unique_mod = 0;
-        Integer distance_to_spoken[][] = new Integer[number_of_sounds][13];
-        Integer unique_mod[][] =  new Integer[4][13];
+        Integer distance_to_spoken[][] = new Integer[number_of_sounds][sound_parameters+1];
+
+        // use unique_mod to increase the importance of a variable. Must be > 1 preferably whole numbers
+        Integer unique_mod[] =  new Integer[sound_parameters+1];
+
+        // uniqueness moddifier and distance of spoke sound to known sound calculation
 
         while (tel_unique_mod < 12)
         {
@@ -2984,7 +2992,9 @@ public class Questionnaire extends Activity {
                 dist_temp_abs = Math.abs(spoken[tel_unique_mod] - mod_atm);
                 distance_to_spoken[tel_sound_unique][tel_unique_mod] = dist_temp;
 
-                average_dist_temp = average_dist_temp + dist_temp;
+                average_dist_temp = average_dist_temp + dist_temp_abs;
+                // abs!!?
+
                 if(mod_atm < min_temp ||  min_temp == null)
                 {
                     min_temp = mod_atm;
@@ -3007,11 +3017,27 @@ public class Questionnaire extends Activity {
             }
 
             average_dist_temp = average_dist_temp / number_of_sounds;
-            Integer dif_range = Math.abs(max_temp) + Math.abs(min_temp);
+            Integer dif_range = max_temp - min_temp;
+            if(unique_mod[tel_unique_mod] < 1)
+            {
+                unique_mod[tel_unique_mod] = 1;
+            }
+            Integer unique_mod_temp_double = (int)((double) ((double) average_dist_temp / (double) dif_range) * (24 * number_of_sounds * unique_mod[tel_unique_mod]));
 
+            tel_sound_unique = 0;
+            while(tel_sound_unique<number_of_sounds)
+            {
+                distance_to_spoken[tel_sound_unique][tel_unique_mod] = distance_to_spoken[tel_sound_unique][tel_unique_mod] * unique_mod_temp_double;
 
-            tel_unique_mod++;
+                tel_sound_unique++;
+            }
+
+             tel_unique_mod++;
         }
+
+        // sum all compensated distances TODO
+
+
 
         /*
         Integer deltas_sounds[][] =  new Integer[4][13];
