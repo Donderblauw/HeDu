@@ -2884,9 +2884,16 @@ public class Questionnaire extends Activity {
 
     }
 
+
+    public void sound_record_no(View v)
+    {
+        sound_record_initiate("NO", 0, 0);
+    }
+
     public void sound_record_yes(View v)
     {
-
+        sound_record_initiate("Yes", 1, 1);
+/*
         text_to_speak.speak("say yes", TextToSpeech.QUEUE_FLUSH, null);
         Integer[] found_yes_parameters = record_voice.record_sound();
 
@@ -2915,22 +2922,21 @@ public class Questionnaire extends Activity {
             }
 
         }
+        */
 
     }
 
-
-    public void sound_record_no(View v)
+    public void sound_record_initiate(String word_input, Integer action, Integer overwrite )
     {
-
-        text_to_speak.speak("say NO", TextToSpeech.QUEUE_FLUSH, null);
-        Integer[] found_yes_parameters = record_voice.record_sound();
+        text_to_speak.speak("say "+word_input, TextToSpeech.QUEUE_FLUSH, null);
+        Integer[] found_parameters = record_voice.record_sound();
 
         Integer retry = 3;
-        if(found_yes_parameters[7] == 0)
+        if(found_parameters[7] == 0)
         {
             if(retry >0 )
             {
-                found_yes_parameters = record_voice.record_sound();
+                found_parameters = record_voice.record_sound();
                 retry = retry-1;
             }
             else
@@ -2939,38 +2945,84 @@ public class Questionnaire extends Activity {
             }
         }
 
-        if(found_yes_parameters[7] > 0)
+        if(found_parameters[7] > 0)
         {
+            text_to_speak.speak("Thank you", TextToSpeech.QUEUE_FLUSH, null);
+            // Integer nr_recorded_words = 0;
+            Integer nr_recorded_words = Integer.valueOf(XML_IO.find_value_in_userxml("recorded", "total_nr"));
+            if(overwrite == 0)
+            {
+                // nr_recorded_words;
+                if (nr_recorded_words == null) {
+                    nr_recorded_words = 0;
+                }
+                nr_recorded_words = nr_recorded_words +1;
+                XML_IO.set_value_user_info("recorded", "total_nr", nr_recorded_words.toString());
+                nr_recorded_words = nr_recorded_words -1;
+            }
+            else
+            {
+                if(nr_recorded_words < overwrite){
+                    // PROBLEM
+                }
+                nr_recorded_words = overwrite;
+            }
+
+            XML_IO.set_value_user_info("recorded_" + nr_recorded_words, "sound", word_input);
+            XML_IO.set_value_user_info("recorded_" + nr_recorded_words, "action", action.toString());
+
             Integer tel = 0;
             while(tel < 12)
             {
-                text_to_speak.speak("Thank you", TextToSpeech.QUEUE_FLUSH, null);
-                XML_IO.set_value_user_info("recorded_no", "no" + tel.toString(), found_yes_parameters[tel].toString());
+                XML_IO.set_value_user_info("recorded_" + nr_recorded_words, tel.toString(), found_parameters[tel].toString());
                 tel = tel +1;
             }
+
+
 
         }
 
     }
 
+
+
     public void check_spoken(View v)
     {
         Integer[] spoken = record_voice.record_sound();
         // int value_return = 0;
-        int tel_sound_id = 0;
-        Integer number_of_sounds = 2;
+
+        // Integer number_of_sounds = 2;
         Integer sound_parameters = 12;
 
         // loop throug known sounds TODO.
-        String find_set_value = "yes";
-        Integer known_sounds[][] = new Integer[number_of_sounds][sound_parameters+1];
-        while(tel_sound_id < sound_parameters) {
-            known_sounds[0][tel_sound_id] = Integer.valueOf(XML_IO.find_value_in_userxml("recorded_" + find_set_value, find_set_value + tel_sound_id));
-            tel_sound_id = tel_sound_id+1;
+
+        Integer nr_recorded_words = Integer.valueOf(XML_IO.find_value_in_userxml("recorded", "total_nr"));
+
+        // String find_set_value = "yes";
+        Integer tel_word_nr = 0;
+        Integer tel_sound_id = 0;
+
+        Integer known_sounds[][] = new Integer[nr_recorded_words][sound_parameters+1];
+        while(tel_word_nr < nr_recorded_words) {
+            tel_sound_id = 0;
+
+            while (tel_sound_id < sound_parameters) {
+                known_sounds[tel_word_nr][tel_sound_id] = Integer.valueOf(XML_IO.find_value_in_userxml("recorded_" + tel_word_nr, tel_sound_id.toString()));
+                tel_sound_id = tel_sound_id + 1;
+            }
+
+            tel_word_nr = tel_word_nr +1;
         }
 
         Integer tel_unique_mod = 0;
-        Integer distance_to_spoken[][] = new Integer[number_of_sounds][sound_parameters+1];
+        Integer distance_to_spoken[][] = new Integer[nr_recorded_words][sound_parameters+1];
+        Integer distance_to_spoken_tot[] = new Integer[nr_recorded_words];
+        Integer distance_tot_min = 0;
+        Integer distance_tot_max = 0;
+        Integer distance_tot_avg = 0;
+
+        Integer distance_tot_min_nr = 0;
+        Integer distance_tot_max_nr = 0;
 
         // use unique_mod to increase the importance of a variable. Must be > 1 preferably whole numbers
         Integer unique_mod[] =  new Integer[sound_parameters+1];
@@ -2985,7 +3037,7 @@ public class Questionnaire extends Activity {
             Integer min_temp = null;
             Integer max_temp = null;
             Integer tel_sound_unique = 0;
-            while(tel_sound_unique<number_of_sounds)
+            while(tel_sound_unique<nr_recorded_words)
             {
                 Integer mod_atm = known_sounds[tel_sound_unique][tel_unique_mod];
                 dist_temp = spoken[tel_unique_mod] - mod_atm;
@@ -3006,7 +3058,7 @@ public class Questionnaire extends Activity {
 
                 tel_sound_unique++;
             }
-            // check of spoken geen extreem is.
+            // check of spoken geen extreem is. CHECK ABS VALUE OR RELATIVE TO SPOKEN
             if(spoken[tel_unique_mod] > max_temp)
             {
                 max_temp = spoken[tel_unique_mod];
@@ -3016,27 +3068,45 @@ public class Questionnaire extends Activity {
                 min_temp = spoken[tel_unique_mod];
             }
 
-            average_dist_temp = average_dist_temp / number_of_sounds;
+            average_dist_temp = average_dist_temp / nr_recorded_words;
             Integer dif_range = max_temp - min_temp;
             if(unique_mod[tel_unique_mod] < 1)
             {
                 unique_mod[tel_unique_mod] = 1;
             }
-            Integer unique_mod_temp_double = (int)((double) ((double) average_dist_temp / (double) dif_range) * (24 * number_of_sounds * unique_mod[tel_unique_mod]));
+            Integer unique_mod_temp_double = (int)((double) ((double) average_dist_temp / (double) dif_range) * (24 * nr_recorded_words * unique_mod[tel_unique_mod]));
 
             tel_sound_unique = 0;
-            while(tel_sound_unique<number_of_sounds)
+            while(tel_sound_unique<nr_recorded_words)
             {
                 distance_to_spoken[tel_sound_unique][tel_unique_mod] = distance_to_spoken[tel_sound_unique][tel_unique_mod] * unique_mod_temp_double;
+                distance_to_spoken_tot[tel_sound_unique] = distance_to_spoken_tot[tel_sound_unique] + Math.abs(distance_to_spoken[tel_sound_unique][tel_unique_mod]);
 
                 tel_sound_unique++;
             }
 
-             tel_unique_mod++;
+            tel_unique_mod++;
         }
+        Integer tel_sound_unique = 0;
+        while(tel_sound_unique<nr_recorded_words)
+        {
+            if(distance_to_spoken_tot[tel_sound_unique] < distance_tot_min || distance_tot_min == 0)
+            {
+                distance_tot_min =distance_to_spoken_tot[tel_sound_unique];
+                distance_tot_min_nr = tel_sound_unique;
+            }
+            if(distance_to_spoken_tot[tel_sound_unique] > distance_tot_max || distance_tot_max == 0)
+            {
+                distance_tot_max =distance_to_spoken_tot[tel_sound_unique];
+                distance_tot_max_nr = tel_sound_unique;
+            }
+            distance_tot_avg = distance_tot_avg + distance_to_spoken_tot[tel_sound_unique];
 
-        // sum all compensated distances TODO
-
+            tel_sound_unique++;
+            System.out.println("sound nr "+tel_sound_unique+" distance"+distance_to_spoken_tot[tel_sound_unique]);
+        }
+        System.out.println("sound spoken "+distance_tot_min_nr+" distance"+distance_to_spoken_tot[tel_sound_unique]);
+        distance_tot_avg = distance_tot_avg / nr_recorded_words;
 
 
         /*
