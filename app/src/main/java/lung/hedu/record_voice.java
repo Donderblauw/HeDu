@@ -298,7 +298,7 @@ public class record_voice {
             int numCrossing, p;
             short audioData[];
             int bufferSize;
-            int total_sound_frag = 100;
+            int total_sound_frag = 42;
             int amound_subfrags = 24;
             int total_classes = total_sound_frag * amound_subfrags;
             Integer tel_freq_peak[][] = new Integer[total_classes][2];
