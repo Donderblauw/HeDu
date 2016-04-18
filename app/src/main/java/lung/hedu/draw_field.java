@@ -32,4 +32,7 @@ public class draw_field {
         return field_bmp;
     }
 
+
+
 }
+

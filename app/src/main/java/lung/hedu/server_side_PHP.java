@@ -18,8 +18,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
+import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -54,6 +56,8 @@ public class server_side_PHP {
             tel = tel +1;
         }
         String link = website_url + php_file + "?"+ url_addon;
+        link = link.replaceAll(" ", "_");
+        Log.e("XML parser", link);
 
         HttpClient client = new DefaultHttpClient();
         HttpGet request = new HttpGet();
@@ -76,6 +80,7 @@ public class server_side_PHP {
         }
         in.close();
         String sb_string = sb.toString();
+        // Log.e("XML parser", sb_string);
  //       Log.e("php", "output_raw: " + sb_string);
         ArrayList<String> data_list = new ArrayList<String>();
         Integer offset = 0;
@@ -116,6 +121,7 @@ public class server_side_PHP {
         String server = "http://hedu-free.uphero.com";
         String file_path = "/xml_words/"+next_idex+".xml";
         String link = server + file_path;
+        link = link.replaceAll(" ", "_");
         HttpClient client = new DefaultHttpClient();
         HttpGet request = new HttpGet();
         try {
@@ -228,5 +234,29 @@ public class server_side_PHP {
         return sb_string;
     }
 
+    public static void push_to_testphp(String suffix) throws IOException {
+        // SPATIES!!!
+        suffix = suffix.replaceAll(" ", "_");
+        String server = "http://hedu-free.uphero.com/active_games/test.php?";
+        String file_path = suffix;
+        String link = server + file_path;
+        Log.e("XML parser", link);
+        HttpClient client = new DefaultHttpClient();
+        HttpGet request = new HttpGet();
+        try {
+            request.setURI(new URI(link));
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+
+        HttpResponse response = null;
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+        try {
+            response = client.execute(request);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
 }

@@ -200,82 +200,6 @@ public class main_menu extends Activity {
         startActivity(intent);
     }
 
-    public void update_text_mainmenu(View v)
-    {
-        textbox_mainmenu_tv = (TextView)findViewById(R.id.textbox_mainmenu);
-        // String world_1_q1a = "\"<use_font value=\"niconne_regular.ttf\" set_size=\"28\"></use_font><world n=\"1\" value=\"test_world\"></world><question>Welcome, Choose a awnser.</question><awnser goto=\"test_world_q2a.xml\">This is option A.</awnser>wnser goto=\"test_world_q2b.xml\">This is option B.</awnser>\"";
-
-        String world_1_q1a = "<world n=\"1\" value=\"test_world\"><use_font value=\"niconne_regular.ttf\" set_size=\"28\"></use_font><question>Welcome |qname, Choose a awnser.</question><awnser goto=\"world_1_q1a\" goto_id=\"q\"><add_line line_id=\"optionC\" value=\"yes\" replace_add=\"false\"/>This is option A.</awnser><awnser goto=\"test_world_q2b\" goto_id=\"q\">This is option B.</awnser><awnser goto=\"test_world_q2b\" goto_id=\"q\"><req req_tag_name=\"optionC\" req_id=\"optionC\" req_v=\"yes\" req_type=\"eq\" /><add_line line_id=\"optionC\" value=\"no\" replace_add=\"false\"/>This is option extra optionC (remove).</awnser></world>";
-        // new MyAsyncTask().execute(world_1_q1a);
-        saveStringFilePrivate("world_1_q1a", "xml", world_1_q1a);
-        String world_1_q2a ="<world n=\"1\" value=\"test_world\"><use_font value=\"niconne_regular.ttf\" set_size=\"28\"></use_font><question>Selected NOT A</question><awnser goto=\"world_1_q1a\" goto_id=\"q\">This is option A.</awnser><awnser goto=\"test_world_map1\" goto_id=\"m\">This is option B.</awnser></world>";
-        saveStringFilePrivate("test_world_q2b", "xml", world_1_q2a);
-        String test_world_map1 ="<world n=\"1\" value=\"test_world\"><map x_sqre = \"5\"  y_sqre = \"3\" ><row>0,0,1,1,1,</row><row>0,1,1,1,1,</row><row>0,1,1,0,0,</row></map></world>";
-        saveStringFilePrivate("test_world_map1", "xml", test_world_map1);
-
-/*
-        Document index_worlds_user = null;
-
-        try {
-            index_worlds_user = XML_IO.open_document_xml("index_worlds");
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (XmlPullParserException e) {
-            e.printStackTrace();
-        }
-
-        String worlds_index_version_user = XML_IO.find_value_in_doc(index_worlds_user, "worlds", "version");
-        if(worlds_index_version_user == null)
-        {
-            worlds_index_version_user = "0";
-        }
-
-        String worlds_index_version_server = "x";
-
-        try {
-            worlds_index_version_server = server_side_PHP.load_wolrd_index_string("index_worlds_version");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        String result_tv = "";
-        if(worlds_index_version_user.equals(worlds_index_version_server))
-        {
-            result_tv = "Already up-todate. ";
-        }
-        else
-        {
-            Document index_worlds = null;
-            try {
-                index_worlds = server_side_PHP.load_wolrd_index("index_worlds");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            if(index_worlds == null)
-            {
-                textbox_mainmenu_tv.setText("File not found. ");
-            }
-            else {
-                String found_world = XML_IO.find_value_in_doc(index_worlds, "world", "name");
-                NodeList worlds_nodelist = index_worlds.getElementsByTagName("world");
-                Integer tel = 0;
-                while (tel < worlds_nodelist.getLength()) {
-                    String world_name = worlds_nodelist.item(tel).getAttributes().getNamedItem("name").getTextContent();
-                    result_tv = result_tv + world_name;
-                    tel = tel + 1;
-                }
-                try {
-                    XML_IO.save_XML("index_worlds", index_worlds);
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                } catch (XmlPullParserException e) {
-                    e.printStackTrace();
-                }
-            }
-
-        }
-        textbox_mainmenu_tv.setText(result_tv);
-*/
-    }
 
     public class MyAsyncTask extends AsyncTask<String, String, String> {
 
@@ -338,6 +262,7 @@ public class main_menu extends Activity {
     }
     public void create_new(View v)
     {
+        // ERROR WHEN ANDROID ID ALREADY EXSIST!!!!
         String php_file = "free_login.php";
         String[] id_url_addon = {"qid", "nme"};
 
@@ -359,7 +284,7 @@ public class main_menu extends Activity {
 
                     XML_IO.set_value_user_info("login_info", "name", login_name);
 
-
+                    // Log.e("XML parser", "start");
                     login_name = login_name.replaceAll(" ", "_");
                     String[] data_url_addon = {android_id, login_name};
                     ArrayList<String> login_data = null;
@@ -372,7 +297,8 @@ public class main_menu extends Activity {
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-
+                    // FILE NOT FOUND
+                    // Log.e("XML parser", "got");
                     XML_IO.set_value_user_info("login_info", "id", login_data.get(0).toString());
 //                    Log.e("temp", "login_data0 " + login_data.get(0).toString());
 //                    Log.e("temp", "login_data1 " + login_data.get(1).toString());

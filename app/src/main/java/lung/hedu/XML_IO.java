@@ -140,8 +140,8 @@ public class XML_IO {
 
     public static void set_value_user_info(String add_line_id, String value_id, String add_value)
     {
-
-         Document user_info_xml = null;
+        Log.e("XML parser", "read doc");
+        Document user_info_xml = null;
         try {
             user_info_xml = XML_IO.open_document_xml("user_info");
         } catch (FileNotFoundException e) {
@@ -149,9 +149,11 @@ public class XML_IO {
         } catch (XmlPullParserException e) {
             e.printStackTrace();
         }
-
+        // Log.e("XML parser", "read doc comple");
 
         if(user_info_xml == null) {
+            // Log.e("XML parser", "Create new :)");
+
             Element new_info_node = user_info_xml.createElement("info");
             Node info_node = user_info_xml.appendChild(new_info_node);
 
@@ -161,7 +163,7 @@ public class XML_IO {
             Element new_add_line_id = user_info_xml.createElement(add_line_id);
             Node temp = user_info_node.appendChild(new_add_line_id);
         }
-
+        // Log.e("XML parser", "NOT new?");
         NodeList info_list = user_info_xml.getElementsByTagName("info");
         Node info_node = null;
         if(info_list.getLength() == 0)

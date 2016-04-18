@@ -114,6 +114,11 @@ public class Questionnaire extends Activity {
             }
         }
     });
+
+    public ArrayList<ArrayList<Integer>> atributs_send_php = new ArrayList<ArrayList<Integer>>();
+
+    public String player_id_server = "";
+
     /**
      * Whether or not the system UI should be auto-hidden after
      * {@link #AUTO_HIDE_DELAY_MILLIS} milliseconds.
@@ -775,6 +780,7 @@ public class Questionnaire extends Activity {
 
             tel_no_enemy_triggers = tel_no_enemy_triggers+1;
         }
+        upload_field();
 
     }
 
@@ -1809,10 +1815,18 @@ public class Questionnaire extends Activity {
 
     public void remove_object(Integer object_id)
     {
+
         field_ids_and_names.get(object_id).set(1, "1");
         Integer[] xy_pos = xy_pos_id(object_id);
 
         field_atm_array[xy_pos[0]][xy_pos[1]][0] = 1;
+        String player_id_server = find_value_in_xml("login_info", "id");
+        String string_to_send_to_testPHP = "qid="+player_id_server+"&qty=rem&qcx="+xy_pos[0]+"&qcy="+xy_pos[1]+"&qcv="+"0"+"&qct="+"1";
+        try {
+            server_side_PHP.push_to_testphp(string_to_send_to_testPHP);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         //k
     }
 
@@ -2162,6 +2176,15 @@ public class Questionnaire extends Activity {
         if(field_atm_array[x_to][y_to][0] == 1|| field_atm_array[x_to][y_to][0] == 5) {
             field_atm_array[x_to][y_to][0] = field_atm_array[x_from][y_from][0];
             field_atm_array[x_from][y_from][0] = 1;
+
+            String player_id_server = find_value_in_xml("login_info", "id");
+            String string_to_send_to_testPHP = "qid="+player_id_server+"&qty=cha&qcx="+x_from+"&qcy="+y_from+"&qtgx="+x_to+"&qtgy="+y_to;
+            try {
+                server_side_PHP.push_to_testphp(string_to_send_to_testPHP);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
         }
         end_turn();
     }
@@ -2944,7 +2967,7 @@ public class Questionnaire extends Activity {
                 text_to_speak.speak("I did not hear your, hit the button to try again", TextToSpeech.QUEUE_FLUSH, null);
             }
         }
-
+        Log.e("test", "sound "+word_input+" number "+overwrite);
         if(found_parameters[7] > 0)
         {
             text_to_speak.speak("Thank you", TextToSpeech.QUEUE_FLUSH, null);
@@ -2989,7 +3012,7 @@ public class Questionnaire extends Activity {
             while(tel < 12)
             {
                 //System.out.println("tel "+tel+" value"+found_parameters[tel].toString());
-                // Log.e("temp", "tel " + tel + " value" + found_parameters[tel].toString());
+                Log.e("temp", "tel " + tel + " value" + found_parameters[tel].toString());
                 XML_IO.set_value_user_info("recorded_" + nr_recorded_words, "i" + tel.toString(), found_parameters[tel].toString());
                 tel = tel +1;
             }
@@ -3060,21 +3083,21 @@ public class Questionnaire extends Activity {
 
         // use unique_mod to increase the importance of a variable. Must be > 1 preferably whole numbers
         Integer unique_mod[] =  new Integer[sound_parameters+1];
-/*
+
         // home made info
-        unique_mod[0] = 1;
-        unique_mod[1] = 12;
-        unique_mod[2] = 1;
-        unique_mod[3] = 4;
-        unique_mod[4] = 8;
-        unique_mod[5] = 8;
-        unique_mod[6] = 12;
-        unique_mod[7] = 4;
+        unique_mod[0] = 40;
+        unique_mod[1] = 20;
+        unique_mod[2] = 160;
+        unique_mod[3] = 40;
+        unique_mod[4] = 1;
+        unique_mod[5] = 80;
+        unique_mod[6] = 160;
+        unique_mod[7] = 40;
         unique_mod[8] = 1;
-        unique_mod[9] = 1;
+        unique_mod[9] = 160;
         unique_mod[10] = 1;
-        unique_mod[11] = 1;
-*/
+        unique_mod[11] = 160;
+
 
         // uniqueness moddifier and distance of spoke sound to known sound calculation
 
@@ -3086,6 +3109,7 @@ public class Questionnaire extends Activity {
             Integer min_temp = null;
             Integer max_temp = null;
             Integer tel_sound_unique = 0;
+            // Log.e("temp", "tel " + tel_unique_mod + " value" + spoken[tel_unique_mod].toString());
             while(tel_sound_unique<nr_recorded_words)
             {
                 Integer mod_atm = known_sounds[tel_sound_unique][tel_unique_mod];
@@ -3107,8 +3131,9 @@ public class Questionnaire extends Activity {
 
                 tel_sound_unique++;
             }
+
             // check of spoken geen extreem is. CHECK ABS VALUE OR RELATIVE TO SPOKEN
-            /*
+
             if(spoken[tel_unique_mod] > max_temp)
             {
                 max_temp = spoken[tel_unique_mod];
@@ -3117,7 +3142,7 @@ public class Questionnaire extends Activity {
             {
                 min_temp = spoken[tel_unique_mod];
             }
-            */
+
 
             average_dist_temp = average_dist_temp / nr_recorded_words;
             Integer dif_range = max_temp - min_temp;
@@ -3126,7 +3151,8 @@ public class Questionnaire extends Activity {
             {
                 unique_mod[tel_unique_mod] = 1;
             }
-            Double unique_mod_temp_double = ((double) average_dist_temp / (double)( dif_range * (24 * nr_recorded_words )));
+            // Double unique_mod_temp_double = ((double) average_dist_temp / (double)( dif_range * (24 * nr_recorded_words )));
+            Double unique_mod_temp_double = ( (double)(  (24 * nr_recorded_words )) / (double) dif_range );
 
             // KLOPT NIET dif_range
 
@@ -3137,19 +3163,21 @@ public class Questionnaire extends Activity {
             tel_sound_unique = 0;
             while(tel_sound_unique<nr_recorded_words)
             {
-                Double temp = ((distance_to_spoken[tel_sound_unique][tel_unique_mod] / unique_mod_temp_double) * unique_mod[tel_unique_mod]);
+                Double temp = ((distance_to_spoken[tel_sound_unique][tel_unique_mod] * unique_mod_temp_double) * unique_mod[tel_unique_mod]);
                 distance_to_spoken[tel_sound_unique][tel_unique_mod] = temp.intValue();
                 if(distance_to_spoken_tot[tel_sound_unique] == null)
                 {
                     distance_to_spoken_tot[tel_sound_unique] = 0;
                 }
                 distance_to_spoken_tot[tel_sound_unique] = distance_to_spoken_tot[tel_sound_unique] + Math.abs(distance_to_spoken[tel_sound_unique][tel_unique_mod]);
-                Log.e("temp", "tel_unique_mod:" + tel_unique_mod+" distance:"+distance_to_spoken[tel_sound_unique][tel_unique_mod]+" min:"+min_temp+" max:"+max_temp+" spoken:"+spoken[tel_unique_mod]);
+                // Log.e("temp", "tel_unique_mod:" + tel_unique_mod+" distance:"+distance_to_spoken[tel_sound_unique][tel_unique_mod]+" min:"+min_temp+" max:"+max_temp+" spoken:"+spoken[tel_unique_mod]);
+                Log.e("temp", "mod="+tel_unique_mod+" spoken="+spoken[tel_unique_mod]+ " atribute=" +known_sounds[tel_sound_unique][tel_unique_mod]+" min="+ min_temp+" max="+max_temp+" uniq_mod="+unique_mod_temp_double+" dist="+distance_to_spoken[tel_sound_unique][tel_unique_mod] );
                 tel_sound_unique++;
             }
 
             tel_unique_mod++;
         }
+        //
         Integer tel_sound_unique = 0;
         while(tel_sound_unique<nr_recorded_words)
         {
@@ -3257,6 +3285,122 @@ public class Questionnaire extends Activity {
         // 1 = to mutch noise
         // 2 = yes
         // 3 = no
+
+    public void upload_field()
+    {
+        if(player_id_server == "")
+        {
+            player_id_server = find_value_in_xml("login_info", "id");
+        }
+        String string_to_send_to_testPHP = "";
+
+        // DELETE PREVIOUS XML
+        string_to_send_to_testPHP = "qid="+player_id_server+"&qty=DELETE";
+        try {
+            server_side_PHP.push_to_testphp(string_to_send_to_testPHP);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        int tel_x = 0;
+        String id_name_field_cell = "";
+        String type_field_cell = "";
+
+        while (tel_x < field_atm_array.length )
+        {
+            int tel_y = 0;
+            while (tel_y < field_atm_array[tel_x].length )
+            {
+                Integer id_field_cell = field_atm_array[tel_x][tel_y][0];
+                if(id_field_cell == null)
+                {
+
+                }
+                else
+                {
+                    id_name_field_cell = field_ids_and_names.get(id_field_cell).get(0);
+                    type_field_cell = field_ids_and_names.get(id_field_cell).get(1);
+                    if(type_field_cell == "1")
+                    {
+                        id_name_field_cell = "0";
+                    }
+                    // Log.e("XML parser", id_name_field_cell);
+                    if(type_field_cell != "0")
+                    {
+                        if(type_field_cell != "1")
+                        {
+                            // INT TO STRING USELESS
+                            check_send_atributes(id_field_cell.toString(), id_name_field_cell);
+                        }
+                        string_to_send_to_testPHP = "qid="+player_id_server+"&qty=cell&qcx="+tel_x+"&qcy="+tel_y+"&qcv="+id_field_cell+"&qct="+type_field_cell;
+                        // NAME MOET NOG  id_name_field_cell
+                        try {
+                            server_side_PHP.push_to_testphp(string_to_send_to_testPHP);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                }
+                tel_y = tel_y+1;
+
+            }
+            tel_x = tel_x+1;
+        }
+        // hedu-free.uphero.com/active_games/test.php?qid=9&qty=cell&qcx=1&qcy=2&qcv=2
+        // hedu-free.uphero.com/active_games/test.php?qid=9&qty=enemy&nme=testobj&fid=2
+        // hedu-free.uphero.com/active_games/test.php?qid=9&qty=atri&nme=test_stat&fid=2&atv=10
+    }
+
+    public void check_send_atributes(String id_object_field_s, String name_object_field_s)
+    {
+        if(player_id_server == "")
+        {
+            player_id_server = find_value_in_xml("login_info", "id");
+        }
+        /*
+            Integer id_rulebook = from_object_name_to_rule_number(field_ids_and_names.get(id_ofcell_type_clicked).get(0));
+            */
+            Integer id_rulebook = from_object_name_to_rule_number(name_object_field_s);
+            Integer id_object_field_i = Integer.parseInt(id_object_field_s);
+            if (id_object_field_i > 0) {
+
+                Integer tel_atributes = 0;
+                while (tel_atributes < world_atribute_names.size()) {
+                    String atribut_name = world_atribute_names.get(tel_atributes);
+                    Integer total_atribute_value = count_atributs_mod_to_def(id_rulebook, id_object_field_i, tel_atributes);
+
+                    while(id_object_field_i > atributs_send_php.size())
+                    {
+                        atributs_send_php.add(new ArrayList<Integer>());
+                    }
+                    while(tel_atributes > atributs_send_php.get(id_object_field_i).size())
+                    {
+                        atributs_send_php.get(id_object_field_i).add(0);
+                    }
+                    if(total_atribute_value != atributs_send_php.get(id_object_field_i).get(tel_atributes))
+                        {
+                            String string_to_send_to_testPHP = "qid=" + player_id_server + "&qty=atri&nme=" + atribut_name + "&fid=" + id_object_field_s + "&atv=" + total_atribute_value;
+                        try {
+                            server_side_PHP.push_to_testphp(string_to_send_to_testPHP);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    // hedu-free.uphero.com/active_games/test.php?qid=9&qty=atri&nme=test_stat&fid=2&atv=10
+
+                    // total_text = total_text + atribut_name + " : " + total_atribute_value + "\n";
+
+                    tel_atributes = tel_atributes + 1;
+                }
+            }
+
+
+
+
+    }
+
+
 
 
 }

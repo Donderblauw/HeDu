@@ -299,7 +299,9 @@ public class record_voice {
             short audioData[];
             int bufferSize;
             int total_sound_frag = 42;
-            int amound_subfrags = 24;
+            int amound_subfrags = 1;
+            // int total_sound_frag = 12;
+            // int amound_subfrags = 4;
             int total_classes = total_sound_frag * amound_subfrags;
             Integer tel_freq_peak[][] = new Integer[total_classes][2];
             int numert = 8000;
@@ -368,13 +370,13 @@ public class record_voice {
 //                    boolean peaked_pos = false;
                     int noise_quick = 0;
                     int tel_added_class = (tel* amound_subfrags )+tel_subfrag;
-
+                    int cycle_offset_atm = ((int)tot_cycle * tel_subfrag);
                     for (p = 0; p < tot_cycle; p++) {
 
-                        int p_atm = p + ((int)tot_cycle * tel_subfrag);
+                        int p_atm = p + cycle_offset_atm;
 
 
-                        //Log.e("results_p", "tel:"+tel+" p:"+p+" audio:"+audioData2[tel][p_atm]+" buffersize:"+bufferSize);
+                        // Log.e("results_p", "tel:"+tel+" p:"+p+" audio:"+audioData2[tel][p_atm]+" buffersize:"+bufferSize);
                         // int abs_delta = java.lang.Math.abs(audioData2[tel][p_atm] - audioData2[tel][p_atm - 1]);
 /*
                         if (p < 24) {
@@ -408,12 +410,13 @@ public class record_voice {
                         peaks = peaks + java.lang.Math.abs(audioData2[tel][p_atm]); //add together highes and lows from each sample
                         // numSamples++;
                     }
-                    peaks = peaks / (int)tot_cycle;
-                    frequency = (int) ((numCrossing * tot_cycle) /tot_cycle);  // Set the audio Frequency to half the number of zero crossings, times the number of samples our buffersize is per second.
-                    tel_freq_peak[tel_added_class][0] = frequency;
-                    tel_freq_peak[tel_added_class][1] = (peaks * frequency);
+                    // peaks = peaks / (int)tot_cycle;
+                    // frequency = (int) ((numCrossing * tot_cycle) /tot_cycle);  // Set the audio Frequency to half the number of zero crossings, times the number of samples our buffersize is per second.
+                    tel_freq_peak[tel_added_class][0] = numCrossing;
+                    // tel_freq_peak[tel_added_class][1] = (peaks * frequency);
+                    tel_freq_peak[tel_added_class][1] = (peaks );
 
-                    // Log.e("result", tel_subfrag+" peak:"+peaks+" freq:"+frequency+" noise:"+ noise_quick);
+                    // Log.e("result", tel_subfrag+" peak:"+peaks+" freq:"+numCrossing+" peaks:"+ peaks);
 
                     tel_subfrag++;
                 }
@@ -570,15 +573,15 @@ public class record_voice {
 
 
             if (stop == true) {
-                return_values[0] = delta_tot_freq / amound_of_points;
+                return_values[0] = (delta_tot_freq * bufferSize ) / amound_of_points;
                 return_values[1] = delta_tot_peak / amound_of_points;
                 return_values[2] = higest_freq_prec;
                 return_values[3] = lowest_freq_prec;
                 return_values[4] = (delta_tot_freq - delta_up) / amound_of_points;
-                return_values[5] = delta_up / amound_of_points;
+                return_values[5] = (delta_up * bufferSize ) / amound_of_points;
                 return_values[6] = freq_avg_prec / amound_of_points;
                 return_values[7] = amound_of_points;
-                return_values[8] = higest_freq_pos;
+                return_values[8] = (higest_freq_pos* bufferSize )  / amound_of_points;
                 return_values[9] = lowest_freq_pos;
                 return_values[10] = higest_peak_pos;
                 return_values[11] = lowest_peak_pos;
