@@ -96,6 +96,7 @@ public class Questionnaire extends Activity {
 
     public ArrayList<ArrayList<String>>  enemy_interaction = new ArrayList<ArrayList<String>> ();
     public ArrayList<ArrayList<String>>  req_interaction_glob = new ArrayList<ArrayList<String>> ();
+    public ArrayList<String>  enemy_interaction_req_name = new ArrayList<String> () ;
 
     public ArrayList<ArrayList<String>>  enemy_turn = new ArrayList<ArrayList<String>> ();
     public ArrayList<ArrayList<String>>  req_enemy_turn_glob = new ArrayList<ArrayList<String>> ();
@@ -316,6 +317,7 @@ public class Questionnaire extends Activity {
     {
         if(username.size() == 0)
         {
+
             String username_s = find_value_in_xml("login_info", "name");
             username.add(username_s);
             atribute_modifications.add(new ArrayList<ArrayList<ArrayList<Integer>>>());
@@ -343,6 +345,14 @@ public class Questionnaire extends Activity {
         XML_IO.set_value_user_info(this_world+"_save", "saved_xml_name", XML_file);
         XML_IO.set_value_user_info(this_world+"_save", "saved_q_or_m", type_xml);
 
+        if(username.size() > 1)
+        {
+            username.clear();
+            read_username();
+
+            // NOT WELL CODED, CLEAR NAME LIST AFTER MAP. TO REDUCE FRIEND NAME DOUBLE
+        }
+
         if(type_xml.equals("q"))
         {
             XML_ini_questionairre(XML_file);
@@ -357,6 +367,8 @@ public class Questionnaire extends Activity {
 
     public void invite_friend_to_game(String XML_file)
     {
+        remove_views();
+
         LinearLayout lin_lay_q = (LinearLayout)findViewById(R.id.linearLayout_questuinnaire_vert);
         TextView click_inv_player = new TextView(this);
         click_inv_player.setId(301);
@@ -387,6 +399,23 @@ public class Questionnaire extends Activity {
 
         lin_lay_q.addView(text_name_new_player);
 
+
+        TextView click_start_map = new TextView(this);
+        click_start_map.setId(399);
+        click_start_map.setTextSize(font_size);
+        click_start_map.setTypeface(font_face);
+        click_start_map.setText("Start: "+XML_file);
+
+        click_start_map.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                TextView temp_tv = (TextView) v;
+                na_friends_start_map(temp_tv);
+            }
+        } ) ;
+
+        lin_lay_q.addView(click_start_map);
+
         Integer tel_friends = 0;
         String found_friendname = find_value_in_xml("login_info", "friend_"+ tel_friends);
         while (found_friendname != "")
@@ -401,8 +430,8 @@ public class Questionnaire extends Activity {
                 @Override
                 public void onClick(View v) {
                     TextView temp_tv = (TextView) v;
-                    String name_new_friend = temp_tv.getText().toString();
-                    add_friend_to_game(name_new_friend);
+                    // String name_new_friend = temp_tv.getText().toString();
+                    add_friend_to_game(temp_tv);
                 }
             } ) ;
             lin_lay_q.addView(click_inv_friend);
@@ -410,25 +439,41 @@ public class Questionnaire extends Activity {
             found_friendname = find_value_in_xml("login_info", "friend_"+ tel_friends);
         }
 
-        TextView click_start_map = new TextView(this);
-        click_start_map.setId(399);
-        click_start_map.setTextSize(font_size);
-        click_start_map.setTypeface(font_face);
-        click_start_map.setText("Start: "+XML_file);
 
-        click_start_map.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                TextView temp_tv = (TextView) v;
-                String XML_file = temp_tv.getText().toString();
-                XML_file = XML_file.substring(7, XML_file.length());
-                Log.e("temp", "XML_file " + XML_file);
-                XML_ini_map_new(XML_file);
+    }
+
+    public  void na_friends_start_map(TextView click_start_map_tv)
+    {
+        String XML_file = click_start_map_tv.getText().toString();
+        XML_file = XML_file.substring(7, XML_file.length());
+        // Log.e("temp", "XML_file " + XML_file);
+
+        if(username.size() == 0)
+        {
+           String username_s = find_value_in_xml("login_info", "name");
+            username.add(username_s);
+            atribute_modifications.add(new ArrayList<ArrayList<ArrayList<Integer>>>());
+        }
+
+        Integer tel_friends = 0;
+        String found_friendname = find_value_in_xml("login_info", "friend_"+ tel_friends);
+        while (found_friendname != "")
+        {
+            TextView friends_selected = (TextView)findViewById(303+tel_friends);
+            // Log.e("temp", "selected_friend " + selected_friend);
+            if(friends_selected.getHint().toString().equals("selected"))
+            {
+                String selected_friend = friends_selected.getText().toString();
+                // Log.e("temp", "selected_friend " + selected_friend);
+
+                username.add(selected_friend);
             }
-        } ) ;
 
-        lin_lay_q.addView(click_start_map);
+            tel_friends = tel_friends +1;
+            found_friendname = find_value_in_xml("login_info", "friend_"+ tel_friends);
+        }
 
+        XML_ini_map_new(XML_file);
     }
 
     public void add_friend_name(String name_new_friend)
@@ -447,6 +492,36 @@ public class Questionnaire extends Activity {
             Log.e("temp", "friend_ " + tot_friends_i.toString() + " name" +name_new_friend);
             XML_IO.set_value_user_info("login_info", "friend_" + tot_friends_i.toString(), name_new_friend);
             XML_IO.set_value_user_info("login_info", "tot_friends", tot_friends_i.toString() );
+
+            TextView click_inv_friend = new TextView(this);
+            click_inv_friend.setId(303+tot_friends_i);
+            click_inv_friend.setTextSize(font_size);
+            click_inv_friend.setTypeface(font_face);
+
+            click_inv_friend.setText(name_new_friend);
+
+            click_inv_friend.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    TextView temp_tv = (TextView) v;
+                    // String name_new_friend = temp_tv.getText().toString();
+                    add_friend_to_game(temp_tv);
+                }
+            } ) ;
+
+            EditText text_name_new_player_click = (EditText)findViewById(302);
+            text_name_new_player_click.setText("");
+            text_name_new_player_click.setHint("Player added");
+
+            LinearLayout lin_lay_q = (LinearLayout)findViewById(R.id.linearLayout_questuinnaire_vert);
+            lin_lay_q.addView(click_inv_friend);
+        }
+        else
+        {
+            EditText text_name_new_player_click = (EditText)findViewById(302);
+            text_name_new_player_click.setText("");
+            text_name_new_player_click.setHint("Not found");
+
         }
     }
 
@@ -470,8 +545,10 @@ public class Questionnaire extends Activity {
         }
         if (login_data.size() > 0) {
 
-            Log.e("temp", "login_data0 " + login_data.get(0).toString());
-            if(login_data.get(0).toString() =="true"){
+            // Log.e("temp", "login_data0 " + login_data.get(0).toString());
+            if(login_data.get(0).toString().equals("1"))
+            {
+                // Log.e("temp", "hier" + login_data.get(0).toString());
                 return_boolean = true;
             }
 
@@ -483,9 +560,25 @@ public class Questionnaire extends Activity {
         return return_boolean;
     }
 
-    public void add_friend_to_game(String name_new_friend)
+    public void add_friend_to_game(TextView name_new_friend_tv)
     {
-
+        if(name_new_friend_tv.getHint() == null)
+        {
+            name_new_friend_tv.setHint("");
+        }
+        // Log.e("temp", "name_friend"+ name_new_friend_tv.getHint().toString());
+        if(name_new_friend_tv.getHint().toString().equals("selected"))
+        {
+            name_new_friend_tv.setBackgroundColor(Color.parseColor("#ffffff"));
+            name_new_friend_tv.setTextColor(Color.parseColor("#ee0000"));
+            name_new_friend_tv.setHint("");
+        }
+        else
+        {
+            name_new_friend_tv.setBackgroundColor(Color.parseColor("#cccccc"));
+            name_new_friend_tv.setTextColor(Color.parseColor("#00ee00"));
+            name_new_friend_tv.setHint("selected");
+        }
     }
 
 
@@ -828,8 +921,14 @@ public class Questionnaire extends Activity {
 
             field_ids_and_names.get(tot_arraylist).add(String.valueOf(username.get(tel)));
             field_ids_and_names.get(tot_arraylist).add("2");
-            field_ids_and_names.get(tot_arraylist).add("#66ff66");
-
+            Integer new_color = 99-(22*tel);
+            if(new_color < 10)
+            {
+                new_color = 99;
+            }
+            String new_color_s = "#"+new_color.toString()+"ff"+new_color.toString();
+            field_ids_and_names.get(tot_arraylist).add(new_color_s);
+            Log.e("temp", "new_color_s:" + new_color_s);
 
             Integer tel_possible_start_places = 0;
             Boolean found_place = false;
@@ -1699,6 +1798,8 @@ public class Questionnaire extends Activity {
             Integer id_rulebook = from_object_name_to_rule_number(field_ids_and_names.get(id_ofcell_type_clicked).get(0));
             if (id_rulebook != -1) {
 
+                total_text = total_text + "Name" + " : " + field_ids_and_names.get(id_ofcell_type_clicked).get(0) + "\n";
+
                 Integer tel_atributes = 0;
                 while (tel_atributes < world_atribute_names.size()) {
                     String atribut_name = world_atribute_names.get(tel_atributes);
@@ -1747,75 +1848,81 @@ public class Questionnaire extends Activity {
 
                 Integer tel_interactions = 0;
                 while (tel_interactions < enemy_interaction.size()) {
-                    String req_name = req_interaction_glob.get(tel_interactions).get(1);
-                    String req_type = req_interaction_glob.get(tel_interactions).get(2);
-                    String req_then_name = req_interaction_glob.get(tel_interactions).get(3);
-                    String extra_eq = req_interaction_glob.get(tel_interactions).get(4);
-                    Integer[] req_1_id_array = get_object_rule_world_and_atribute_id(req_name);
-                    Integer value_1 = 0;
-                    if (req_1_id_array[0] == -1) {
-                        value_1 = req_1_id_array[2];
-                    } else {
-                        value_1 = count_atributs_mod_to_def(req_1_id_array[0], req_1_id_array[1], req_1_id_array[2]);
-                    }
+                    // Log.e("temp", "enemy_interaction_req_name:" + enemy_interaction_req_name.get(tel_interactions) +" ckicked:" +field_ids_and_names.get(id_ofcell_type_clicked).get(0));
+                    if(enemy_interaction_req_name.get(tel_interactions).equals(field_ids_and_names.get(id_ofcell_type_clicked).get(0)))
+                    {
+                        // Log.e("temp", "Hij komt hier!");
 
-                    Integer[] req_then_id_array = get_object_rule_world_and_atribute_id(req_then_name);
-                    Integer value_then = 0;
-                    if (req_then_id_array[0] == -1) {
-                        value_then = req_then_id_array[2];
-                    } else {
-                        value_then = count_atributs_mod_to_def(req_then_id_array[0], req_then_id_array[1], req_then_id_array[2]);
-                    }
+                        String req_name = req_interaction_glob.get(tel_interactions).get(1);
+                        String req_type = req_interaction_glob.get(tel_interactions).get(2);
+                        String req_then_name = req_interaction_glob.get(tel_interactions).get(3);
+                        String extra_eq = req_interaction_glob.get(tel_interactions).get(4);
+                        Integer[] req_1_id_array = get_object_rule_world_and_atribute_id(req_name);
+                        Integer value_1 = 0;
+                        if (req_1_id_array[0] == -1) {
+                            value_1 = req_1_id_array[2];
+                        } else {
+                            value_1 = count_atributs_mod_to_def(req_1_id_array[0], req_1_id_array[1], req_1_id_array[2]);
+                        }
 
-                    Boolean equal_true = false;
-                    if (extra_eq.equals("t")) {
-                        equal_true = true;
-                    }
+                        Integer[] req_then_id_array = get_object_rule_world_and_atribute_id(req_then_name);
+                        Integer value_then = 0;
+                        if (req_then_id_array[0] == -1) {
+                            value_then = req_then_id_array[2];
+                        } else {
+                            value_then = count_atributs_mod_to_def(req_then_id_array[0], req_then_id_array[1], req_then_id_array[2]);
+                        }
 
-                    Boolean check_req = check_req_type(value_1.toString(), req_type, value_then.toString(), null, null, equal_true);
-                    if (check_req == true) {
+                        Boolean equal_true = false;
+                        if (extra_eq.equals("t")) {
+                            equal_true = true;
+                        }
 
-                        TextView add_enemy_interactions = new TextView(this);
-                        add_enemy_interactions.setId((201 + tel_interactions));
-                        String name_interaction = enemy_interaction.get(tel_interactions).get(0);
-                        add_enemy_interactions.setTextSize(font_size);
-                        add_enemy_interactions.setText(name_interaction);
+                        Boolean check_req = check_req_type(value_1.toString(), req_type, value_then.toString(), null, null, equal_true);
+                        if (check_req == true) {
 
-                        Bundle inputExtras = add_enemy_interactions.getInputExtras(true);
-                        inputExtras.putString("id_interactions", tel_interactions.toString());
-                        inputExtras.putString("id_enemy", id_ofcell_type_clicked.toString());
-                        inputExtras.putString("active_player", active_player_id.toString());
+                            TextView add_enemy_interactions = new TextView(this);
+                            add_enemy_interactions.setId((201 + tel_interactions));
+                            String name_interaction = enemy_interaction.get(tel_interactions).get(0);
+                            add_enemy_interactions.setTextSize(font_size);
+                            add_enemy_interactions.setText(name_interaction);
 
-                        add_enemy_interactions.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                TextView temp_tv = (TextView) v;
-                                Bundle inputExtras = temp_tv.getInputExtras(true);
-                                String id_interaction_s = inputExtras.getString("id_interactions", "");
-                                if (id_interaction_s != "") {
-                                    Integer id_interaction = Integer.parseInt(id_interaction_s);
-                                    Integer id_enemy = Integer.parseInt(inputExtras.getString("id_enemy", ""));
-                                    Integer id_active_player = Integer.parseInt(inputExtras.getString("active_player", ""));
+                            Bundle inputExtras = add_enemy_interactions.getInputExtras(true);
+                            inputExtras.putString("id_interactions", tel_interactions.toString());
+                            inputExtras.putString("id_enemy", id_ofcell_type_clicked.toString());
+                            inputExtras.putString("active_player", active_player_id.toString());
+
+                            add_enemy_interactions.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    TextView temp_tv = (TextView) v;
+                                    Bundle inputExtras = temp_tv.getInputExtras(true);
+                                    String id_interaction_s = inputExtras.getString("id_interactions", "");
+                                    if (id_interaction_s != "") {
+                                        Integer id_interaction = Integer.parseInt(id_interaction_s);
+                                        Integer id_enemy = Integer.parseInt(inputExtras.getString("id_enemy", ""));
+                                        Integer id_active_player = Integer.parseInt(inputExtras.getString("active_player", ""));
 
 
-                                    target_field_id = id_enemy;
-                                    Integer tel_math_problems = 1;
-                                    while (tel_math_problems < enemy_interaction.get(id_interaction).size()) {
-                                        String math_problem = enemy_interaction.get(id_interaction).get(tel_math_problems);
-                                        aply_math_to_interaction(math_problem);
-                                        tel_math_problems = tel_math_problems + 1;
+                                        target_field_id = id_enemy;
+                                        Integer tel_math_problems = 1;
+                                        while (tel_math_problems < enemy_interaction.get(id_interaction).size()) {
+                                            String math_problem = enemy_interaction.get(id_interaction).get(tel_math_problems);
+                                            aply_math_to_interaction(math_problem);
+                                            tel_math_problems = tel_math_problems + 1;
+                                        }
+
+                                        // aply_math_to_interaction(math_problem);
+
                                     }
 
-                                    // aply_math_to_interaction(math_problem);
-
+                                    end_turn();
                                 }
+                            });
 
-                                end_turn();
-                            }
-                        });
+                            lin_lay_q.addView(add_enemy_interactions);
 
-                        lin_lay_q.addView(add_enemy_interactions);
-
+                        }
                     }
 
                     tel_interactions = tel_interactions + 1;
@@ -1957,7 +2064,7 @@ public class Questionnaire extends Activity {
             }
             Boolean req_pass = false;
             req_pass = check_req_type(value1.toString(), req_type, value_then.toString(), null, null, equals_true);
-            Log.e("XML parser", " 1:"+value1.toString() +" 2:"+ req_type + " 2:" + value_then.toString());
+            // Log.e("XML parser", " 1:"+value1.toString() +" 2:"+ req_type + " 2:" + value_then.toString());
             if(req_pass == true)
             {
                 String temp = atribute_trigger.get(tel_atribute_trigers).get(1);
@@ -2406,9 +2513,19 @@ public class Questionnaire extends Activity {
 
         active_player_id = new_active_player;
 
+
         if(field_ids_and_names.get(new_active_player).get(1).equals("2"))
         {
+
             draw_field_squarres();
+
+            TextView active_player_name_tv = new TextView(this);
+            active_player_name_tv.setId(299);
+            active_player_name_tv.setTextSize(font_size);
+//        add_target_atribute.setsc
+
+            active_player_name_tv.setText("Active Player: "+field_ids_and_names.get(new_active_player).get(0));
+            lin_lay_q.addView(active_player_name_tv);
         }
         else
         {
@@ -2600,7 +2717,8 @@ public class Questionnaire extends Activity {
         {
             NamedNodeMap temp_atribut = enemy_interactions_nl.item(tel_enemy_interaction).getAttributes();
             String enemy_interactions_name_temp = temp_atribut.getNamedItem("name").getTextContent();
-
+            String enemy_interaction_req_name_temp = temp_atribut.getNamedItem("interaction_with").getTextContent();
+            enemy_interaction_req_name.add(enemy_interaction_req_name_temp);
 
             req_interaction_glob.add(new ArrayList());
             Integer arraylist_req_atm = (req_interaction_glob.size() - 1);
