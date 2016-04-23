@@ -234,29 +234,35 @@ public class server_side_PHP {
         return sb_string;
     }
 
-    public static void push_to_testphp(String suffix) throws IOException {
+    public static void push_to_testphp(String suffix, String send_to_server_flag) throws IOException {
         // SPATIES!!!
-        suffix = suffix.replaceAll(" ", "_");
-        String server = "http://hedu-free.uphero.com/active_games/test.php?";
-        String file_path = suffix;
-        String link = server + file_path;
-        Log.e("XML parser", link);
-        HttpClient client = new DefaultHttpClient();
-        HttpGet request = new HttpGet();
-        try {
-            request.setURI(new URI(link));
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
+
+        if(send_to_server_flag == "true") {
+
+            suffix = suffix.replaceAll(" ", "_");
+            String server = "http://hedu-free.uphero.com/active_games/test.php?";
+            String file_path = suffix;
+            String link = server + file_path;
+            Log.e("XML parser", link);
+            HttpClient client = new DefaultHttpClient();
+            HttpGet request = new HttpGet();
+            try {
+                request.setURI(new URI(link));
+            } catch (URISyntaxException e) {
+                e.printStackTrace();
+            }
+
+
+            HttpResponse response = null;
+            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+            StrictMode.setThreadPolicy(policy);
+            try {
+                response = client.execute(request);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
-        HttpResponse response = null;
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
-        try {
-            response = client.execute(request);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
 }

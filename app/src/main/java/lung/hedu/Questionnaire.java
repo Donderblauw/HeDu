@@ -17,6 +17,7 @@ import android.view.MotionEvent;
 import android.view.View;
 // import android.support.v4.app.NavUtils;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -36,6 +37,7 @@ import org.w3c.dom.Document;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Random;
@@ -337,15 +339,156 @@ public class Questionnaire extends Activity {
 
     public void XML_ini_q_or_map(String type_xml, String XML_file)
     {
+        // player_id_server = find_value_in_xml(this_world, "saved_q_pos");
+        XML_IO.set_value_user_info(this_world+"_save", "saved_xml_name", XML_file);
+        XML_IO.set_value_user_info(this_world+"_save", "saved_q_or_m", type_xml);
+
         if(type_xml.equals("q"))
         {
             XML_ini_questionairre(XML_file);
         }
         else if(type_xml.equals("m"))
         {
-            XML_ini_map_new(XML_file);
+            invite_friend_to_game(XML_file);
+
+
         }
     }
+
+    public void invite_friend_to_game(String XML_file)
+    {
+        LinearLayout lin_lay_q = (LinearLayout)findViewById(R.id.linearLayout_questuinnaire_vert);
+        TextView click_inv_player = new TextView(this);
+        click_inv_player.setId(301);
+        click_inv_player.setTextSize(font_size);
+        click_inv_player.setTypeface(font_face);
+        click_inv_player.setText("Invite player:   Click here");
+
+        click_inv_player.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // LinearLayout lin_lay_q = (LinearLayout) findViewById(R.id.linearLayout_questuinnaire_vert);
+
+                // TextView temp_tv = (TextView) v;
+                EditText text_name_new_player_click = (EditText)findViewById(302);
+                String name_new_friend = text_name_new_player_click.getText().toString();
+                add_friend_name(name_new_friend);
+                    // add_story_line(this_world, add_value, replace_add_bool, add_line);
+
+            }
+        } ) ;
+
+        lin_lay_q.addView(click_inv_player);
+
+        EditText text_name_new_player = new EditText(this);
+        text_name_new_player.setId(302);
+        text_name_new_player.setTextSize(font_size);
+        text_name_new_player.setTypeface(font_face);
+
+        lin_lay_q.addView(text_name_new_player);
+
+        Integer tel_friends = 0;
+        String found_friendname = find_value_in_xml("login_info", "friend_"+ tel_friends);
+        while (found_friendname != "")
+        {
+            TextView click_inv_friend = new TextView(this);
+            click_inv_friend.setId(303+tel_friends);
+            click_inv_friend.setTextSize(font_size);
+            click_inv_friend.setTypeface(font_face);
+            click_inv_friend.setText(found_friendname);
+
+            click_inv_friend.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    TextView temp_tv = (TextView) v;
+                    String name_new_friend = temp_tv.getText().toString();
+                    add_friend_to_game(name_new_friend);
+                }
+            } ) ;
+            lin_lay_q.addView(click_inv_friend);
+            tel_friends = tel_friends +1;
+            found_friendname = find_value_in_xml("login_info", "friend_"+ tel_friends);
+        }
+
+        TextView click_start_map = new TextView(this);
+        click_start_map.setId(399);
+        click_start_map.setTextSize(font_size);
+        click_start_map.setTypeface(font_face);
+        click_start_map.setText("Start: "+XML_file);
+
+        click_start_map.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                TextView temp_tv = (TextView) v;
+                String XML_file = temp_tv.getText().toString();
+                XML_file = XML_file.substring(7, XML_file.length());
+                Log.e("temp", "XML_file " + XML_file);
+                XML_ini_map_new(XML_file);
+            }
+        } ) ;
+
+        lin_lay_q.addView(click_start_map);
+
+    }
+
+    public void add_friend_name(String name_new_friend)
+    {
+        String tot_friends = find_value_in_xml("login_info", "tot_friends");
+        Integer tot_friends_i = 0;
+        if(tot_friends != "")
+        {
+            tot_friends_i = Integer.parseInt(tot_friends);
+            tot_friends_i = tot_friends_i + 1;
+        }
+        Boolean check_if_playername_excist_bool = check_if_playername_excist(name_new_friend);
+        Log.e("temp", "check_if_playername_excist_bool " + check_if_playername_excist_bool.toString());
+        if(check_if_playername_excist_bool == true)
+        {
+            Log.e("temp", "friend_ " + tot_friends_i.toString() + " name" +name_new_friend);
+            XML_IO.set_value_user_info("login_info", "friend_" + tot_friends_i.toString(), name_new_friend);
+            XML_IO.set_value_user_info("login_info", "tot_friends", tot_friends_i.toString() );
+        }
+    }
+
+    public boolean check_if_playername_excist(String name_player)
+    {
+        Boolean return_boolean = false;
+
+        String[] data_url_addon = {name_player};
+        String[] id_url_addon = {"qnm"};
+        String php_file = "check_name_excist.php";
+
+        ArrayList<String> login_data = null;
+        try {
+            login_data = server_side_PHP.get_dataarray_server(php_file, id_url_addon, data_url_addon);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if (login_data.size() > 0) {
+
+            Log.e("temp", "login_data0 " + login_data.get(0).toString());
+            if(login_data.get(0).toString() =="true"){
+                return_boolean = true;
+            }
+
+            // Log.e("temp", "login_data1 " + login_data.get(1).toString());
+            // login_name = login_data.get(1).toString().replaceAll("_", " ");
+            // XML_IO.set_value_user_info("login_info", "name", login_name);
+        }
+
+        return return_boolean;
+    }
+
+    public void add_friend_to_game(String name_new_friend)
+    {
+
+    }
+
+
     public boolean check_req_type (String found_v, String req_type, String req_v, String then_tag_name, String then_id, Boolean equal_true)
     {
         Boolean return_bool = false;
@@ -1191,6 +1334,8 @@ public class Questionnaire extends Activity {
             Node node_temp_atr = temp_atr.getNamedItem(value_id);
             if(node_temp_atr == null)
             {
+                //k
+                Log.e("XML parser", "add_line_id:"+add_line_id+" value:" + add_value + " Value ID " + value_id);
                 Attr atribute_new = XML_user_info_doc.createAttribute(add_value);
                 // misschien moet dit node_found.appendChild(atribute_new) zijn.
                 node_temp_atr.appendChild(atribute_new);
@@ -1392,18 +1537,27 @@ public class Questionnaire extends Activity {
 
         this_world = world_to_load;
 
-        NodeList worlds_nodelist = world_index.getElementsByTagName("start_file");
-        Integer tel = 0;
+        String saved_xml_name = find_value_in_xml(this_world+"_save", "saved_xml_name");
+        String saved_q_or_m = find_value_in_xml(this_world+"_save", "saved_q_or_m");
 
-        Random rand = new Random();
-        int n = rand.nextInt(worlds_nodelist.getLength());
+        if(saved_xml_name =="") {
 
-        String world_name = worlds_nodelist.item(n).getAttributes().getNamedItem("name").getTextContent();
-        String qorm = worlds_nodelist.item(n).getAttributes().getNamedItem("qorm").getTextContent();
+            NodeList worlds_nodelist = world_index.getElementsByTagName("start_file");
+            Integer tel = 0;
 
+            Random rand = new Random();
+            int n = rand.nextInt(worlds_nodelist.getLength());
+
+            saved_xml_name = worlds_nodelist.item(n).getAttributes().getNamedItem("name").getTextContent();
+            saved_q_or_m = worlds_nodelist.item(n).getAttributes().getNamedItem("qorm").getTextContent();
+        }
+        else
+        {
+
+        }
         read_map_rules();
 
-        XML_ini_q_or_map(qorm, world_name);
+        XML_ini_q_or_map(saved_q_or_m, saved_xml_name);
     }
 
     public TextView create_text_view_worlds_start(String world_adding, String prefix)
@@ -1583,7 +1737,13 @@ public class Questionnaire extends Activity {
             }
             if (type_clicked.equals("3")) {
                 //
-
+                Integer tel_already_set_views = 0;
+                View alreadyset_interaction_view = findViewById(201+tel_already_set_views);
+                while (alreadyset_interaction_view != null) {
+                    lin_lay_q.removeView(alreadyset_interaction_view);
+                    tel_already_set_views = tel_already_set_views+1;
+                    alreadyset_interaction_view = findViewById(201+tel_already_set_views);
+                }
 
                 Integer tel_interactions = 0;
                 while (tel_interactions < enemy_interaction.size()) {
@@ -1797,9 +1957,11 @@ public class Questionnaire extends Activity {
             }
             Boolean req_pass = false;
             req_pass = check_req_type(value1.toString(), req_type, value_then.toString(), null, null, equals_true);
+            Log.e("XML parser", " 1:"+value1.toString() +" 2:"+ req_type + " 2:" + value_then.toString());
             if(req_pass == true)
             {
                 String temp = atribute_trigger.get(tel_atribute_trigers).get(1);
+                Log.e("XML parser", "TRUE: "+ temp);
                 if(temp.equals("remove"))
                 {
                     //
@@ -1822,8 +1984,11 @@ public class Questionnaire extends Activity {
         field_atm_array[xy_pos[0]][xy_pos[1]][0] = 1;
         String player_id_server = find_value_in_xml("login_info", "id");
         String string_to_send_to_testPHP = "qid="+player_id_server+"&qty=rem&qcx="+xy_pos[0]+"&qcy="+xy_pos[1]+"&qcv="+"0"+"&qct="+"1";
+
+        String send_to_server_flag = find_value_in_xml("login_info", "flag_send_server");
+
         try {
-            server_side_PHP.push_to_testphp(string_to_send_to_testPHP);
+            server_side_PHP.push_to_testphp(string_to_send_to_testPHP, send_to_server_flag);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -2179,8 +2344,9 @@ public class Questionnaire extends Activity {
 
             String player_id_server = find_value_in_xml("login_info", "id");
             String string_to_send_to_testPHP = "qid="+player_id_server+"&qty=cha&qcx="+x_from+"&qcy="+y_from+"&qtgx="+x_to+"&qtgy="+y_to;
+            String send_to_server_flag = find_value_in_xml("login_info", "flag_send_server");
             try {
-                server_side_PHP.push_to_testphp(string_to_send_to_testPHP);
+                server_side_PHP.push_to_testphp(string_to_send_to_testPHP, send_to_server_flag);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -2218,6 +2384,8 @@ public class Questionnaire extends Activity {
                     smallest_difference_time = difference_time;
                     new_active_player = tel_ids;
                 }
+
+                check_send_atributes(tel_ids.toString(), name);
 
             }
 
@@ -2743,7 +2911,8 @@ public class Questionnaire extends Activity {
         }
         else
         {
-            enemy_turn();
+            end_turn();
+            //enemy_turn();
         }
     }
 
@@ -3296,8 +3465,10 @@ public class Questionnaire extends Activity {
 
         // DELETE PREVIOUS XML
         string_to_send_to_testPHP = "qid="+player_id_server+"&qty=DELETE";
+        String send_to_server_flag = find_value_in_xml("login_info", "flag_send_server");
+
         try {
-            server_side_PHP.push_to_testphp(string_to_send_to_testPHP);
+            server_side_PHP.push_to_testphp(string_to_send_to_testPHP, send_to_server_flag);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -3330,12 +3501,14 @@ public class Questionnaire extends Activity {
                         if(type_field_cell != "1")
                         {
                             // INT TO STRING USELESS
+                            send_object(id_field_cell.toString(), id_name_field_cell);
                             check_send_atributes(id_field_cell.toString(), id_name_field_cell);
                         }
                         string_to_send_to_testPHP = "qid="+player_id_server+"&qty=cell&qcx="+tel_x+"&qcy="+tel_y+"&qcv="+id_field_cell+"&qct="+type_field_cell;
+
                         // NAME MOET NOG  id_name_field_cell
                         try {
-                            server_side_PHP.push_to_testphp(string_to_send_to_testPHP);
+                            server_side_PHP.push_to_testphp(string_to_send_to_testPHP, send_to_server_flag);
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -3358,6 +3531,7 @@ public class Questionnaire extends Activity {
         {
             player_id_server = find_value_in_xml("login_info", "id");
         }
+        String send_to_server_flag = find_value_in_xml("login_info", "flag_send_server");
         /*
             Integer id_rulebook = from_object_name_to_rule_number(field_ids_and_names.get(id_ofcell_type_clicked).get(0));
             */
@@ -3370,19 +3544,21 @@ public class Questionnaire extends Activity {
                     String atribut_name = world_atribute_names.get(tel_atributes);
                     Integer total_atribute_value = count_atributs_mod_to_def(id_rulebook, id_object_field_i, tel_atributes);
 
-                    while(id_object_field_i > atributs_send_php.size())
+                    while(id_object_field_i >= atributs_send_php.size())
                     {
                         atributs_send_php.add(new ArrayList<Integer>());
                     }
-                    while(tel_atributes > atributs_send_php.get(id_object_field_i).size())
+                    while(tel_atributes >= atributs_send_php.get(id_object_field_i).size())
                     {
                         atributs_send_php.get(id_object_field_i).add(0);
                     }
+                    // Log.e("XML parser", "tot value:" + total_atribute_value +" alredy set:"+atributs_send_php.get(id_object_field_i).get(tel_atributes));
                     if(total_atribute_value != atributs_send_php.get(id_object_field_i).get(tel_atributes))
                         {
+                            atributs_send_php.get(id_object_field_i).set(tel_atributes, total_atribute_value);
                             String string_to_send_to_testPHP = "qid=" + player_id_server + "&qty=atri&nme=" + atribut_name + "&fid=" + id_object_field_s + "&atv=" + total_atribute_value;
                         try {
-                            server_side_PHP.push_to_testphp(string_to_send_to_testPHP);
+                            server_side_PHP.push_to_testphp(string_to_send_to_testPHP, send_to_server_flag);
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -3395,10 +3571,25 @@ public class Questionnaire extends Activity {
                 }
             }
 
-
-
-
     }
+
+
+    // hedu-free.uphero.com/active_games/test.php?qid=9&qty=enemy&nme=testobj&fid=2
+    public void send_object(String id_object_field_s, String name_object_field_s)
+    {
+        String send_to_server_flag = find_value_in_xml("login_info", "flag_send_server");
+        if(player_id_server == "")
+        {
+            player_id_server = find_value_in_xml("login_info", "id");
+        }
+        String string_to_send_to_testPHP = "qid=" + player_id_server + "&qty=enemy&nme=" + name_object_field_s + "&fid=" + id_object_field_s;
+        try {
+            server_side_PHP.push_to_testphp(string_to_send_to_testPHP, send_to_server_flag);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 
 
 

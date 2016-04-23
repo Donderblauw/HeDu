@@ -140,7 +140,7 @@ public class XML_IO {
 
     public static void set_value_user_info(String add_line_id, String value_id, String add_value)
     {
-        Log.e("XML parser", "read doc");
+        // Log.e("XML parser", "read doc");
         Document user_info_xml = null;
         try {
             user_info_xml = XML_IO.open_document_xml("user_info");

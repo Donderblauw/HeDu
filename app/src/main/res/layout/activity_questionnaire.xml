@@ -53,6 +53,7 @@
                     <!-- android:onClick="load_world1_q1a" -->
 
             </LinearLayout>
+        <!--
             <LinearLayout
                 android:orientation="vertical"
                 android:layout_width="fill_parent"
@@ -138,7 +139,7 @@
 
 
         </LinearLayout>
-
+    -->
 
 
 

@@ -231,6 +231,7 @@ public class main_menu extends Activity {
 
         }
     }
+
     public void goto_questionnaire(View v)
     {
         Intent goto_questionnaire_intent = new Intent(this, Questionnaire.class);
@@ -239,11 +240,64 @@ public class main_menu extends Activity {
         startActivity(goto_questionnaire_intent);
     }
 
+    public void check_send_server_flag(String userid)
+    {
+        String[] data_url_addon = {userid, "send_server"};
+        String[] id_url_addon = {"qid", "qnm"};
+        String php_file = "select_flag.php";
+
+        ArrayList<String> login_data = null;
+        try {
+            login_data = server_side_PHP.get_dataarray_server(php_file, id_url_addon, data_url_addon);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if (login_data.size() > 0) {
+            XML_IO.set_value_user_info("login_info", "flag_send_server", login_data.get(0).toString());
+
+            Log.e("temp", "login_data0 " + login_data.get(0).toString());
+            // Log.e("temp", "login_data1 " + login_data.get(1).toString());
+            // login_name = login_data.get(1).toString().replaceAll("_", " ");
+            // XML_IO.set_value_user_info("login_info", "name", login_name);
+        }
+    }
+
     public void login()
     {
         String login_name = XML_IO.find_value_in_userxml("login_info", "name");
 
+        if(login_name == null) {
 
+            String android_id = Settings.Secure.getString(ApplicationContextProvider.getContext().getContentResolver(), Settings.Secure.ANDROID_ID);
+
+            String[] data_url_addon = {android_id};
+            String[] id_url_addon = {"qid"};
+            String php_file = "free_login.php";
+
+            ArrayList<String> login_data = null;
+            try {
+                login_data = server_side_PHP.get_dataarray_server(php_file, id_url_addon, data_url_addon);
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            } catch (URISyntaxException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            if (login_data.size() > 0) {
+                XML_IO.set_value_user_info("login_info", "id", login_data.get(0).toString());
+
+                // Log.e("temp", "login_data0 " + login_data.get(0).toString());
+                // Log.e("temp", "login_data1 " + login_data.get(1).toString());
+                login_name = login_data.get(1).toString().replaceAll("_", " ");
+                XML_IO.set_value_user_info("login_info", "name", login_name);
+                check_send_server_flag(login_data.get(0).toString());
+            }
+        }
         if(login_name != null)
         {
             textbox_mainmenu_tv = (TextView)findViewById(R.id.textbox_mainmenu);
@@ -254,7 +308,14 @@ public class main_menu extends Activity {
             login_name_tv.setText(login_name);
             // public Typeface font_face = null;
             // public Integer font_size = 20;
-
+/*
+            String flag_send_server = XML_IO.find_value_in_userxml("login_info", "flag_send_server");
+            if(flag_send_server == null)
+            {
+                String id_user = XML_IO.find_value_in_userxml("login_info", "id");
+                check_send_server_flag(id_user);
+            }
+*/
             ll_login.addView(login_name_tv);
 
         }
@@ -303,7 +364,9 @@ public class main_menu extends Activity {
 //                    Log.e("temp", "login_data0 " + login_data.get(0).toString());
 //                    Log.e("temp", "login_data1 " + login_data.get(1).toString());
                     login_name = login_name.replaceAll("_", " ");
+                    check_send_server_flag(login_data.get(0).toString());
                     login();
+
 
                 } else {
                     textbox_mainmenu_tv.setText("Too long");
