@@ -359,8 +359,32 @@ public class Questionnaire extends Activity {
         }
         else if(type_xml.equals("m"))
         {
-            invite_friend_to_game(XML_file);
+            Document map_doc = null;
+            try {
+                map_doc = XML_IO.open_document_xml(XML_file);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (XmlPullParserException e) {
+                e.printStackTrace();
+            }
+            Integer max_players_i = 1;
 
+            String found_value_maxplayers = XML_IO.find_value_in_doc(map_doc, "map", "max_players");
+
+            if(found_value_maxplayers != null) {
+                max_players_i = Integer.parseInt( XML_IO.find_value_in_doc(map_doc, "map", "max_players").toString());
+            }
+            else{
+                max_players_i = 1;
+            }
+
+            if(max_players_i > 1) {
+                invite_friend_to_game(XML_file);
+            }
+            else
+            {
+                XML_ini_map_new(XML_file);
+            }
 
         }
     }
@@ -987,6 +1011,31 @@ public class Questionnaire extends Activity {
                 if (test_result == true) {
                     add_enemy = true;
                 }
+                else
+                {
+                    Node reqnode_atm_atr = reqnode_atm.getAttributes().getNamedItem("must");
+                    Boolean must_bool = false;
+                    if(reqnode_atm_atr == null)
+                    {
+                        must_bool = false;
+                    }
+                    else
+                    {
+                        if(reqnode_atm_atr.getTextContent().equals("t"))
+                        {
+
+                            must_bool = true;
+                        }
+                    }
+
+
+                    // ALL req. must say yes.
+                    if(must_bool == true)
+                    {
+                        add_enemy = false;
+                    }
+
+                }
 
                 tel_enemy_req = tel_enemy_req + 1;
             }
@@ -1169,7 +1218,16 @@ public class Questionnaire extends Activity {
             then_tag_name = reqnode_atm_atr.getNamedItem("then_id").getTextContent();
         }
 
-        String found_v = find_value_in_xml(req_tag_name, req_id);
+        // Check for specific information instead of tag's in the user info file.
+        String found_v = "";
+        if(req_tag_name == "xTotal players")
+        {
+            Integer temp = username.size();
+            found_v = temp.toString();
+        }
+        else {
+            found_v = find_value_in_xml(req_tag_name, req_id);
+        }
         return_bool = check_req_type(found_v, req_type, req_v, then_tag_name, then_id, extra_eq_b);
 
         return return_bool;
