@@ -122,6 +122,8 @@ public class Questionnaire extends Activity {
 
     public String player_id_server = "";
 
+    public Integer max_players_allowed_on_the_map = 0;
+
     /**
      * Whether or not the system UI should be auto-hidden after
      * {@link #AUTO_HIDE_DELAY_MILLIS} milliseconds.
@@ -361,25 +363,29 @@ public class Questionnaire extends Activity {
         {
             Document map_doc = null;
             try {
-                map_doc = XML_IO.open_document_xml(XML_file);
+                map_doc = XML_IO.open_document_xml(this_world + "_" + XML_file);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             } catch (XmlPullParserException e) {
                 e.printStackTrace();
             }
-            Integer max_players_i = 1;
 
+            Integer max_players_i = 1;
             String found_value_maxplayers = XML_IO.find_value_in_doc(map_doc, "map", "max_players");
 
             if(found_value_maxplayers != null) {
-                max_players_i = Integer.parseInt( XML_IO.find_value_in_doc(map_doc, "map", "max_players").toString());
+                max_players_i = Integer.parseInt( found_value_maxplayers.toString());
             }
             else{
                 max_players_i = 1;
             }
 
+            max_players_allowed_on_the_map = max_players_i;
+            // Log.e("temp", "max_players_i " + max_players_i);
+
             if(max_players_i > 1) {
-                invite_friend_to_game(XML_file);
+
+                invite_friend_to_game(XML_file );
             }
             else
             {
@@ -485,14 +491,15 @@ public class Questionnaire extends Activity {
         {
             TextView friends_selected = (TextView)findViewById(303+tel_friends);
             // Log.e("temp", "selected_friend " + selected_friend);
-            if(friends_selected.getHint().toString().equals("selected"))
+            if(friends_selected.getHint() != null)
             {
-                String selected_friend = friends_selected.getText().toString();
-                // Log.e("temp", "selected_friend " + selected_friend);
+                if (friends_selected.getHint().toString().equals("selected")) {
+                    String selected_friend = friends_selected.getText().toString();
+                    // Log.e("temp", "selected_friend " + selected_friend);
 
-                username.add(selected_friend);
+                    username.add(selected_friend);
+                }
             }
-
             tel_friends = tel_friends +1;
             found_friendname = find_value_in_xml("login_info", "friend_"+ tel_friends);
         }
@@ -599,9 +606,35 @@ public class Questionnaire extends Activity {
         }
         else
         {
-            name_new_friend_tv.setBackgroundColor(Color.parseColor("#cccccc"));
-            name_new_friend_tv.setTextColor(Color.parseColor("#00ee00"));
-            name_new_friend_tv.setHint("selected");
+            Integer tel_friends_views = 0;
+            Integer total_players_selected = 1;
+            TextView friends_selected = (TextView)findViewById(303+tel_friends_views);
+            while (friends_selected != null)
+            {
+                //TextView friends_selected = (TextView)findViewById(303+tel_friends);
+                // Log.e("temp", "selected_friend " + selected_friend);
+                if(friends_selected.getHint() != null) {
+                    if (friends_selected.getHint().toString().equals("selected")) {
+                        total_players_selected = total_players_selected + 1;
+                    }
+                }
+
+                tel_friends_views = tel_friends_views +1;
+                friends_selected = (TextView)findViewById(303+tel_friends_views);
+            }
+            if(max_players_allowed_on_the_map > total_players_selected) {
+
+                name_new_friend_tv.setBackgroundColor(Color.parseColor("#cccccc"));
+                name_new_friend_tv.setTextColor(Color.parseColor("#00ee00"));
+                name_new_friend_tv.setHint("selected");
+            }
+            else
+            {
+                EditText text_name_new_player_click = (EditText)findViewById(302);
+                text_name_new_player_click.setText("");
+                text_name_new_player_click.setHint("Max players = "+max_players_allowed_on_the_map);
+
+            }
         }
     }
 
@@ -952,7 +985,6 @@ public class Questionnaire extends Activity {
             }
             String new_color_s = "#"+new_color.toString()+"ff"+new_color.toString();
             field_ids_and_names.get(tot_arraylist).add(new_color_s);
-            Log.e("temp", "new_color_s:" + new_color_s);
 
             Integer tel_possible_start_places = 0;
             Boolean found_place = false;
@@ -1033,6 +1065,8 @@ public class Questionnaire extends Activity {
                     if(must_bool == true)
                     {
                         add_enemy = false;
+                        // Escape loop
+                        tel_enemy_req = enemy_req.getLength();
                     }
 
                 }
@@ -1220,10 +1254,12 @@ public class Questionnaire extends Activity {
 
         // Check for specific information instead of tag's in the user info file.
         String found_v = "";
-        if(req_tag_name == "xTotal players")
+        // Log.e("temp", "req_tag_name:" + req_tag_name);
+        if(req_tag_name.equals("xTotal_players"))
         {
             Integer temp = username.size();
             found_v = temp.toString();
+            // Log.e("temp", "found_v:" + found_v);
         }
         else {
             found_v = find_value_in_xml(req_tag_name, req_id);
