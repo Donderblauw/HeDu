@@ -769,7 +769,8 @@ public class Questionnaire extends Activity {
                             // onclick_temp = goto_temp;
                             String goto_temp_id = XmlPullParser_temp.getAttributeValue(null, "goto_id").toString();
                             // Log.e("temp", "setup " + onclick_temp);
-                            tv_parents[level_parent_atm] = create_awnserview(goto_temp, goto_temp_id);
+
+                            tv_parents[level_parent_atm] = create_awnserview(goto_temp, goto_temp_id, XML_file_input);
                             tv_show[level_parent_atm] = true;
                         }
                         else if(xml_atm.equals("req"))
@@ -1311,7 +1312,7 @@ public class Questionnaire extends Activity {
         lin_lay_q.removeAllViews();
 
     }
-    public TextView create_awnserview(String onclick_temp, String goto_id)
+    public TextView create_awnserview(String onclick_temp, String goto_id, String XML_file_input)
     {
 
         TextView question_tv = new TextView(this);
@@ -1321,6 +1322,10 @@ public class Questionnaire extends Activity {
         Bundle inputExtras = question_tv.getInputExtras(true);
         inputExtras.putString("onclick_temp", onclick_temp);
         inputExtras.putString("goto_id",goto_id);
+        inputExtras.putString("XML_file_input",XML_file_input);
+
+        //IF a awnser with the same  goto_id is added on the same awnser_id OR a different question with the same goto_id shifts.. serverside world_scores are scewed.
+        inputExtras.putString("to_server",goto_id+awnser_id);
 
 
         question_tv.setOnClickListener(new View.OnClickListener() {
@@ -1334,6 +1339,8 @@ public class Questionnaire extends Activity {
                 String output_questionfile = inputExtras.getString("onclick_temp", "");
                 String goto_id = inputExtras.getString("goto_id", "");
 
+                // only one add_line possible.
+
                 String add_line = inputExtras.getString("add_line", "");
                 if(add_line != "") {
                     String add_value = inputExtras.getString("value", "");
@@ -1346,6 +1353,14 @@ public class Questionnaire extends Activity {
                 }
                 // add_story_line(add_line, add_value);
 
+                String to_server_awnser_id = inputExtras.getString("to_server", "");
+                String XML_file_input = inputExtras.getString("XML_file_input", "");
+                if(to_server_awnser_id != "")
+                {
+                    add_awnser_personality_scores(to_server_awnser_id, XML_file_input);
+                }
+
+
                 XML_ini_q_or_map(goto_id, output_questionfile);
 
             }
@@ -1355,6 +1370,29 @@ public class Questionnaire extends Activity {
 
         return question_tv;
 
+    }
+
+    public void add_awnser_personality_scores (String to_server_awnser_id, String question_name)
+    {
+        if(player_id_server == "")
+        {
+            player_id_server = find_value_in_xml("login_info", "id");
+        }
+
+        String php_file = "add_awn_scr.php";
+        String[] id_url_addon = {"qid", "qwn", "qnm", "qai"};
+        String[] data_url_addon = {player_id_server, this_world, question_name, to_server_awnser_id};
+
+        ArrayList<String> login_data = null;
+        try {
+            login_data = server_side_PHP.get_dataarray_server(php_file, id_url_addon, data_url_addon);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public Integer set_squarre_size(Integer totx_squarres, Integer toty_squarres)
