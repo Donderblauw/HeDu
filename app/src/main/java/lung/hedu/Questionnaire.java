@@ -93,10 +93,10 @@ public class Questionnaire extends Activity {
     // id_object | Item id | atribute ID | value | extra
     public ArrayList<ArrayList<ArrayList<ArrayList<Integer>>>>  atribute_modifications = new ArrayList<ArrayList<ArrayList<ArrayList<Integer>>>> ();
 
-
-    public ArrayList<ArrayList<String>>  enemy_interaction = new ArrayList<ArrayList<String>> ();
-    public ArrayList<ArrayList<String>>  req_interaction_glob = new ArrayList<ArrayList<String>> ();
-    public ArrayList<String>  enemy_interaction_req_name = new ArrayList<String> () ;
+    // x.x.0 = name | x.x.1 = math |  x.x.2 = req  |  x.x.3 = name interaction with
+    public ArrayList<ArrayList<ArrayList<String>>>  enemy_interaction = new ArrayList<ArrayList<ArrayList<String>>> ();
+    // public ArrayList<ArrayList<String>>  req_interaction_glob = new ArrayList<ArrayList<String>> ();
+    // public ArrayList<String>  enemy_interaction_req_name = new ArrayList<String> () ;
 
     public ArrayList<ArrayList<String>>  enemy_turn = new ArrayList<ArrayList<String>> ();
     public ArrayList<ArrayList<String>>  req_enemy_turn_glob = new ArrayList<ArrayList<String>> ();
@@ -105,6 +105,8 @@ public class Questionnaire extends Activity {
     public ArrayList<ArrayList<String>>  req_atribute_trigger_glob = new ArrayList<ArrayList<String>> ();
 
     public ArrayList<ArrayList<String>>  no_enemy_left_trigger = new ArrayList<ArrayList<String>> ();
+
+    public ArrayList<ArrayList<String>>  requerment_normalized = new ArrayList<ArrayList<String>> ();
 
     public Integer map_time = 0;
     public ArrayList<Integer> speed_atm = new ArrayList<Integer>();
@@ -715,6 +717,102 @@ public class Questionnaire extends Activity {
 
         return return_bool;
     }
+
+    public boolean check_req_type_extended (ArrayList<Integer> req_arraylist)
+    {
+        Boolean return_bool = false;
+
+        Integer tel_requerment_numbers = 0;
+
+        while (tel_requerment_numbers < req_arraylist.size())
+        {
+
+            String req_name = requerment_normalized.get(req_arraylist.get(tel_requerment_numbers)).get(0);
+            String req_type = requerment_normalized.get(req_arraylist.get(tel_requerment_numbers)).get(1);
+            String req_then_name = requerment_normalized.get(req_arraylist.get(tel_requerment_numbers)).get(2);
+            String extra_eq = requerment_normalized.get(req_arraylist.get(tel_requerment_numbers)).get(3);
+            String must_s = requerment_normalized.get(req_arraylist.get(tel_requerment_numbers)).get(4);
+
+
+            Integer[] req_1_id_array = get_object_rule_world_and_atribute_id(req_name);
+            Integer value_1 = 0;
+            if (req_1_id_array[0] == -1) {
+                value_1 = req_1_id_array[2];
+            } else {
+                value_1 = count_atributs_mod_to_def(req_1_id_array[0], req_1_id_array[1], req_1_id_array[2]);
+            }
+
+            Integer[] req_then_id_array = get_object_rule_world_and_atribute_id(req_then_name);
+            Integer value_then = 0;
+            if (req_then_id_array[0] == -1) {
+                value_then = req_then_id_array[2];
+            } else {
+                value_then = count_atributs_mod_to_def(req_then_id_array[0], req_then_id_array[1], req_then_id_array[2]);
+            }
+
+            Boolean equal_true = false;
+            if (extra_eq.equals("t")) {
+                equal_true = true;
+            }
+
+
+    /*
+            bt = bigger then xx
+            st = smaller then xx
+            eq = equal
+            nq = not equal
+            bi = bigger > value
+            sm = smaller < value
+    */
+            if (req_type.equals("eq")) {
+                if (value_1.equals(value_then)) {
+                    return_bool = true;
+                }
+            } else if (req_type.equals("nq")) {
+                if (value_1.equals(value_then)) {
+                } else {
+                    return_bool = true;
+                }
+            } else if (req_type.equals("sm")) {
+                if (value_1 < value_then) {
+                    return_bool = true;
+                }
+            } else if (req_type.equals("bi")) {
+                if (value_1 > value_then) {
+                    return_bool = true;
+                }
+            }
+
+            if (equal_true == true) {
+                if (value_1.equals(value_then)) {
+                    return_bool = true;
+                }
+            }
+            // If the req is not met, but MUST == true, return false and escape.
+            if(return_bool == false) {
+                Boolean must_bool = false;
+                if (must_s == null) {
+                    must_bool = false;
+                } else {
+                    if (must_s.equals("t")) {
+
+                        must_bool = true;
+                    }
+                }
+                if (must_bool == true) {
+                    return_bool = false;
+
+                    // Escape loop
+                    tel_requerment_numbers = req_arraylist.size();
+                }
+            }
+            tel_requerment_numbers = tel_requerment_numbers +1;
+
+        }
+
+        return return_bool;
+    }
+
     public String XML_ini_questionairre(String XML_file_input) {
         XmlPullParser XmlPullParser_temp = null;
         String text_return = "";
@@ -1980,15 +2078,89 @@ public class Questionnaire extends Activity {
 
                 Integer tel_interactions = 0;
                 while (tel_interactions < enemy_interaction.size()) {
-                    // Log.e("temp", "enemy_interaction_req_name:" + enemy_interaction_req_name.get(tel_interactions) +" ckicked:" +field_ids_and_names.get(id_ofcell_type_clicked).get(0));
+                    // Log.e("temp", "enemy_interaction_req_name:" + enemy_interaction.get(tel_interactions).get(0).get(0) +" ckicked:" +field_ids_and_names.get(id_ofcell_type_clicked).get(0)+ "reqname = " + enemy_interaction.get(tel_interactions).get(3).get(0).toString());
+
+
+                    if(enemy_interaction.get(tel_interactions).get(3).get(0).toString().equals(field_ids_and_names.get(id_ofcell_type_clicked).get(0)))
+                    {
+                        Integer tel_req_interactions = 0;
+                        ArrayList<Integer> req_norm_numbers = new ArrayList<Integer>();
+
+                        while (tel_req_interactions < enemy_interaction.get(tel_interactions).get(2).size())
+                        {
+                            Integer temp_int_req_norm_number = Integer.parseInt(enemy_interaction.get(tel_interactions).get(2).get(tel_req_interactions));
+                            req_norm_numbers.add(temp_int_req_norm_number);
+                            tel_req_interactions = tel_req_interactions +1;
+                        }
+                        Boolean check_req_bool = check_req_type_extended (req_norm_numbers);
+                        // Log.e("temp", "check_req_bool:" + check_req_bool +" ckicked:" +field_ids_and_names.get(id_ofcell_type_clicked).get(0));
+                        if(check_req_bool == true)
+                        {
+
+                            TextView add_enemy_interactions = new TextView(this);
+                            add_enemy_interactions.setId((201 + tel_interactions));
+                            String name_interaction = enemy_interaction.get(tel_interactions).get(0).get(0);
+                            add_enemy_interactions.setTextSize(font_size);
+                            add_enemy_interactions.setText(name_interaction);
+
+                            Bundle inputExtras = add_enemy_interactions.getInputExtras(true);
+                            inputExtras.putString("id_interactions", tel_interactions.toString());
+                            inputExtras.putString("id_enemy", id_ofcell_type_clicked.toString());
+                            inputExtras.putString("active_player", active_player_id.toString());
+
+                            add_enemy_interactions.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    TextView temp_tv = (TextView) v;
+                                    Bundle inputExtras = temp_tv.getInputExtras(true);
+                                    String id_interaction_s = inputExtras.getString("id_interactions", "");
+                                    if (id_interaction_s != "") {
+                                        Integer id_interaction = Integer.parseInt(id_interaction_s);
+                                        Integer id_enemy = Integer.parseInt(inputExtras.getString("id_enemy", ""));
+                                        Integer id_active_player = Integer.parseInt(inputExtras.getString("active_player", ""));
+
+
+                                        target_field_id = id_enemy;
+                                        Integer tel_math_problems = 0;
+                                        while (tel_math_problems < enemy_interaction.get(id_interaction).get(1).size()) {
+                                            String math_problem = enemy_interaction.get(id_interaction).get(1).get(tel_math_problems);
+                                            // Log.e("temp", "math_problem:" + math_problem);
+                                            aply_math_to_interaction(math_problem);
+                                            tel_math_problems = tel_math_problems + 1;
+                                        }
+
+                                        // aply_math_to_interaction(math_problem);
+
+                                    }
+
+                                    end_turn();
+                                }
+                            });
+
+                            lin_lay_q.addView(add_enemy_interactions);
+                        }
+
+
+                    }
+/*
+                    while (tel_req_interactions < enemy_interaction.get(tel_interactions).get(3))
+
                     if(enemy_interaction_req_name.get(tel_interactions).equals(field_ids_and_names.get(id_ofcell_type_clicked).get(0)))
                     {
                         // Log.e("temp", "Hij komt hier!");
+
+
+
+
+                        k // normalize
+
+
 
                         String req_name = req_interaction_glob.get(tel_interactions).get(1);
                         String req_type = req_interaction_glob.get(tel_interactions).get(2);
                         String req_then_name = req_interaction_glob.get(tel_interactions).get(3);
                         String extra_eq = req_interaction_glob.get(tel_interactions).get(4);
+                        String must = req_interaction_glob.get(tel_interactions).get(5);
                         Integer[] req_1_id_array = get_object_rule_world_and_atribute_id(req_name);
                         Integer value_1 = 0;
                         if (req_1_id_array[0] == -1) {
@@ -2011,7 +2183,12 @@ public class Questionnaire extends Activity {
                         }
 
                         Boolean check_req = check_req_type(value_1.toString(), req_type, value_then.toString(), null, null, equal_true);
-                        if (check_req == true) {
+                        if (check_req == true)
+                        {
+
+                            k // MUST moet hier nog
+
+
 
                             TextView add_enemy_interactions = new TextView(this);
                             add_enemy_interactions.setId((201 + tel_interactions));
@@ -2055,7 +2232,28 @@ public class Questionnaire extends Activity {
                             lin_lay_q.addView(add_enemy_interactions);
 
                         }
+                        else
+                        {
+                            Boolean must_bool = false;
+
+                            if (must.equals("t"))
+                            {
+                                must_bool = true;
+                            }
+
+
+
+                            // ALL req. must say yes.
+                            if (must_bool == true)
+                            {
+                                //add_enemy = false;
+                                // Escape loop
+                                //tel_enemy_req = enemy_req.getLength();
+                            }
+                        }
+
                     }
+                    */
 
                     tel_interactions = tel_interactions + 1;
                 }
@@ -2234,13 +2432,80 @@ public class Questionnaire extends Activity {
         //k
     }
 
+    public Integer[] get_user_personality()
+    {
+        Integer return_int[] = new Integer[6];
+        String norm_extra_s = XML_IO.find_value_in_userxml("login_info", "normalized_Extraversion");
+        if (norm_extra_s == null)
+        {
+            if(player_id_server == "")
+            {
+                player_id_server = find_value_in_xml("login_info", "id");
+            }
+
+            String[] data_url_addon = {player_id_server};
+            String[] id_url_addon = {"qid"};
+            String php_file = "user_personality_out.php";
+
+            ArrayList<String> login_data = null;
+            try {
+                login_data = server_side_PHP.get_dataarray_server(php_file, id_url_addon, data_url_addon);
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            } catch (URISyntaxException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            if (login_data.size() > 0)
+            {
+                Integer total_numbers = 0;
+                Integer tel = 0;
+                while(tel < 5)
+                {
+                    return_int[tel] = Integer.parseInt(login_data.get(tel));
+                    total_numbers = total_numbers + return_int[tel];
+                    tel = tel +1;
+                }
+                Integer correction = ((100/total_numbers)*1000);
+                tel = 0;
+                while(tel < 5)
+                {
+                    return_int[tel] = Math.round(return_int[tel] * (correction / 1000));
+                }
+                XML_IO.set_value_user_info("login_info", "normalized_Extraversion", return_int[0].toString() );
+                XML_IO.set_value_user_info("login_info", "normalized_Agreeableness", return_int[1].toString() );
+                XML_IO.set_value_user_info("login_info", "normalized_Conscientiousness", return_int[2].toString() );
+                XML_IO.set_value_user_info("login_info", "normalized_Neuroticism", return_int[3].toString() );
+                XML_IO.set_value_user_info("login_info", "normalized_Openness", return_int[4].toString() );
+                Log.e("temp", "normalized_Extraversion " + return_int[0].toString());
+                Log.e("temp", "normalized_Openness " + return_int[4].toString());
+            }
+
+
+        }
+        else
+        {
+            return_int[0] = Integer.parseInt(XML_IO.find_value_in_userxml("login_info", "normalized_Extraversion"));
+            return_int[1] = Integer.parseInt(XML_IO.find_value_in_userxml("login_info", "normalized_Agreeableness"));
+            return_int[2] = Integer.parseInt(XML_IO.find_value_in_userxml("login_info", "normalized_Conscientiousness"));
+            return_int[3] = Integer.parseInt(XML_IO.find_value_in_userxml("login_info", "normalized_Neuroticism"));
+            return_int[4] = Integer.parseInt(XML_IO.find_value_in_userxml("login_info", "normalized_Openness"));
+            Log.e("temp", "normalized_Extraversion " + return_int[0].toString());
+            Log.e("temp", "normalized_Openness " + return_int[4].toString());
+        }
+
+        return return_int;
+    }
+
     public Integer[] get_object_rule_world_and_atribute_id(String input)
     {
         Integer[] return_array = {-1,-1, -1};
         Integer end_name = (input.indexOf("|"));
         String type_operator_is = input.substring(0, end_name);
         String name_atribute_is = input.substring((end_name + 1), input.length());
-
+        // add u_info en u_person
+        // k
         if(name_atribute_is.equals("distance"))
         {
             return_array[0] = -1;
@@ -2255,6 +2520,58 @@ public class Questionnaire extends Activity {
             return_array[0] = -1;
             return_array[1] = -1;
             return_array[2] = Integer.parseInt(name_atribute_is);
+        }
+        else if(type_operator_is.equals("u_info"))
+        {
+
+            return_array[0] = -1;
+            return_array[1] = -1;
+            Integer find_u_info = Integer.parseInt(XML_IO.find_value_in_userxml("login_info", name_atribute_is));
+            return_array[2] = find_u_info;
+        }
+        else if(type_operator_is.equals("tag_world"))
+        {
+            Integer end_name_2 = (name_atribute_is.indexOf("|"));
+            String world_tag = name_atribute_is.substring(0, end_name_2);
+            String tag_name = name_atribute_is.substring((end_name_2 + 1), name_atribute_is.length());
+
+            return_array[0] = -1;
+            return_array[1] = -1;
+            Integer tag_value = Integer.parseInt(XML_IO.find_value_in_userxml(world_tag, tag_name));
+            return_array[2] = tag_value;
+        }
+        else if(type_operator_is.equals("u_person"))
+        {
+            return_array[0] = -1;
+            return_array[1] = -1;
+            if(name_atribute_is.equals("Extraversion"))
+            {
+                return_array[2] = get_user_personality()[0];
+            }
+            else if(name_atribute_is.equals("Agreeableness"))
+            {
+                return_array[2] = get_user_personality()[1];
+
+            }
+            else if(name_atribute_is.equals("Conscientiousness"))
+            {
+                return_array[2] = get_user_personality()[2];
+
+            }
+            else if(name_atribute_is.equals("Neuroticism"))
+            {
+                return_array[2] = get_user_personality()[3];
+
+            }
+            else if(name_atribute_is.equals("Openness"))
+            {
+                return_array[2] = get_user_personality()[4];
+            }
+            else
+            {
+                return_array[2] = 0;
+            }
+
         }
         else
         {
@@ -2538,6 +2855,8 @@ public class Questionnaire extends Activity {
 
     public Integer count_atributs_mod_to_def(Integer id_player_rulebook, Integer id_player_field, Integer id_atribute)
     {
+
+        // if id_player_rulebook == -1 then return_total == id_atribute
         Integer return_total = 0;
 
         Integer total_atribute_value = id_def_atributs.get(id_player_rulebook).get(id_atribute);
@@ -2850,54 +3169,41 @@ public class Questionnaire extends Activity {
             NamedNodeMap temp_atribut = enemy_interactions_nl.item(tel_enemy_interaction).getAttributes();
             String enemy_interactions_name_temp = temp_atribut.getNamedItem("name").getTextContent();
             String enemy_interaction_req_name_temp = temp_atribut.getNamedItem("interaction_with").getTextContent();
-            enemy_interaction_req_name.add(enemy_interaction_req_name_temp);
+            // enemy_interaction_req_name.add(enemy_interaction_req_name_temp);
 
-            req_interaction_glob.add(new ArrayList());
-            Integer arraylist_req_atm = (req_interaction_glob.size() - 1);
-
-            Element req_interaction_element_atm = (Element) enemy_interactions_nl.item(tel_enemy_interaction);
-            NodeList req_interaction_nl = req_interaction_element_atm.getElementsByTagName("req_interaction");
-            if(req_interaction_nl.getLength() > 0)
-            {
-                NamedNodeMap temp_atribut_req = req_interaction_nl.item(0).getAttributes();
-                String req_name = temp_atribut_req.getNamedItem("req_name").getTextContent();
-                String req_type = temp_atribut_req.getNamedItem("req_type").getTextContent();
-                String req_then_name = temp_atribut_req.getNamedItem("req_then_name").getTextContent();
-
-                Node extra_eq_n = temp_atribut_req.getNamedItem("extra_eq");
-                String extra_eq = "f";
-                if (extra_eq_n == null) {
-                    extra_eq = "f";
-                } else {
-                    if (extra_eq_n.getTextContent().equals("t")) {
-
-                        extra_eq = "t";
-                    }
-                }
-
-                req_interaction_glob.get(arraylist_req_atm).add("req_interaction");
-                req_interaction_glob.get(arraylist_req_atm).add(req_name);
-                req_interaction_glob.get(arraylist_req_atm).add(req_type);
-                req_interaction_glob.get(arraylist_req_atm).add(req_then_name);
-                req_interaction_glob.get(arraylist_req_atm).add(extra_eq);
-            }
-
-
+            // req_interaction_glob.add(new ArrayList());
+            // Integer arraylist_req_atm = (req_interaction_glob.size() - 1);
 
             enemy_interaction.add(new ArrayList());
             Integer arraylist_atm = (enemy_interaction.size() - 1);
-            enemy_interaction.get(arraylist_atm).add(enemy_interactions_name_temp);
+            enemy_interaction.get(arraylist_atm).add(new ArrayList());
+            enemy_interaction.get(arraylist_atm).get(0).add(enemy_interactions_name_temp);
 
             Element interaction_element_atm = (Element) enemy_interactions_nl.item(tel_enemy_interaction);
             NodeList math_interaction = interaction_element_atm.getElementsByTagName("math");
 
+            enemy_interaction.get(arraylist_atm).add(new ArrayList());
             Integer tel_math_problems = 0;
             while (tel_math_problems < math_interaction.getLength())
             {
                 String math_problem_s = math_interaction.item(tel_math_problems).getTextContent();
-                enemy_interaction.get(arraylist_atm).add(math_problem_s);
+                enemy_interaction.get(arraylist_atm).get(1).add(math_problem_s);
                 tel_math_problems = tel_math_problems+1;
             }
+
+            enemy_interaction.get(arraylist_atm).add(new ArrayList());
+            Element req_interaction_element_atm = (Element) enemy_interactions_nl.item(tel_enemy_interaction);
+            NodeList req_interaction_nl = req_interaction_element_atm.getElementsByTagName("req");
+            if(req_interaction_nl.getLength() > 0)
+            {
+                NamedNodeMap temp_atribut_req = req_interaction_nl.item(0).getAttributes();
+                Integer reference_req = add_req_tag(temp_atribut_req);
+                enemy_interaction.get(arraylist_atm).get(2).add(reference_req.toString());
+            }
+
+            enemy_interaction.get(arraylist_atm).add(new ArrayList());
+            enemy_interaction.get(arraylist_atm).get(3).add(enemy_interaction_req_name_temp);
+
 
             tel_enemy_interaction = tel_enemy_interaction+1;
         }
@@ -3032,6 +3338,37 @@ public class Questionnaire extends Activity {
 
 
     }
+    public Integer add_req_tag(NamedNodeMap temp_atribute_2)
+    {
+        String req_name = temp_atribute_2.getNamedItem("req_name").getTextContent();
+        String req_type = temp_atribute_2.getNamedItem("req_type").getTextContent();
+        String req_then_name = temp_atribute_2.getNamedItem("req_then_name").getTextContent();
+        Node extra_eq_node = temp_atribute_2.getNamedItem("extra_eq");
+        String extra_eq = "f";
+        if(extra_eq_node != null)
+        {
+            extra_eq = extra_eq_node.getTextContent();
+        }
+
+        Node must_node = temp_atribute_2.getNamedItem("must");
+        String must = "f";
+        if(must_node != null)
+        {
+            must = must_node.getTextContent();
+        }
+
+        Integer return_interger = 0;
+        requerment_normalized.add(new ArrayList<String>());
+        return_interger = requerment_normalized.size()-1;
+        requerment_normalized.get(return_interger).add(req_name);
+        requerment_normalized.get(return_interger).add(req_type);
+        requerment_normalized.get(return_interger).add(req_then_name);
+        requerment_normalized.get(return_interger).add(extra_eq);
+        requerment_normalized.get(return_interger).add(must);
+
+        return return_interger;
+    }
+
 /*
     public void set_closest_player_to_target()
     {
