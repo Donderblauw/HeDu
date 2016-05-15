@@ -237,7 +237,8 @@ public class server_side_PHP {
     public static void push_to_testphp(String suffix, String send_to_server_flag) throws IOException {
         // SPATIES!!!
 
-        if(send_to_server_flag == "true") {
+        if(send_to_server_flag.equals("true"))
+        {
 
             suffix = suffix.replaceAll(" ", "_");
             String server = "http://hedu-free.uphero.com/active_games/test.php?";

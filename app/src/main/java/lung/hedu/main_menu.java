@@ -289,13 +289,21 @@ public class main_menu extends Activity {
                 e.printStackTrace();
             }
             if (login_data.size() > 0) {
-                XML_IO.set_value_user_info("login_info", "id", login_data.get(0).toString());
-
                 // Log.e("temp", "login_data0 " + login_data.get(0).toString());
-                // Log.e("temp", "login_data1 " + login_data.get(1).toString());
-                login_name = login_data.get(1).toString().replaceAll("_", " ");
-                XML_IO.set_value_user_info("login_info", "name", login_name);
-                check_send_server_flag(login_data.get(0).toString());
+                if(login_data.get(0).toString().equals("NF"))
+                {
+
+                }
+                else
+                {
+                    XML_IO.set_value_user_info("login_info", "id", login_data.get(0).toString());
+
+                    // Log.e("temp", "login_data0 " + login_data.get(0).toString());
+                    // Log.e("temp", "login_data1 " + login_data.get(1).toString());
+                    login_name = login_data.get(1).toString().replaceAll("_", " ");
+                    XML_IO.set_value_user_info("login_info", "name", login_name);
+                    check_send_server_flag(login_data.get(0).toString());
+                }
             }
         }
         if(login_name != null)
@@ -306,16 +314,7 @@ public class main_menu extends Activity {
             ll_login.removeAllViews();
             TextView login_name_tv = new TextView(this);
             login_name_tv.setText(login_name);
-            // public Typeface font_face = null;
-            // public Integer font_size = 20;
-/*
-            String flag_send_server = XML_IO.find_value_in_userxml("login_info", "flag_send_server");
-            if(flag_send_server == null)
-            {
-                String id_user = XML_IO.find_value_in_userxml("login_info", "id");
-                check_send_server_flag(id_user);
-            }
-*/
+
             ll_login.addView(login_name_tv);
 
         }

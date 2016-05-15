@@ -101,12 +101,19 @@ public class Questionnaire extends Activity {
     public ArrayList<ArrayList<String>>  enemy_turn = new ArrayList<ArrayList<String>> ();
     public ArrayList<ArrayList<String>>  req_enemy_turn_glob = new ArrayList<ArrayList<String>> ();
 
-    public ArrayList<ArrayList<String>>  atribute_trigger = new ArrayList<ArrayList<String>> ();
-    public ArrayList<ArrayList<String>>  req_atribute_trigger_glob = new ArrayList<ArrayList<String>> ();
+    public ArrayList<ArrayList<ArrayList<String>>>  atribute_trigger = new ArrayList<ArrayList<ArrayList<String>>> ();
+    // public ArrayList<ArrayList<String>>  req_atribute_trigger_glob = new ArrayList<ArrayList<String>> ();
 
     public ArrayList<ArrayList<String>>  no_enemy_left_trigger = new ArrayList<ArrayList<String>> ();
 
     public ArrayList<ArrayList<String>>  requerment_normalized = new ArrayList<ArrayList<String>> ();
+
+    public ArrayList<ArrayList<String>>  end_map_triggers = new ArrayList<ArrayList<String>> ();
+
+    public ArrayList<String>  atribute_slot = new ArrayList<String> ();
+
+    // x.x.0.0 name_slot x.x.0.1 chance_slot x.x.x.0 name_atribute x.x.x.1 chance_atribute x.x.x.2 lvl_modifier x.x.x.x req
+    public ArrayList<ArrayList<ArrayList<ArrayList<String>>>>  drop_item_rules = new ArrayList<ArrayList<ArrayList<ArrayList<String>>>> ();
 
     public Integer map_time = 0;
     public ArrayList<Integer> speed_atm = new ArrayList<Integer>();
@@ -346,6 +353,8 @@ public class Questionnaire extends Activity {
     public void XML_ini_q_or_map(String type_xml, String XML_file)
     {
         // player_id_server = find_value_in_xml(this_world, "saved_q_pos");
+        // Log.e("temp", "XML_file " + XML_file);
+        // Log.e("temp", "type_xml " + type_xml);
         XML_IO.set_value_user_info(this_world+"_save", "saved_xml_name", XML_file);
         XML_IO.set_value_user_info(this_world+"_save", "saved_q_or_m", type_xml);
 
@@ -827,9 +836,6 @@ public class Questionnaire extends Activity {
         }
 
         int event;
-        String text = null;
-
-        String temp = FileIO.loadStringFilePrivate(XML_file,".xml");
 
         String parents_xml[] = new String[9];
         Integer level_parent_atm = 0;
@@ -1869,7 +1875,7 @@ public class Questionnaire extends Activity {
         String saved_xml_name = find_value_in_xml(this_world+"_save", "saved_xml_name");
         String saved_q_or_m = find_value_in_xml(this_world+"_save", "saved_q_or_m");
 
-        if(saved_xml_name =="") {
+        if(saved_xml_name == "") {
 
             NodeList worlds_nodelist = world_index.getElementsByTagName("start_file");
             Integer tel = 0;
@@ -1884,6 +1890,7 @@ public class Questionnaire extends Activity {
         {
 
         }
+        // Log.e("temp", "saved_q_or_m:" + saved_q_or_m + " saved_xml_name:" +saved_xml_name);
         read_map_rules();
 
         XML_ini_q_or_map(saved_q_or_m, saved_xml_name);
@@ -2085,6 +2092,7 @@ public class Questionnaire extends Activity {
                     {
                         Integer tel_req_interactions = 0;
                         ArrayList<Integer> req_norm_numbers = new ArrayList<Integer>();
+                        req_norm_numbers.clear();
 
                         while (tel_req_interactions < enemy_interaction.get(tel_interactions).get(2).size())
                         {
@@ -2364,51 +2372,44 @@ public class Questionnaire extends Activity {
     public void atribute_triggers()
     {
         Integer tel_atribute_trigers = 0;
+        Boolean req_pass = false;
+
+
         while(tel_atribute_trigers < atribute_trigger.size())
         {
-
-            String req_name = req_atribute_trigger_glob.get(tel_atribute_trigers).get(1);
-            String req_type = req_atribute_trigger_glob.get(tel_atribute_trigers).get(2);
-            String req_then_name = req_atribute_trigger_glob.get(tel_atribute_trigers).get(3);
-            String eq_true_s = req_atribute_trigger_glob.get(tel_atribute_trigers).get(4);
-
-            Integer[] req_value1_array = get_object_rule_world_and_atribute_id(req_name);
-            Integer value1 = 0;
-            if (req_value1_array[0] == -1) {
-                value1 = req_value1_array[2];
-            } else {
-                value1 = count_atributs_mod_to_def(req_value1_array[0], req_value1_array[1], req_value1_array[2]);
+            ArrayList<Integer> req_norm_numbers = new ArrayList<Integer>();
+            req_norm_numbers.clear();
+            Integer tel_all_req = 0;
+            while(tel_all_req < atribute_trigger.get(tel_atribute_trigers).get(1).size())
+            {
+                String req_number_temp = atribute_trigger.get(tel_atribute_trigers).get(1).get(tel_all_req);
+                Integer req_number_temp_i = Integer.parseInt(req_number_temp);
+                req_norm_numbers.add(req_number_temp_i);
+                tel_all_req = tel_all_req +1;
             }
-
-            Integer[] req_then_array = get_object_rule_world_and_atribute_id(req_then_name);
-            Integer value_then = 0;
-            if (req_then_array[0] == -1) {
-                value_then = req_then_array[2];
-            } else {
-                value_then = count_atributs_mod_to_def(req_then_array[0], req_then_array[1], req_then_array[2]);
-            }
-
-            Boolean equals_true = false;
-            if (eq_true_s.equals("t")) {
-                equals_true = true;
-            }
-            Boolean req_pass = false;
-            req_pass = check_req_type(value1.toString(), req_type, value_then.toString(), null, null, equals_true);
-            // Log.e("XML parser", " 1:"+value1.toString() +" 2:"+ req_type + " 2:" + value_then.toString());
+            req_pass = check_req_type_extended (req_norm_numbers);
             if(req_pass == true)
             {
-                String temp = atribute_trigger.get(tel_atribute_trigers).get(1);
-                Log.e("XML parser", "TRUE: "+ temp);
+                String temp = atribute_trigger.get(tel_atribute_trigers).get(2).get(0);
+                // Log.e("XML parser", "TRUE: "+ temp);
                 if(temp.equals("remove"))
                 {
-                    //
-                    remove_object(target_field_id);
+
+                    // CHECK FOR name_target
+                    if(atribute_trigger.get(tel_atribute_trigers).get(3).get(0).equals("target"))
+                    {
+                        remove_object(target_field_id);
+                    }
                 }
 
-                //something
+                //something else
             }
+
             tel_atribute_trigers = tel_atribute_trigers+1;
         }
+
+
+
 
     }
 
@@ -3029,7 +3030,9 @@ public class Questionnaire extends Activity {
             {
                 if(no_enemy_left_trigger.get(no_enemy_left_tel).get(0).equals("goto"))
                 {
-                    XML_ini_q_or_map(no_enemy_left_trigger.get(no_enemy_left_tel).get(2), no_enemy_left_trigger.get(no_enemy_left_tel).get(1));
+                    // XML_ini_q_or_map(no_enemy_left_trigger.get(no_enemy_left_tel).get(2), no_enemy_left_trigger.get(no_enemy_left_tel).get(1));
+                    end_map(no_enemy_left_trigger.get(no_enemy_left_tel).get(2), no_enemy_left_trigger.get(no_enemy_left_tel).get(1));
+
                     stop = true;
 
                 }
@@ -3040,6 +3043,154 @@ public class Questionnaire extends Activity {
         }
 
         return return_b;
+    }
+
+    public void end_map(String goto_xml_name, String map_or_questions)
+    {
+        // x.x.0.0 name_slot x.x.0.1 chance_slot x.x.x.0 name_atribute x.x.x.1 chance_atribute x.x.x.2 lvl_modifier x.x.x.3 rand_id x.x.x.4+ req
+
+        String name_slot = "";
+        ArrayList<Integer> add_atributs = new ArrayList<Integer>();
+
+        Integer tel_end_map_triggers = 0;
+        // Log.e("temp", "end_map_triggers.size() " + end_map_triggers.size());
+        // Log.e("temp", "end_map_triggers.size()HIER2:"+ end_map_triggers.size());
+        while(tel_end_map_triggers < end_map_triggers.size())
+        {
+            if (end_map_triggers.get(tel_end_map_triggers).get(0)=="drop_item_rules")
+            {
+                Integer found_drop_item_rules = Integer.parseInt(end_map_triggers.get(tel_end_map_triggers).get(1));
+
+                Integer total_chance_slot = 0;
+                ArrayList<ArrayList<String>>  slot_chance = new ArrayList<ArrayList<String>> ();
+                Integer tel_rand_slot_drop = 0 ;
+                while(tel_rand_slot_drop < drop_item_rules.get(found_drop_item_rules).size())
+                {
+
+
+                    slot_chance.add(new ArrayList<String>());
+                    String slot_chance_found = drop_item_rules.get(found_drop_item_rules).get(tel_rand_slot_drop).get(0).get(1);
+                    slot_chance.get(slot_chance.size()-1).add(drop_item_rules.get(found_drop_item_rules).get(tel_rand_slot_drop).get(0).get(0));
+                    total_chance_slot = total_chance_slot + Integer.parseInt(slot_chance_found);
+                    slot_chance.get(slot_chance.size()-1).add(slot_chance_found);
+
+                    tel_rand_slot_drop = tel_rand_slot_drop+1;
+                }
+
+                long random_for_slot = Math.round(Math.random()*total_chance_slot);
+                Integer tel_rand_slot_chance = 0;
+
+                Integer chance_sum_atm = Integer.parseInt(slot_chance.get(tel_rand_slot_chance).get(1));
+                name_slot = slot_chance.get(tel_rand_slot_chance).get(0);
+
+                while(random_for_slot > chance_sum_atm)
+                {
+                    tel_rand_slot_chance = tel_rand_slot_chance+1;
+                    chance_sum_atm = Integer.parseInt(slot_chance.get(tel_rand_slot_chance).get(1)) + chance_sum_atm;
+                    name_slot = slot_chance.get(tel_rand_slot_chance).get(0);
+                }
+
+                ArrayList<ArrayList<String>>  add_item_atribute = new ArrayList<ArrayList<String>> ();
+                ArrayList<ArrayList<ArrayList<Integer>>> total_chance_atributs_array_s = new ArrayList<ArrayList<ArrayList<Integer>>>() ;
+                tel_rand_slot_drop = tel_rand_slot_chance;
+
+                Integer tel_atribute = 1;
+                while(tel_atribute < drop_item_rules.get(found_drop_item_rules).get(tel_rand_slot_drop).size())
+                {
+                    // String name_atribute = drop_item_rules.get(found_drop_item_rules).get(tel_rand_slot_drop).get(tel_atribute).get(0);
+
+
+                    Integer tel_req = 4;
+                    ArrayList<Integer> to_check_req_type_extended = new ArrayList<Integer>();
+                    // Log.e("temp", "drop_item_rules.get(found_drop_item_rules).get(tel_rand_slot_drop).get(tel_atribute).size()_3_: " + drop_item_rules.get(found_drop_item_rules).get(tel_rand_slot_drop).get(tel_atribute).size());
+                    Boolean bool_pass_req = true;
+                    while(tel_req < drop_item_rules.get(found_drop_item_rules).get(tel_rand_slot_drop).get(tel_atribute).size())
+                    {
+                        to_check_req_type_extended.add(Integer.valueOf(drop_item_rules.get(found_drop_item_rules).get(tel_rand_slot_drop).get(tel_atribute).get(tel_req)));
+                        // Log.e("temp", "added_req " + drop_item_rules.get(found_drop_item_rules).get(tel_rand_slot_drop).get(tel_atribute).get(tel_req));
+                        tel_req = tel_req+1;
+                        bool_pass_req = check_req_type_extended(to_check_req_type_extended);
+
+                    }
+
+                    // Log.e("temp", "bool_pass_req " + bool_pass_req.toString());
+                    if(bool_pass_req == true || drop_item_rules.get(found_drop_item_rules).get(tel_rand_slot_drop).get(tel_atribute).size() == 0 )
+                    {
+                        add_item_atribute.add(new ArrayList<String>());
+                        Integer add_item_atribute_atm = add_item_atribute.size() -1 ;
+
+                        String name_atribute = drop_item_rules.get(found_drop_item_rules).get(tel_rand_slot_drop).get(tel_atribute).get(0) ;
+                        Integer chance_atribute = Integer.parseInt(drop_item_rules.get(found_drop_item_rules).get(tel_rand_slot_drop).get(tel_atribute).get(1) );
+                        Integer lvl_modifier = Integer.parseInt(drop_item_rules.get(found_drop_item_rules).get(tel_rand_slot_drop).get(tel_atribute).get(2) );
+                        String rand_id = drop_item_rules.get(found_drop_item_rules).get(tel_rand_slot_drop).get(tel_atribute).get(3) ;
+
+                        Integer rand_id_intern = -1;
+                        Integer tel_rand_id_intern = 0;
+                        while(tel_rand_id_intern < (add_item_atribute.size()-1))
+                        {
+                            if(rand_id.equals(add_item_atribute.get(tel_rand_id_intern).get(0)))
+                            {
+                                rand_id_intern = Integer.parseInt(add_item_atribute.get(tel_rand_id_intern).get(1));
+                            }
+                            tel_rand_id_intern = tel_rand_id_intern+1;
+                        }
+                        if(rand_id_intern == -1)
+                        {
+                            total_chance_atributs_array_s.add(new ArrayList<ArrayList<Integer>>());
+                            rand_id_intern = total_chance_atributs_array_s.size() -1;
+                            total_chance_atributs_array_s.get(rand_id_intern).add(new ArrayList<Integer>());
+                            total_chance_atributs_array_s.get(rand_id_intern).get(0).add(0);
+                        }
+                        Integer total_chance_atributs_array_s_atm = total_chance_atributs_array_s.size() - 1;
+                        total_chance_atributs_array_s.get(total_chance_atributs_array_s_atm).add(new ArrayList<Integer>());
+                        Integer new_chance_atribute_atm = total_chance_atributs_array_s.get(total_chance_atributs_array_s_atm).size() -1;
+
+                        Integer total_chance_previous = total_chance_atributs_array_s.get(rand_id_intern).get(0).get(0);
+                        total_chance_atributs_array_s.get(rand_id_intern).get(0).set(0, total_chance_previous + chance_atribute);
+
+                        total_chance_atributs_array_s.get(total_chance_atributs_array_s_atm).get(new_chance_atribute_atm).add(chance_atribute );
+                        total_chance_atributs_array_s.get(total_chance_atributs_array_s_atm).get(new_chance_atribute_atm).add(add_item_atribute_atm);
+                        add_item_atribute.get(tel_rand_id_intern).add(rand_id);
+                        add_item_atribute.get(tel_rand_id_intern).add(rand_id_intern.toString());
+                        add_item_atribute.get(tel_rand_id_intern).add(name_atribute);
+                        add_item_atribute.get(tel_rand_id_intern).add(lvl_modifier.toString());
+
+                    }
+
+                    tel_atribute = tel_atribute +1;
+                }
+
+                Integer tel_total_chance_atributs = 0;
+                while(tel_total_chance_atributs < total_chance_atributs_array_s.size())
+                {
+                    Integer total_chance_atribute = total_chance_atributs_array_s.get(tel_total_chance_atributs).get(0).get(0);
+                    long random_for_atribute = Math.round(Math.random()*total_chance_atribute);
+                    Integer tel_rand_atribute = 1;
+
+                    // Log.e("temp", "tel_total_chance_atributs=" + tel_total_chance_atributs + " tel_rand_atribute=" + tel_rand_atribute);
+                    Integer chance_atributs_sum_atm = total_chance_atributs_array_s.get(tel_total_chance_atributs).get(tel_rand_atribute).get(0);
+                    Integer add_atribute_to_slot =  total_chance_atributs_array_s.get(tel_total_chance_atributs).get(tel_rand_atribute).get(1);
+
+
+                    while(random_for_atribute > chance_atributs_sum_atm)
+                    {
+                        tel_rand_atribute = tel_rand_atribute+1;
+                        chance_atributs_sum_atm = chance_atributs_sum_atm + total_chance_atributs_array_s.get(tel_total_chance_atributs).get(tel_rand_atribute).get(0);
+                        add_atribute_to_slot =  total_chance_atributs_array_s.get(tel_total_chance_atributs).get(tel_rand_atribute).get(1);
+                    }
+                    add_atributs.add(add_atribute_to_slot);
+                    tel_total_chance_atributs = tel_total_chance_atributs+1;
+
+                }
+
+            }
+
+            tel_end_map_triggers = tel_end_map_triggers+1;
+        }
+        // Log.e("temp", "name_slot " + name_slot);
+        // Log.e("temp", "add_atribute_to_slot " + add_atribute_to_slot+" name="+add_item_atribute.get(add_atribute_to_slot).get(2));
+        // k ik moet nog wat met deze items
+        XML_ini_q_or_map(goto_xml_name, map_or_questions);
     }
 
     public static Bitmap draw_squarre(Integer field_x, Integer field_y, String color_given, Bitmap field_bmp, Integer squarre_size) {
@@ -3129,6 +3280,16 @@ public class Questionnaire extends Activity {
             tel_atributes = tel_atributes+1;
         }
 
+        NodeList atribute_slot_nodelist = map_rules.getElementsByTagName("atribute_slot");
+        Integer tel_atribute_slot =0;
+
+        while(tel_atribute_slot < atribute_slot_nodelist.getLength())
+        {
+            NamedNodeMap temp_atribute_slot = atribute_slot_nodelist.item(tel_atribute_slot).getAttributes();
+            String atribute_slot_name_temp = temp_atribute_slot.getNamedItem("name").getTextContent();
+            atribute_slot.add(atribute_slot_name_temp);
+            tel_atribute_slot = tel_atribute_slot+1;
+        }
 
         NodeList moveable_objects_nl = map_rules.getElementsByTagName("moveable_object");
         Integer tel_moveable_objects =0;
@@ -3214,52 +3375,69 @@ public class Questionnaire extends Activity {
         {
             NamedNodeMap temp_atribut = atribute_trigger_nl.item(tel_atribute_trigger).getAttributes();
             String atribute_trigger_name_temp = temp_atribut.getNamedItem("name").getTextContent();
+            String atribute_trigger_type_temp = temp_atribut.getNamedItem("type").getTextContent();
+            String atribute_trigger_target_temp = temp_atribut.getNamedItem("target").getTextContent();
 
             atribute_trigger.add(new ArrayList());
             Integer arraylist_atm = (atribute_trigger.size() - 1);
 
-            req_atribute_trigger_glob.add(new ArrayList<String>());
-            Integer array_list_req_atm = (req_atribute_trigger_glob.size() -1);
+//            req_atribute_trigger_glob.add(new ArrayList<String>());
+//            Integer array_list_req_atm = (req_atribute_trigger_glob.size() -1);
 
-            atribute_trigger.get(arraylist_atm).add(atribute_trigger_name_temp);
+            atribute_trigger.get(arraylist_atm).add(new ArrayList());
+            atribute_trigger.get(arraylist_atm).get(0).add(atribute_trigger_name_temp);
 
+
+            atribute_trigger.get(arraylist_atm).add(new ArrayList());
             Integer tel_req = 0;
             Element atribute_trigger_e = (Element) atribute_trigger_nl.item(tel_atribute_trigger);
-            NodeList req_nl = atribute_trigger_e.getElementsByTagName("req_enemy_move");
+            NodeList req_nl = atribute_trigger_e.getElementsByTagName("req");
             while(tel_req < req_nl.getLength())
             {
                 NamedNodeMap temp_atribute_2 = req_nl.item(tel_req).getAttributes();
-
-                String req_name = temp_atribute_2.getNamedItem("req_name").getTextContent();
-                String req_type = temp_atribute_2.getNamedItem("req_type").getTextContent();
-                String req_then_name = temp_atribute_2.getNamedItem("req_then_name").getTextContent();
-                Node extra_eq_n = temp_atribute_2.getNamedItem("extra_eq");
-
-                String extra_eq = "f";
-                if (extra_eq_n == null) {
-                    extra_eq = "f";
-                } else {
-                    if (extra_eq_n.getTextContent().equals("t")) {
-                        extra_eq = "t";
-                    }
-                }
-
-                req_atribute_trigger_glob.get(array_list_req_atm).add("req_interaction");
-                req_atribute_trigger_glob.get(array_list_req_atm).add(req_name);
-                req_atribute_trigger_glob.get(array_list_req_atm).add(req_type);
-                req_atribute_trigger_glob.get(array_list_req_atm).add(req_then_name);
-                req_atribute_trigger_glob.get(array_list_req_atm).add(extra_eq);
+                Integer reference_req = add_req_tag(temp_atribute_2);
+                atribute_trigger.get(arraylist_atm).get(1).add(reference_req.toString());
 
                 tel_req =tel_req +1;
             }
-            NodeList remove_object = atribute_trigger_e.getElementsByTagName("remove_object");
-            if(remove_object.getLength() > 0)
-            {
-                NamedNodeMap temp_atribute_2 = remove_object.item(0).getAttributes();
-                atribute_trigger.get(arraylist_atm).add("remove");
-            }
+
+            atribute_trigger.get(arraylist_atm).add(new ArrayList());
+            atribute_trigger.get(arraylist_atm).get(2).add(atribute_trigger_type_temp);
+
+            atribute_trigger.get(arraylist_atm).add(new ArrayList());
+            atribute_trigger.get(arraylist_atm).get(3).add(atribute_trigger_target_temp);
 
             tel_atribute_trigger = tel_atribute_trigger+1;
+        }
+
+
+        NodeList end_map_nl = map_rules.getElementsByTagName("end_map");
+        Integer tel_end_map = 0;
+        // Log.e("temp", "end_map_nl.getLength():"+ end_map_nl.getLength());
+        while(tel_end_map < end_map_nl.getLength())
+        {
+            end_map_triggers.add(new ArrayList());
+            Integer arraylist_atm = (end_map_triggers.size() - 1);
+            // Log.e("temp", "end_map_triggers.size()HIER:"+ end_map_triggers.size());
+
+            Integer tel_drop_item_rules = 0;
+            Element end_map_triggers_e = (Element) end_map_nl.item(tel_end_map);
+            NodeList drop_item_rules_nl = end_map_triggers_e.getElementsByTagName("drop_item_rules");
+            while(tel_drop_item_rules < drop_item_rules_nl.getLength())
+            {
+
+                Integer reference_req = add_drop_item_rules(drop_item_rules_nl.item(tel_drop_item_rules));
+                end_map_triggers.get(arraylist_atm).add("drop_item_rules");
+                end_map_triggers.get(arraylist_atm).add(reference_req.toString());
+
+                // Log.e("temp", "tel_drop_item_rules"+ tel_drop_item_rules+" reference_req"+reference_req);
+
+                tel_drop_item_rules =tel_drop_item_rules +1;
+            }
+
+
+
+            tel_end_map = tel_end_map+1;
         }
 
         NodeList enemy_turn_activity = map_rules.getElementsByTagName("Enemy_turn");
@@ -3338,6 +3516,7 @@ public class Questionnaire extends Activity {
 
 
     }
+
     public Integer add_req_tag(NamedNodeMap temp_atribute_2)
     {
         String req_name = temp_atribute_2.getNamedItem("req_name").getTextContent();
@@ -3365,6 +3544,77 @@ public class Questionnaire extends Activity {
         requerment_normalized.get(return_interger).add(req_then_name);
         requerment_normalized.get(return_interger).add(extra_eq);
         requerment_normalized.get(return_interger).add(must);
+
+        return return_interger;
+    }
+
+    public Integer add_drop_item_rules(Node temp_node_drop_item_rules)
+    {
+        // k
+        drop_item_rules.add(new ArrayList<ArrayList<ArrayList<String>>>());
+        Integer drop_item_rule_atm = drop_item_rules.size() -1;
+
+        Integer return_interger = drop_item_rule_atm;
+
+        Integer tel_rand_slot_drop = 0;
+        Element temp_element_drop_item_rules = (Element) temp_node_drop_item_rules;
+        NodeList rand_slot_drop_nl = temp_element_drop_item_rules.getElementsByTagName("rand_slot_drop");
+        while(tel_rand_slot_drop < rand_slot_drop_nl.getLength())
+        {
+            Element rand_slot_drop_element = (Element) rand_slot_drop_nl.item(tel_rand_slot_drop);
+
+            NamedNodeMap rand_slot_drop_atribute = rand_slot_drop_nl.item(tel_rand_slot_drop).getAttributes();
+            String name_rand_slot_drop = rand_slot_drop_atribute.getNamedItem("name").getTextContent();
+            String chance_rand_slot_drop = rand_slot_drop_atribute.getNamedItem("chance").getTextContent();
+
+            drop_item_rules.get(drop_item_rule_atm).add(new ArrayList<ArrayList<String>>());
+            Integer rand_slot_drop_atm = drop_item_rules.get(drop_item_rule_atm).size() -1;
+            drop_item_rules.get(drop_item_rule_atm).get(rand_slot_drop_atm).add(new ArrayList<String>());
+            drop_item_rules.get(drop_item_rule_atm).get(rand_slot_drop_atm).get(0).add(name_rand_slot_drop);
+            drop_item_rules.get(drop_item_rule_atm).get(rand_slot_drop_atm).get(0).add(chance_rand_slot_drop);
+
+            Log.e("temp", "name_rand_slot_drop=" + name_rand_slot_drop +" chance_rand_slot_drop=" + chance_rand_slot_drop );
+
+            Integer tel_rand_atribute = 0;
+            NodeList rand_atribute_drop_nl = rand_slot_drop_element.getElementsByTagName("rand_atribute");
+            Log.e("temp", "rand_atribute_drop_nl.getLength()=" + rand_atribute_drop_nl.getLength()  );
+            while(tel_rand_atribute < rand_atribute_drop_nl.getLength())
+            {
+                // NAAM, lvl en Chance moet nog
+
+                NamedNodeMap rand_atribute_atribute = rand_atribute_drop_nl.item(tel_rand_atribute).getAttributes();
+                String name_rand_atribute = rand_atribute_atribute.getNamedItem("name").getTextContent();
+                String chance_rand_atribute = rand_atribute_atribute.getNamedItem("chance").getTextContent();
+                String lvl_modifier_rand_atribute = rand_atribute_atribute.getNamedItem("lvl_modifier").getTextContent();
+                String rand_id_rand_atribute = rand_atribute_atribute.getNamedItem("rand_id").getTextContent();
+
+                drop_item_rules.get(drop_item_rule_atm).get(rand_slot_drop_atm).add(new ArrayList<String>());
+                Integer rand_atribute_atm = drop_item_rules.get(drop_item_rule_atm).get(rand_slot_drop_atm).size() -1;
+                drop_item_rules.get(drop_item_rule_atm).get(rand_slot_drop_atm).get(rand_atribute_atm).add(name_rand_atribute);
+                drop_item_rules.get(drop_item_rule_atm).get(rand_slot_drop_atm).get(rand_atribute_atm).add(chance_rand_atribute);
+                drop_item_rules.get(drop_item_rule_atm).get(rand_slot_drop_atm).get(rand_atribute_atm).add(lvl_modifier_rand_atribute);
+                drop_item_rules.get(drop_item_rule_atm).get(rand_slot_drop_atm).get(rand_atribute_atm).add(rand_id_rand_atribute);
+
+                // Log.e("temp", "name_rand_atribute=" + name_rand_atribute +" chance_rand_atribute=" + chance_rand_atribute +" rand_id_rand_atribute=" + rand_id_rand_atribute);
+
+                Integer tel_req = 0;
+                Element end_map_triggers_e = (Element) rand_atribute_drop_nl.item(tel_rand_atribute);
+                NodeList req_nl = end_map_triggers_e.getElementsByTagName("req");
+                // Log.e("temp", "req_nl.getLength()=" + req_nl.getLength());
+                while(tel_req < req_nl.getLength())
+                {
+                    NamedNodeMap temp_req_atribute = req_nl.item(tel_req).getAttributes();
+                    Integer reference_req = add_req_tag(temp_req_atribute);
+                    // x.x.0.0 name_slot x.x.0.1 chance_slot x.x.x.0 name_atribute x.x.x.1 chance_atribute x.x.x.2 lvl_modifier x.x.x.3 rand_id
+                    drop_item_rules.get(drop_item_rule_atm).get(rand_slot_drop_atm).get(rand_atribute_atm).add(reference_req.toString());
+                    tel_req =tel_req +1;
+
+                }
+                tel_rand_atribute =tel_rand_atribute +1;
+            }
+
+            tel_rand_slot_drop =tel_rand_slot_drop +1;
+        }
 
         return return_interger;
     }
