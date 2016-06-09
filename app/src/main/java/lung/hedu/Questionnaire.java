@@ -442,17 +442,29 @@ public class Questionnaire extends Activity {
                     int color_to_check = Color.parseColor("#00ee00");
                     if (temp_text_color == color_to_check)
                     {
-                        Element new_slected_tag = XML_user_info_doc.createElement("Slected_item");
-                        Node info_node = item_node.appendChild(new_slected_tag);
+                        Element item_node_e = (Element) item_node;
+                        NodeList Selected_item_nl = item_node_e.getElementsByTagName("Selected_item");
+
+                        if( Selected_item_nl.getLength() > 0)
+                        {
+
+                        }
+                        else
+                        {
+                            Element new_selected_tag = XML_user_info_doc.createElement("Selected_item");
+                            Node info_node = item_node.appendChild(new_selected_tag);
+                        }
 
                         // cast selected.
                     }
                     else
                     {
+                        Log.e("remove selected tag", "else");
                         Element item_element = (Element) item_node;
-                        NodeList found_selected = item_element.getElementsByTagName("Slected_item");
+                        NodeList found_selected = item_element.getElementsByTagName("Selected_item");
                         if(found_selected.item(0) != null)
                         {
+                            Log.e("remove selected tag", "REMOVED!");
                             Node parent_node = found_selected.item(0).getParentNode();
                             parent_node.removeChild(found_selected.item(0));
                         }
@@ -587,6 +599,14 @@ public class Questionnaire extends Activity {
                         tel_atributes_of_item = tel_atributes_of_item+1;
                     }
 
+                    NodeList Selected_item_nl = item_atm.getElementsByTagName("Selected_item");
+
+                    if( Selected_item_nl.getLength() > 0)
+                    {
+                        item_name_et.setBackgroundColor(Color.parseColor("#000000"));
+                        item_name_et.setTextColor(Color.parseColor("#00ee00"));
+                    }
+
                     item_name_et.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
@@ -655,6 +675,10 @@ public class Questionnaire extends Activity {
                         public boolean onLongClick(View v)
                         {
 
+                            LinearLayout new_ll_vert = new LinearLayout(ApplicationContextProvider.getContext());
+                            // new_ll_vert.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, 50));
+                            new_ll_vert.setOrientation(LinearLayout.VERTICAL);
+
                             TextView delete_question_tv = new TextView(ApplicationContextProvider.getContext());
 
                             delete_question_tv.setText("Click to delete.");
@@ -663,6 +687,7 @@ public class Questionnaire extends Activity {
                             delete_question_tv.setTextColor(Color.parseColor("#ee0000"));
                             String id_view_s = String.valueOf(v.getId());
                             delete_question_tv.setHint(id_view_s);
+                            // delete_question_tv.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, 50));
 
                             delete_question_tv.setOnClickListener(new View.OnClickListener() {
                                 @Override
@@ -686,10 +711,38 @@ public class Questionnaire extends Activity {
                                 }
                             } ) ;
 
+                            TextView nevermind = new TextView(ApplicationContextProvider.getContext());
+
+                            nevermind.setText("Cancel.");
+                            nevermind.setTextSize(font_size);
+                            nevermind.setBackgroundColor(Color.parseColor("#99ff99"));
+                            nevermind.setTextColor(Color.parseColor("#00ee00"));
+
+                            nevermind.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, 50));
+
+                            nevermind.setOnClickListener(new View.OnClickListener()
+                            {
+                                @Override
+                                public void onClick(View v)
+                                {
+
+                                    FrameLayout frame_layout_parent = (FrameLayout)findViewById(R.id.frame_layout_q);
+                                    View remove_view = (View) findViewById(999);
+                                    if(remove_view != null)
+                                    {
+                                        frame_layout_parent.removeView(remove_view);
+                                    }
+
+                                }
+                            } ) ;
+
                             // delete_question_tv.setWidth(100);
                             // delete_question_tv.setHeight(25);
 
-                            add_view_op_top(delete_question_tv);
+                            new_ll_vert.addView(delete_question_tv);
+                            new_ll_vert.addView(nevermind);
+
+                            add_view_op_top(new_ll_vert);
 
                             return true;
                         }
@@ -1294,7 +1347,7 @@ public class Questionnaire extends Activity {
 
     public void read_item_atributes(Document document_to_find_items, Integer id_field)
     {
-        NodeList selected_tags = document_to_find_items.getElementsByTagName("Slected_item");
+        NodeList selected_tags = document_to_find_items.getElementsByTagName("Selected_item");
         Integer count_selected_tags = 0;
         while(count_selected_tags < selected_tags.getLength())
         {
@@ -1309,16 +1362,21 @@ public class Questionnaire extends Activity {
                 String temp_name_item = temp_atributes.getNamedItem("name").getTextContent();
                 Node temp_name_value = temp_atributes.getNamedItem("value");
                 Integer id_atribute = find_atribute_if_from_string(temp_name_item);
+                Integer value_atribute = Integer.parseInt(temp_name_value.getTextContent());
 
                 atribute_modifications.get(id_field).add(new ArrayList<ArrayList<Integer>>());
                 Integer new_mod = atribute_modifications.get(id_field).size() -1;
 
-                ArrayList temp = new ArrayList<Integer>();
-                temp.add(0, temp_name_value);
-                ArrayList<ArrayList<Integer>> temp_new = new ArrayList<ArrayList<Integer>>();
-                temp_new.add(id_atribute, temp);
+                while(atribute_modifications.get(id_field).get(new_mod).size() <= id_atribute)
+                {
+                    atribute_modifications.get(id_field).get(new_mod).add(new ArrayList<Integer>());
+                }
+                Log.e("XML parser", "id_atribute:"+id_atribute+" value_atribute:"+value_atribute+" new_mod:"+new_mod);
+                atribute_modifications.get(id_field).get(new_mod).get(id_atribute).add(value_atribute);
 
-                atribute_modifications.get(id_field).set(new_mod, temp_new);
+
+
+                //atribute_modifications.get(id_player_field).get(tel_modifications).get(id_atribute).get(0);
                 // id_object | Item id | atribute ID | value | extra
                 //k
 
@@ -1461,9 +1519,13 @@ public class Questionnaire extends Activity {
         }
         while (tel < username.size()) {
             field_ids_and_names.add(new ArrayList());
+
             Integer tot_arraylist = (field_ids_and_names.size()-1);
-            while(tot_arraylist <= atribute_modifications.size())
+            // Log.e("tot_arraylist", tot_arraylist.toString());
+            while((tot_arraylist) >= atribute_modifications.size())
             {
+                Integer temp_int = atribute_modifications.size();
+                // Log.e("temp_int", temp_int.toString());
                 atribute_modifications.add(new ArrayList<ArrayList<ArrayList<Integer>>>());
 
             }
@@ -1503,8 +1565,9 @@ public class Questionnaire extends Activity {
                 field_atm_array[x_player][y_player][0] = tot_arraylist;
                 active_player_id = tot_arraylist;
             }
-            // set position field_atm_array
+             // set position field_atm_array
 
+            //UPDATE multiplayer_items
             read_item_atributes(XML_user_info_doc, tot_arraylist);
 
             tel = tel + 1;
@@ -3260,7 +3323,11 @@ public class Questionnaire extends Activity {
         {
             if(atribute_modifications.get(id_player_field).get(tel_modifications).size()> id_atribute)
             {
-                total_atribute_value = total_atribute_value + atribute_modifications.get(id_player_field).get(tel_modifications).get(id_atribute).get(0);
+                if(atribute_modifications.get(id_player_field).get(tel_modifications).get(id_atribute).size()> 0)
+                {
+                    // Log.e("test outofbound", "id_player_field:" + id_player_field + " tel_modifications:" + tel_modifications + " id_atribute:" + id_atribute + " size:" + atribute_modifications.get(id_player_field).get(tel_modifications).get(id_atribute).size());
+                    total_atribute_value = total_atribute_value + atribute_modifications.get(id_player_field).get(tel_modifications).get(id_atribute).get(0);
+                }
             }
             tel_modifications = tel_modifications +1 ;
         }
