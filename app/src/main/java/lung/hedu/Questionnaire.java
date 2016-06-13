@@ -459,12 +459,12 @@ public class Questionnaire extends Activity {
                     }
                     else
                     {
-                        Log.e("remove selected tag", "else");
+                        // Log.e("remove selected tag", "else");
                         Element item_element = (Element) item_node;
                         NodeList found_selected = item_element.getElementsByTagName("Selected_item");
                         if(found_selected.item(0) != null)
                         {
-                            Log.e("remove selected tag", "REMOVED!");
+                            // Log.e("remove selected tag", "REMOVED!");
                             Node parent_node = found_selected.item(0).getParentNode();
                             parent_node.removeChild(found_selected.item(0));
                         }
@@ -487,18 +487,6 @@ public class Questionnaire extends Activity {
         } catch (XmlPullParserException e) {
             e.printStackTrace();
         }
-        String user_id = find_value_in_xml("login_info", "id");
-        String send_to_server_flag = find_value_in_xml("login_info", "flag_send_server");
-
-        try
-        {
-            Log.e("XML parser", "start");
-            server_side_PHP.push_to_server_file(XML_user_info_doc, "write_uifiles.php", "qid="+user_id, send_to_server_flag);
-        } catch (IOException e)
-        {
-            e.printStackTrace();
-        }
-
     }
 
     public void use_items(String XML_file)
@@ -526,6 +514,35 @@ public class Questionnaire extends Activity {
         } ) ;
 
         lin_lay_q.addView(item_header);
+
+        TextView upload_userfile_tv = new TextView(this);
+        upload_userfile_tv.setId(302);
+        upload_userfile_tv.setTextSize(font_size);
+        upload_userfile_tv.setTypeface(font_face);
+        upload_userfile_tv.setText("Upload UIF (for multiplayer)");
+        upload_userfile_tv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                TextView upload_userfile_tv = (TextView) v;
+                upload_userfile_tv.setEnabled(false);
+                upload_userfile_tv.setFocusable(false);
+                upload_userfile_tv.setBackgroundColor(Color.parseColor("#cccccc"));
+
+                try
+                {
+                    // Log.e("XML parser", "start");
+                    String send_to_server_flag = find_value_in_xml("login_info", "flag_send_server");
+                    String user_id = find_value_in_xml("login_info", "id");
+                    server_side_PHP.push_file_to_server(XML_user_info_doc, "write_uifiles", "qid="+user_id, send_to_server_flag, "uifiles");
+                    // Log.e("XML parser", "Done :)");
+                } catch (IOException e)
+                {
+                    e.printStackTrace();
+                }
+            }
+        } ) ;
+
+        lin_lay_q.addView(upload_userfile_tv);
 
         ArrayList<LinearLayout> new_slot_list_ll = new ArrayList<LinearLayout>();
 
@@ -910,7 +927,7 @@ public class Questionnaire extends Activity {
 
             Document index_worlds = null;
             try {
-                index_worlds = server_side_PHP.load_wolrd_index("ui_", "uifiles");
+                index_worlds = server_side_PHP.load_wolrd_index("uif"+check_if_playername_excist_bool.toString(), "uifiles");
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -924,7 +941,21 @@ public class Questionnaire extends Activity {
             {
 
                 XML_IO.set_value_user_info("login_info", "friend_" + tot_friends_i.toString(), name_new_friend);
+
                 XML_IO.set_value_user_info("login_info", "tot_friends", tot_friends_i.toString());
+
+                XML_IO.set_value_user_info("login_info", "id_"+name_new_friend , check_if_playername_excist_bool.toString());
+
+                try
+                {
+                    XML_IO.save_XML("uif"+check_if_playername_excist_bool.toString(), index_worlds);
+                } catch (FileNotFoundException e)
+                {
+                    e.printStackTrace();
+                } catch (XmlPullParserException e)
+                {
+                    e.printStackTrace();
+                }
 
                 TextView click_inv_friend = new TextView(this);
                 click_inv_friend.setId(303 + tot_friends_i);
@@ -1567,8 +1598,37 @@ public class Questionnaire extends Activity {
             }
              // set position field_atm_array
 
-            //UPDATE multiplayer_items
-            read_item_atributes(XML_user_info_doc, tot_arraylist);
+            // UPDATE multiplayer_items
+            String idfriend = XML_IO.find_value_in_userxml("login_info", "id_"+username.get(tel) );
+            Document fiend_file = null;
+            Log.e("XML parser", "idfriend:"+idfriend+" username.get(tel):"+username.get(tel));
+            if(idfriend != null)
+            {
+
+                try
+                {
+                    fiend_file = XML_IO.open_document_xml("uif"+idfriend);
+                } catch (FileNotFoundException e)
+                {
+                    e.printStackTrace();
+                } catch (XmlPullParserException e)
+                {
+                    e.printStackTrace();
+                }
+
+                if(fiend_file != null)
+                {
+                    Log.e("XML parser", "niet leeg!:");
+                    read_item_atributes(fiend_file, tot_arraylist);
+                }
+
+            }
+            else
+            {
+                Log.e("XML parser", " leeg!:( "+username.get(tel));
+                read_item_atributes(XML_user_info_doc, tot_arraylist);
+            }
+
 
             tel = tel + 1;
         }

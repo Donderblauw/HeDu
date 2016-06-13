@@ -14,6 +14,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.protocol.HTTP;
+import org.apache.http.util.EntityUtils;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -23,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -33,6 +35,13 @@ import java.util.ArrayList;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 /**
  * Created by groentje2015 on 8/23/2015.
@@ -272,6 +281,108 @@ public class server_side_PHP {
 
     }
 
+    public static void push_file_to_server(Document document, String php_file, String suffix, String send_to_server_flag, String map) throws IOException
+    {
+        // SPATIES!!!
+        // Log.e("XML parser", "send_to_server_flag:" + send_to_server_flag + " php_file:" + php_file + " suffix:" + suffix);
+
+        // if(send_to_server_flag.equals("true"))
+        {
+
+            suffix = suffix.replaceAll(" ", "_");
+            String server = "http://hedu-free.uphero.com/"+map+"/"+php_file+".php?";
+            String file_path = suffix;
+            String link = server + file_path;
+
+            String data_to_send = document_to_string(document);
+
+            HttpClient httpclient = new DefaultHttpClient();
+            HttpPost httppost = new HttpPost(link);
+            // Log.e("XML parser", "link:" + link);
+
+            try {
+                StringEntity data_to_send_se = new StringEntity( data_to_send, HTTP.UTF_8);
+                data_to_send_se.setContentType("text/xml");
+
+                httppost.setEntity(data_to_send_se );
+
+                // Log.e("XML parser", data_to_send_se.toString());
+                HttpResponse response = null;
+
+                StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+                StrictMode.setThreadPolicy(policy);
+                response = httpclient.execute(httppost);
+
+                // Log.e("XML parser", "Executed! ");
+
+                BufferedReader in = null;
+                try {
+                    in = new BufferedReader
+                            (new InputStreamReader(response.getEntity().getContent()));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                StringBuffer sb = new StringBuffer("");
+                String line="";
+                while ((line = in.readLine()) != null) {
+                    sb.append(line);
+                }
+                try {
+                    in.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                String sb_string = sb.toString();
+
+
+                // HttpEntity resEntity = httpresponse.getEntity();
+                // String response = EntityUtils.toString(resEntity);
+                //Log.e("XML parser", "response:" + sb_string);
+
+            } catch (ClientProtocolException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+                Log.e("XML parser", "nope :( 1" );
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+                Log.e("XML parser", "nope :( 2" );
+            }
+
+        }
+    }
+
+    public static String document_to_string(Document document)
+    {
+        String return_string = "";
+
+        TransformerFactory tf = TransformerFactory.newInstance();
+        Transformer transformer = null;
+        try
+        {
+            transformer = tf.newTransformer();
+        } catch (TransformerConfigurationException e)
+        {
+            e.printStackTrace();
+        }
+        transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+        StringWriter writer = new StringWriter();
+        try
+        {
+            transformer.transform(new DOMSource(document), new StreamResult(writer));
+        } catch (TransformerException e)
+        {
+            e.printStackTrace();
+        }
+        return_string = writer.getBuffer().toString();
+
+        return return_string;
+    }
+
+
+    /*
     public static void push_to_server_file(Document document, String php_file, String suffix, String send_to_server_flag) throws IOException {
         // SPATIES!!!
         Log.e("XML parser", "send_to_server_flag:"+send_to_server_flag);
@@ -346,11 +457,13 @@ public class server_side_PHP {
             } catch (URISyntaxException e) {
                 e.printStackTrace();
             }
-            */
+
 
 
 
         }
 
+
     }
+    */
 }
