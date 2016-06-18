@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.speech.tts.TextToSpeech;
 import android.support.v4.view.ViewPager;
+import android.text.InputType;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -735,7 +736,7 @@ public class Questionnaire extends Activity {
                             nevermind.setBackgroundColor(Color.parseColor("#99ff99"));
                             nevermind.setTextColor(Color.parseColor("#00ee00"));
 
-                            nevermind.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, 50));
+                            // nevermind.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, 50));
 
                             nevermind.setOnClickListener(new View.OnClickListener()
                             {
@@ -2261,7 +2262,276 @@ public class Questionnaire extends Activity {
 
         lin_lay_q.addView(return_tv);
 
+        TextView send_updater_flag = new TextView(this);
+        send_updater_flag.setId(100);
+        send_updater_flag.setTextSize(font_size);
+        send_updater_flag.setText("Send 5 personality items to server");
+
+        send_updater_flag.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                set_5person();
+                // ArrayList<String> returned_data = new ArrayList<String>();
+                // returned_data = server_side_PHP.get_dataarray_server();
+            }
+        } ) ;
+
+        lin_lay_q.addView(send_updater_flag);
+
      }
+
+
+    public void set_5person()
+    {
+
+        LinearLayout lin_lay_q = (LinearLayout)findViewById(R.id.linearLayout_questuinnaire_vert);
+
+        lin_lay_q.removeAllViews();
+
+
+        LinearLayout Extraversion_ll = new LinearLayout(this);
+        Extraversion_ll.setOrientation(LinearLayout.VERTICAL);
+        lin_lay_q.addView(Extraversion_ll);
+
+        EditText Extraversion_tv = new EditText(this);
+        Extraversion_tv.setTextSize(font_size);
+        Extraversion_tv.setTypeface(font_face);
+        Extraversion_tv.setId(301);
+        Extraversion_tv.setHint("Extraversion");
+        Extraversion_tv.setInputType(InputType.TYPE_CLASS_NUMBER);
+        Extraversion_ll.addView(Extraversion_tv);
+
+        LinearLayout Agreeableness_ll = new LinearLayout(this);
+        Agreeableness_ll.setOrientation(LinearLayout.VERTICAL);
+        lin_lay_q.addView(Agreeableness_ll);
+
+        EditText Agreeableness_tv = new EditText(this);
+        Agreeableness_tv.setTextSize(font_size);
+        Agreeableness_tv.setTypeface(font_face);
+        Agreeableness_tv.setId(302);
+        Agreeableness_tv.setInputType(InputType.TYPE_CLASS_NUMBER);
+        Agreeableness_tv.setHint("Agreeableness");
+        Extraversion_ll.addView(Agreeableness_tv);
+
+        LinearLayout Conscientiousness_ll = new LinearLayout(this);
+        Conscientiousness_ll.setOrientation(LinearLayout.VERTICAL);
+        lin_lay_q.addView(Conscientiousness_ll);
+
+        EditText Conscientiousness_tv = new EditText(this);
+        Conscientiousness_tv.setTextSize(font_size);
+        Conscientiousness_tv.setTypeface(font_face);
+        Conscientiousness_tv.setId(303);
+        Conscientiousness_tv.setInputType(InputType.TYPE_CLASS_NUMBER);
+        Conscientiousness_tv.setHint("Conscientiousness");
+        Extraversion_ll.addView(Conscientiousness_tv);
+
+        LinearLayout Neuroticism_ll = new LinearLayout(this);
+        Neuroticism_ll.setOrientation(LinearLayout.VERTICAL);
+        lin_lay_q.addView(Neuroticism_ll);
+
+        EditText Neuroticism_tv = new EditText(this);
+        Neuroticism_tv.setTextSize(font_size);
+        Neuroticism_tv.setTypeface(font_face);
+        Neuroticism_tv.setId(304);
+        Neuroticism_tv.setInputType(InputType.TYPE_CLASS_NUMBER);
+        Neuroticism_tv.setHint("Neuroticism");
+        Extraversion_ll.addView(Neuroticism_tv);
+
+        LinearLayout Openness_ll = new LinearLayout(this);
+        Openness_ll.setOrientation(LinearLayout.VERTICAL);
+        lin_lay_q.addView(Openness_ll);
+
+        EditText Openness_tv = new EditText(this);
+        Openness_tv.setTextSize(font_size);
+        Openness_tv.setTypeface(font_face);
+        Openness_tv.setId(305);
+        Openness_tv.setInputType(InputType.TYPE_CLASS_NUMBER);
+        Openness_tv.setHint("Openness");
+        Extraversion_ll.addView(Openness_tv);
+
+        TextView send_5per_to_server_tv = new TextView(this);
+        send_5per_to_server_tv.setTextSize(font_size);
+        send_5per_to_server_tv.setTypeface(font_face);
+        send_5per_to_server_tv.setText("Send to server");
+
+        send_5per_to_server_tv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                Boolean stop = false;
+                Integer Extraversion =0;
+                Integer Agreeableness =0;
+                Integer Conscientiousness =0;
+                Integer Neuroticism =0;
+                Integer Openness =0;
+
+
+                EditText to_check_et = (EditText)findViewById(301);
+                String to_check_string = to_check_et.getText().toString();
+                if(to_check_string == "" || to_check_string == null ||to_check_string.length() < 1)
+                {
+                    stop = true;
+                }
+                else
+                {
+                    Extraversion = Integer.parseInt(to_check_string);
+                    if(Extraversion > 0)
+                    {
+
+                    }
+                    else
+                    {
+                        stop = true;
+                    }
+                }
+
+                to_check_et = (EditText)findViewById(302);
+                to_check_string = to_check_et.getText().toString();
+                if(to_check_string == "" || to_check_string == null  ||to_check_string.length() < 1)
+                {
+                    stop = true;
+                }
+                else
+                {
+                    Agreeableness = Integer.parseInt(to_check_string);
+                    if(Agreeableness > 0)
+                    {
+
+                    }
+                    else
+                    {
+                        stop = true;
+                    }
+                }
+
+                to_check_et = (EditText)findViewById(303);
+                to_check_string = to_check_et.getText().toString();
+                if(to_check_string == "" || to_check_string == null  ||to_check_string.length() < 1)
+                {
+                    stop = true;
+                }
+                else
+                {
+                    Conscientiousness = Integer.parseInt(to_check_string);
+                    if(Conscientiousness > 0)
+                    {
+
+                    }
+                    else
+                    {
+                        stop = true;
+                    }
+                }
+
+                to_check_et = (EditText)findViewById(304);
+                to_check_string = to_check_et.getText().toString();
+                if(to_check_string == "" || to_check_string == null  ||to_check_string.length() < 1)
+                {
+                    stop = true;
+                }
+                else
+                {
+                    Neuroticism = Integer.parseInt(to_check_string);
+                    if(Neuroticism > 0)
+                    {
+
+                    }
+                    else
+                    {
+                        stop = true;
+                    }
+                }
+
+                to_check_et = (EditText)findViewById(305);
+                to_check_string = to_check_et.getText().toString();
+                if(to_check_string == "" || to_check_string == null  ||to_check_string.length() < 1)
+                {
+                    stop = true;
+                }
+                else
+                {
+                    Openness = Integer.parseInt(to_check_string);
+                    if(Openness > 0)
+                    {
+
+                    }
+                    else
+                    {
+                        stop = true;
+                    }
+                }
+
+                if(stop == true)
+                {
+                    TextView text_view_v = (TextView)v;
+                    text_view_v.setText("Not all numbers >0.");
+                }
+                else
+                {
+                    if(player_id_server == "")
+                    {
+                        player_id_server = find_value_in_xml("login_info", "id");
+                    }
+
+                    String[] toserver_id = new String[7];
+                    String[] toserver_value = new String[7];
+                    toserver_id[0] = "ex";
+                    toserver_value[0] = Extraversion.toString();
+                    toserver_id[1] = "ag";
+                    toserver_value[1] = Agreeableness.toString();
+                    toserver_id[2] = "co";
+                    toserver_value[2] = Conscientiousness.toString();
+                    toserver_id[3] = "ne";
+                    toserver_value[3] = Neuroticism.toString();
+                    toserver_id[4] = "op";
+                    toserver_value[4] = Openness.toString();
+                    toserver_id[5] = "qid";
+                    toserver_value[5] = player_id_server.toString();
+
+                    try
+                    {
+                        ArrayList<String> data_from_server = server_side_PHP.get_dataarray_server("5pers.php",  toserver_id, toserver_value);
+                    } catch (ClassNotFoundException e)
+                    {
+                        e.printStackTrace();
+                    } catch (URISyntaxException e)
+                    {
+                        e.printStackTrace();
+                    } catch (IOException e)
+                    {
+                        e.printStackTrace();
+                    }
+                    load_worlds_index();
+                }
+
+                // load_worlds_index_server();
+            }
+        } ) ;
+
+        lin_lay_q.addView(send_5per_to_server_tv);
+
+
+        TextView back_tv = new TextView(this);
+        back_tv.setTextSize(font_size);
+        back_tv.setTypeface(font_face);
+        back_tv.setText("Back");
+
+        back_tv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+
+                load_worlds_index();
+            }
+        } ) ;
+
+        lin_lay_q.addView(back_tv);
+
+
+
+    }
+
 
     public void load_worlds_index_server()
     {

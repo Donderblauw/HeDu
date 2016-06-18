@@ -78,7 +78,7 @@ public class server_side_PHP {
         HttpGet request = new HttpGet();
         request.setURI(new URI(link));
 
-//        Log.e("php", "Link: " + link);
+        Log.e("php", "Link: " + link);
 
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
@@ -381,89 +381,4 @@ public class server_side_PHP {
         return return_string;
     }
 
-
-    /*
-    public static void push_to_server_file(Document document, String php_file, String suffix, String send_to_server_flag) throws IOException {
-        // SPATIES!!!
-        Log.e("XML parser", "send_to_server_flag:"+send_to_server_flag);
-        Log.e("XML parser", "php_file:"+php_file);
-        Log.e("XML parser", "suffix:"+suffix);
-        // if(send_to_server_flag.equals("true"))
-        {
-            String document_s = document.toString();
-
-            suffix = suffix.replaceAll(" ", "_");
-            String server = "http://hedu-free.uphero.com/phpfree/"+php_file+".php?";
-            String file_path = suffix;
-            String link = server + file_path;
-            URL url_link = new URL(link);
-
-            DefaultHttpClient http_client = new DefaultHttpClient();
-            HttpPost http_post = new HttpPost(link);
-
-            StringEntity document_entity = new StringEntity(document.toString(), HTTP.UTF_8);
-            document_entity.setContentType("text/xml");
-            Log.e("XML parser", "document.toString():"+document.toString());
-
-            http_post.setEntity(document_entity);
-
-            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-            StrictMode.setThreadPolicy(policy);
-            HttpResponse httpresponse = http_client.execute(http_post);
-
-/*
-            HttpEntity resEntity = httpresponse.getEntity();
-
-            String result1 = EntityUtils.toString(resEntity);
-
-
-            URLConnection url_connection = url_link.openConnection();
-            HttpURLConnection http_connection = (HttpURLConnection) url_connection;
-            http_connection.setDoInput(true);
-            http_connection.setDoOutput(true);
-            http_connection.setRequestMethod("POST");
-            http_connection.setRequestProperty("Content-type", "text/xml");
-
-            PrintWriter output_stream = new PrintWriter(http_connection.getOutputStream());
-            output_stream.write(document_s);
-            output_stream.close();
-
-*/
-            /*
-            suffix = suffix.replaceAll(" ", "_");
-            String server = "http://hedu-free.uphero.com/phpfree/php_file";
-            String file_path = suffix;
-            String link = server + file_path;
-            URL url_link = new URL(link);
-            URLConnection url_connection = url_link.openConnection();
-            HttpURLConnection http_connection = (HttpURLConnection) url_connection;
-            http_connection.setDoInput(true);
-            http_connection.setDoOutput(true);
-            http_connection.setRequestMethod("POST");
-            http_connection.setRequestProperty("Content-type", "text/xml");
-
-            PrintWriter output_stream = new PrintWriter(http_connection.getOutputStream());
-            output_stream.write(document_s);
-            output_stream.close();
-*/
-
-            /*
-            Log.e("XML parser", link);
-            HttpClient client = new DefaultHttpClient();
-            HttpPost request = new HttpPost();
-
-            try {
-                request.setURI(new URI(link));
-            } catch (URISyntaxException e) {
-                e.printStackTrace();
-            }
-
-
-
-
-        }
-
-
-    }
-    */
 }
