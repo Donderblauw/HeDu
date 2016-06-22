@@ -12,6 +12,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.speech.tts.TextToSpeech;
+import android.speech.tts.Voice;
 import android.support.v4.view.ViewPager;
 import android.text.InputType;
 import android.util.Log;
@@ -135,6 +136,8 @@ public class Questionnaire extends Activity {
     public String player_id_server = "";
 
     public Integer max_players_allowed_on_the_map = 0;
+
+
 
     /**
      * Whether or not the system UI should be auto-hidden after
@@ -319,6 +322,40 @@ public class Questionnaire extends Activity {
         mHideHandler.postDelayed(mHideRunnable, delayMillis);
     }
 */
+
+    public void reset_all_variable_map()
+    {
+        field_ids_and_names.clear();
+
+        active_player_id = 0;
+        target_field_id = -1;
+
+        // world_atribute_names.clear();
+        // id_def_atributs.clear();
+        // names_objects_id_sync.clear();
+
+        atribute_modifications.clear();
+
+        // enemy_interaction.clear();
+        // enemy_turn.clear();
+        // req_enemy_turn_glob.clear();
+
+        // atribute_trigger.clear();
+        no_enemy_left_trigger.clear();
+        // requerment_normalized.clear();
+        // end_map_triggers.clear();
+
+        // atribute_slot.clear();
+
+        // drop_item_rules.clear();
+
+        map_time = 0;
+        speed_atm.clear();
+
+        max_players_allowed_on_the_map = 0;
+
+    }
+
     public String replace_q_texts (String input)
     {
         String output = input;
@@ -376,6 +413,7 @@ public class Questionnaire extends Activity {
         else if(type_xml.equals("m"))
         {
             Document map_doc = null;
+            reset_all_variable_map();
             try {
                 map_doc = XML_IO.open_document_xml(this_world + "_" + XML_file);
             } catch (FileNotFoundException e) {
@@ -397,14 +435,13 @@ public class Questionnaire extends Activity {
             max_players_allowed_on_the_map = max_players_i;
             // Log.e("temp", "max_players_i " + max_players_i);
 
-            if(max_players_i > 1) {
+            //if(max_players_i > 1) {
 
                 use_items(XML_file);
-            }
-            else
-            {
-                XML_ini_map_new(XML_file);
-            }
+            //} else
+            //{
+            //    XML_ini_map_new(XML_file);
+            // }
 
         }
     }
@@ -597,7 +634,7 @@ public class Questionnaire extends Activity {
                     item_name_et.setHint(item_name);
                     // item_name_et.setEnabled(false);
                     // item_name_et.setInputType(none);
-                    item_name_et.setFocusable(false);
+                    item_name_et.setFocusable(true);
 
                     Bundle input_extras = item_name_et.getInputExtras(true);
 
@@ -631,6 +668,7 @@ public class Questionnaire extends Activity {
                             EditText temp_tv = (EditText) v;
                             Bundle input_extras = temp_tv.getInputExtras(true);
                             Integer slot_view = Integer.parseInt(input_extras.getString("slot_view", "-1"));
+
                             // Log.e("temp", "slot_view " + slot_view.toString());
 
                             if(slot_view!= -1)
@@ -646,7 +684,7 @@ public class Questionnaire extends Activity {
 
                                     if(item_looper_atm_et != null)
                                     {
-                                        item_looper_atm_et.setFocusable(false);
+                                        // item_looper_atm_et.setFocusable(false);
                                         Bundle input_extras_looper = item_looper_atm_et.getInputExtras(true);
                                         Integer slot_view_looper = Integer.parseInt(input_extras_looper.getString("slot_view", "-1"));
                                         // Log.e("temp", "slot_view_looper=" + slot_view_looper + " slot_view="+slot_view);
@@ -670,6 +708,7 @@ public class Questionnaire extends Activity {
                             temp_tv.setBackgroundColor(Color.parseColor("#000000"));
                             temp_tv.setTextColor(Color.parseColor("#00ee00"));
 
+                            /*
                             if(temp_tv.isFocusable() == true)
                             {
                                 temp_tv.setFocusable(false);
@@ -678,6 +717,7 @@ public class Questionnaire extends Activity {
                             {
                                 temp_tv.setFocusable(true);
                             }
+                            */
 
                             TextView delete_question_tv = (TextView)findViewById(320);
                             if(delete_question_tv != null)
@@ -753,6 +793,26 @@ public class Questionnaire extends Activity {
 
                                 }
                             } ) ;
+
+                            Integer tel_atributes = 0;
+                            EditText temp_tv = (EditText)v;
+                            Bundle input_extras = temp_tv.getInputExtras(true);
+                            String atribute_name = input_extras.getString("atr_name_"+tel_atributes, "");
+                            String atribute_value = input_extras.getString("atr_value_"+tel_atributes, "");
+
+                            while(atribute_name != "" )
+                            {
+                                TextView atribute_of_item = new TextView(ApplicationContextProvider.getContext());
+
+                                atribute_of_item.setText(atribute_name+": "+atribute_value);
+                                atribute_of_item.setTextSize(font_size);
+                                atribute_of_item.setBackgroundColor(Color.parseColor("#000000"));
+                                new_ll_vert.addView(atribute_of_item);
+
+                                tel_atributes = tel_atributes + 1;
+                                atribute_name = input_extras.getString("atr_name_"+tel_atributes, "");
+                                atribute_value = input_extras.getString("atr_value_"+tel_atributes, "");
+                            }
 
                             // delete_question_tv.setWidth(100);
                             // delete_question_tv.setHeight(25);
@@ -1343,6 +1403,9 @@ public class Questionnaire extends Activity {
                         if (xml_atm.equals("question")) {
                             tv_parents[level_parent_atm].setText(text_inside_replaced);
                             // text_to_speak.setLanguage(Locale.US);
+                            // float pitch_male = (float)0.5;
+                            // text_to_speak.setPitch(pitch_male);
+                            // text_to_speak.setSpeechRate((float)1.2);
                             text_to_speak.speak(text_inside_replaced, TextToSpeech.QUEUE_ADD, null);
                         }
                         else if (xml_atm.equals("awnser")) {

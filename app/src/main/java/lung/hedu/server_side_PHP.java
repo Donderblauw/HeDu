@@ -72,6 +72,7 @@ public class server_side_PHP {
         }
         String link = website_url + php_file + "?"+ url_addon;
         link = link.replaceAll(" ", "_");
+        link = link.replace("\r","").replace("\n","");
         Log.e("XML parser", link);
 
         HttpClient client = new DefaultHttpClient();
@@ -137,6 +138,7 @@ public class server_side_PHP {
         String file_path = "/"+map+"/"+next_idex+".xml";
         String link = server + file_path;
         link = link.replaceAll(" ", "_");
+        link = link.replace("\r","").replace("\n","");
         HttpClient client = new DefaultHttpClient();
         HttpGet request = new HttpGet();
         try {
@@ -208,6 +210,8 @@ public class server_side_PHP {
         String server = "http://hedu-free.uphero.com";
         String file_path = "/xml_words/"+next_idex+".xml";
         String link = server + file_path;
+        link = link.replaceAll(" ", "_");
+        link = link.replace("\r","").replace("\n","");
         HttpClient client = new DefaultHttpClient();
         HttpGet request = new HttpGet();
         try {
@@ -259,6 +263,8 @@ public class server_side_PHP {
             String server = "http://hedu-free.uphero.com/active_games/test.php?";
             String file_path = suffix;
             String link = server + file_path;
+            link = link.replaceAll(" ", "_");
+            link = link.replace("\r","").replace("\n","");
             // Log.e("XML parser", link);
             HttpClient client = new DefaultHttpClient();
             HttpGet request = new HttpGet();
@@ -293,6 +299,8 @@ public class server_side_PHP {
             String server = "http://hedu-free.uphero.com/"+map+"/"+php_file+".php?";
             String file_path = suffix;
             String link = server + file_path;
+            link = link.replaceAll(" ", "_");
+            link = link.replace("\r","").replace("\n","");
 
             String data_to_send = document_to_string(document);
 
