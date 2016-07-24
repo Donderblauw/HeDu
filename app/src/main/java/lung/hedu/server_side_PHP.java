@@ -97,7 +97,7 @@ public class server_side_PHP {
         in.close();
         String sb_string = sb.toString();
         // Log.e("XML parser", sb_string);
- //       Log.e("php", "output_raw: " + sb_string);
+        // Log.e("php", "output_raw: " + sb_string);
         ArrayList<String> data_list = new ArrayList<String>();
         Integer offset = 0;
         tel = 0;
@@ -106,7 +106,7 @@ public class server_side_PHP {
         {
             Integer index_data_start = (sb_string.indexOf("%qa", offset) +5 );
             offset = index_data_start;
-//            Log.e("php", "offset: " + offset);
+            // Log.e("php", "offset: " + offset);
             if(index_data_start == -1)
             {
                 stop = true;
@@ -114,7 +114,7 @@ public class server_side_PHP {
             else
             {
                 Integer index_data1_end = (sb_string.indexOf("%qa", index_data_start));
-//                Log.e("php", "end: " + index_data1_end);
+                // Log.e("php", "end: " + index_data1_end);
                 if(index_data1_end == -1)
                 {
                     stop = true;
@@ -127,7 +127,7 @@ public class server_side_PHP {
             }
         }
 //        String [] return_array = data_list.toArray(new String[data_list.size()]);
-//        Log.e("php", "output_return: " + return_array.toString() );
+        // Log.e("php", "output_return: " + return_array.toString() );
 
         return data_list;
 
