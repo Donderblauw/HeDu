@@ -95,7 +95,9 @@ public class Questionnaire extends Activity {
     public ArrayList<String> names_objects_id_sync = new ArrayList<>();
 
     // id_object | Item id | atribute ID | value | extra
-    public ArrayList<ArrayList<ArrayList<ArrayList<Integer>>>>  atribute_modifications = new ArrayList<ArrayList<ArrayList<ArrayList<Integer>>>> ();
+    // id_object | Item id | Atribute count || x.x.x.0 = Atribute number , x.x.x.1 = value x.x.x.2 = extra
+    public ArrayList<ArrayList<ArrayList<ArrayList<Integer>>>>  atr_mod = new ArrayList<ArrayList<ArrayList<ArrayList<Integer>>>> ();
+    // public ArrayList<ArrayList<ArrayList<ArrayList<Integer>>>>  atribute_modifications = new ArrayList<ArrayList<ArrayList<ArrayList<Integer>>>> ();
 
     // x.x.0 = name | x.x.1 = math |  x.x.2 = req  |  x.x.3 = name interaction with
     public ArrayList<ArrayList<ArrayList<String>>>  enemy_interaction = new ArrayList<ArrayList<ArrayList<String>>> ();
@@ -113,6 +115,7 @@ public class Questionnaire extends Activity {
     // add_line_normalized || x.0 = line_id | x.1 = value | x.2 = extra_eq(rep/add f=false)
     public ArrayList<ArrayList<String>>  add_line_normalized = new ArrayList<ArrayList<String>> ();
     public ArrayList<ArrayList<String>>  requerment_normalized = new ArrayList<ArrayList<String>> ();
+    public ArrayList<ArrayList<String>>  goto_normalized = new ArrayList<ArrayList<String>> ();
 
     public ArrayList<ArrayList<ArrayList<String>>>  end_map_triggers = new ArrayList<ArrayList<ArrayList<String>>> ();
 
@@ -138,6 +141,10 @@ public class Questionnaire extends Activity {
     public String player_id_server = "";
 
     public Integer max_players_allowed_on_the_map = 0;
+
+    public ArrayList<ArrayList<ArrayList<String>>> enemy_add_from_map =  new ArrayList<ArrayList<ArrayList<String>>> ();
+
+    public ArrayList<ArrayList<ArrayList<String>>> hidden_objects_array =  new ArrayList<ArrayList<ArrayList<String>>> ();
 
 
 
@@ -336,7 +343,7 @@ public class Questionnaire extends Activity {
         // id_def_atributs.clear();
         // names_objects_id_sync.clear();
 
-        atribute_modifications.clear();
+        atr_mod.clear();
 
         // enemy_interaction.clear();
         // enemy_turn.clear();
@@ -373,7 +380,7 @@ public class Questionnaire extends Activity {
 
             String username_s = find_value_in_xml("login_info", "name");
             username.add(username_s);
-            atribute_modifications.add(new ArrayList<ArrayList<ArrayList<Integer>>>());
+            atr_mod.add(new ArrayList<ArrayList<ArrayList<Integer>>>());
 //            objects_names_and_shorts.add(new ArrayList<String>());
 //            objects_names_and_shorts.get( (objects_names_and_shorts.size()-1 )).add(username_s);
         }
@@ -946,7 +953,7 @@ public class Questionnaire extends Activity {
         {
            String username_s = find_value_in_xml("login_info", "name");
             username.add(username_s);
-            atribute_modifications.add(new ArrayList<ArrayList<ArrayList<Integer>>>());
+            atr_mod.add(new ArrayList<ArrayList<ArrayList<Integer>>>());
         }
 
         Integer tel_friends = 0;
@@ -1339,6 +1346,10 @@ public class Questionnaire extends Activity {
             return_bool = false;
 
         }
+        if(req_arraylist.size() == 0)
+        {
+            return_bool = true;
+        }
         return return_bool;
     }
 
@@ -1497,21 +1508,22 @@ public class Questionnaire extends Activity {
                 Integer id_atribute = find_atribute_if_from_string(temp_name_item);
                 Integer value_atribute = Integer.parseInt(temp_name_value.getTextContent());
 
-                atribute_modifications.get(id_field).add(new ArrayList<ArrayList<Integer>>());
-                Integer new_mod = atribute_modifications.get(id_field).size() -1;
-
-                while(atribute_modifications.get(id_field).get(new_mod).size() <= id_atribute)
-                {
-                    atribute_modifications.get(id_field).get(new_mod).add(new ArrayList<Integer>());
-                }
-                Log.e("XML parser", "id_atribute:"+id_atribute+" value_atribute:"+value_atribute+" new_mod:"+new_mod);
-                atribute_modifications.get(id_field).get(new_mod).get(id_atribute).add(value_atribute);
+                // id_object | Item id | Atribute count || x.x.x.0 = Atribute number , x.x.x.1 = value x.x.x.2 = extra (-1 = continiously)
 
 
+                Log.e("XML parser", "id_atribute:"+id_atribute+" value_atribute:"+value_atribute+" new_mod:");
 
-                //atribute_modifications.get(id_player_field).get(tel_modifications).get(id_atribute).get(0);
-                // id_object | Item id | atribute ID | value | extra
-                //k
+                atr_mod.get(id_field).add(new ArrayList<ArrayList<Integer>>());
+                Integer new_mod = atr_mod.get(id_field).size() -1;
+
+                atr_mod.get(id_field).get(new_mod).add(new ArrayList<Integer>());
+                Integer new_atribute = atr_mod.get(id_field).get(new_mod).size() -1;
+
+                atr_mod.get(id_field).get(new_mod).get(new_atribute).add(id_atribute);
+                atr_mod.get(id_field).get(new_mod).get(new_atribute).add(value_atribute);
+                atr_mod.get(id_field).get(new_mod).get(new_atribute).add(-1);
+
+
 
                 count_atributes = count_atributes+1;
             }
@@ -1655,11 +1667,11 @@ public class Questionnaire extends Activity {
 
             Integer tot_arraylist = (field_ids_and_names.size()-1);
             // Log.e("tot_arraylist", tot_arraylist.toString());
-            while((tot_arraylist) >= atribute_modifications.size())
+            while((tot_arraylist) >= atr_mod.size())
             {
-                Integer temp_int = atribute_modifications.size();
+                Integer temp_int = atr_mod.size();
                 // Log.e("temp_int", temp_int.toString());
-                atribute_modifications.add(new ArrayList<ArrayList<ArrayList<Integer>>>());
+                atr_mod.add(new ArrayList<ArrayList<ArrayList<Integer>>>());
 
             }
 
@@ -1739,6 +1751,7 @@ public class Questionnaire extends Activity {
         Integer tel_enemys = 0;
         while (tel_enemys < enemys_nodelist.getLength())
         {
+
             Node enemy_node = enemys_nodelist.item(tel_enemys);
             NamedNodeMap temp_atr = enemy_node.getAttributes();
 
@@ -1751,56 +1764,144 @@ public class Questionnaire extends Activity {
             node_temp_atr = temp_atr.getNamedItem("name");
             String enemy_name = node_temp_atr.getTextContent().toString();
 
-            Element enemy_element_atm = (Element) enemys_nodelist.item(tel_enemys);
-            NodeList enemy_req = enemy_element_atm.getElementsByTagName("req_enemy");
+            enemy_add_from_map.add(new ArrayList());
+            Integer arraylist_atm = (enemy_add_from_map.size() - 1);
+            enemy_add_from_map.get(arraylist_atm).add(new ArrayList());
+            enemy_add_from_map.get(arraylist_atm).get(0).add(enemy_name);
 
-            Boolean add_enemy = false;
-            Integer tel_enemy_req = 0;
-            while (tel_enemy_req < enemy_req.getLength()) {
-                Node reqnode_atm = enemy_req.item(tel_enemy_req);
+            Element element_atm = (Element) enemys_nodelist.item(tel_enemys);
 
-                boolean test_result = check_reqcuirements(reqnode_atm);
-                if (test_result == true) {
-                    add_enemy = true;
-                }
-                else
-                {
-                    Node reqnode_atm_atr = reqnode_atm.getAttributes().getNamedItem("must");
-                    Boolean must_bool = false;
-                    if(reqnode_atm_atr == null)
-                    {
-                        must_bool = false;
-                    }
-                    else
-                    {
-                        if(reqnode_atm_atr.getTextContent().equals("t"))
-                        {
-
-                            must_bool = true;
-                        }
-                    }
-
-
-                    // ALL req. must say yes.
-                    if(must_bool == true)
-                    {
-                        add_enemy = false;
-                        // Escape loop
-                        tel_enemy_req = enemy_req.getLength();
-                    }
-
-                }
-
-                tel_enemy_req = tel_enemy_req + 1;
-            }
-            if(add_enemy == true)
+            enemy_add_from_map.get(arraylist_atm).add(new ArrayList());
+            NodeList req_interaction_nl = element_atm.getElementsByTagName("req");
+            Integer tel_req = 0;
+            while(req_interaction_nl.getLength() > tel_req)
             {
-                atribute_modifications.add(new ArrayList<ArrayList<ArrayList<Integer>>>());
-                add_random_enemy(enemy_lvl,enemy_x_spawn,enemy_y_spawn, enemy_name);
+                NamedNodeMap temp_atribut_req = req_interaction_nl.item(tel_req).getAttributes();
+                Integer reference_req = add_req_tag(temp_atribut_req);
+                enemy_add_from_map.get(arraylist_atm).get(1).add(reference_req.toString());
+                tel_req = tel_req+1;
             }
 
+            NodeList math_interaction = element_atm.getElementsByTagName("math");
+            enemy_add_from_map.get(arraylist_atm).add(new ArrayList());
+            Integer tel_math_problems = 0;
+            while (tel_math_problems < math_interaction.getLength())
+            {
+                String math_problem_s = math_interaction.item(tel_math_problems).getTextContent();
+                enemy_add_from_map.get(arraylist_atm).get(2).add(math_problem_s);
+                tel_math_problems = tel_math_problems+1;
+            }
+
+
+            enemy_add_from_map.get(arraylist_atm).add(new ArrayList());
+
+            NodeList add_line_interaction_nl = element_atm.getElementsByTagName("add_line");
+            Integer tel_add_line = 0;
+            while(add_line_interaction_nl.getLength() > tel_add_line)
+            {
+                NamedNodeMap temp_atribut_add_line = add_line_interaction_nl.item(tel_add_line).getAttributes();
+                Integer reference_add_line = add_add_line(temp_atribut_add_line);
+                enemy_add_from_map.get(arraylist_atm).get(3).add(reference_add_line.toString());
+                tel_add_line = tel_add_line +1;
+            }
+
+            add_random_enemy(enemy_lvl,enemy_x_spawn,enemy_y_spawn, enemy_name, tel_enemys);
             tel_enemys = tel_enemys+1;
         }
+
+        NodeList hidden_obejcts_nl = map_doc.getElementsByTagName("hidden_object");
+        Integer tel_hidden_obejcts =0;
+        while(tel_hidden_obejcts < hidden_obejcts_nl.getLength())
+        {
+            // x.x.0 = name | x.x.1 = req_int_with |  x.x.2 = object_interaction_x_s  |  x.x.3 = object_interaction_y_s  |  x.x.4 = math  |  x.x.5 = req  |  x.x.6 = add_line |  x.x.7 = drop_item_rules |  x.x.8 = goto_q_m |  x.x.9 = remove
+
+            NamedNodeMap temp_atribut = hidden_obejcts_nl.item(tel_hidden_obejcts).getAttributes();
+            String hidden_object_name_temp = temp_atribut.getNamedItem("name").getTextContent();
+            String object_interaction_req_name_temp = temp_atribut.getNamedItem("interaction_with").getTextContent();
+            if(object_interaction_req_name_temp == "")
+            {
+                object_interaction_req_name_temp = "all";
+            }
+
+            String object_interaction_x_s = temp_atribut.getNamedItem("x").getTextContent();
+            String object_interaction_y_s = temp_atribut.getNamedItem("y").getTextContent();
+            String object_interaction_remove = temp_atribut.getNamedItem("remove").getTextContent();
+
+            hidden_objects_array.add(new ArrayList());
+            Integer arraylist_atm = (hidden_objects_array.size() - 1);
+            hidden_objects_array.get(arraylist_atm).add(new ArrayList());
+            hidden_objects_array.get(arraylist_atm).get(0).add(hidden_object_name_temp);
+
+            hidden_objects_array.get(arraylist_atm).add(new ArrayList());
+            hidden_objects_array.get(arraylist_atm).get(1).add(object_interaction_req_name_temp);
+
+            hidden_objects_array.get(arraylist_atm).add(new ArrayList());
+            hidden_objects_array.get(arraylist_atm).get(2).add(object_interaction_x_s);
+
+            hidden_objects_array.get(arraylist_atm).add(new ArrayList());
+            hidden_objects_array.get(arraylist_atm).get(3).add(object_interaction_y_s);
+
+
+            Element hidden_objects_element_atm = (Element) hidden_obejcts_nl.item(tel_hidden_obejcts);
+
+            hidden_objects_array.get(arraylist_atm).add(new ArrayList());
+            NodeList math_interaction = hidden_objects_element_atm.getElementsByTagName("math");
+            Integer tel_math_problems = 0;
+            while (tel_math_problems < math_interaction.getLength())
+            {
+                String math_problem_s = math_interaction.item(tel_math_problems).getTextContent();
+                hidden_objects_array.get(arraylist_atm).get(4).add(math_problem_s);
+                tel_math_problems = tel_math_problems+1;
+            }
+
+            hidden_objects_array.get(arraylist_atm).add(new ArrayList());
+            NodeList req_interaction_nl = hidden_objects_element_atm.getElementsByTagName("req");
+            Integer tel_req = 0;
+            while(req_interaction_nl.getLength() > tel_req)
+            {
+                NamedNodeMap temp_atribut_req = req_interaction_nl.item(tel_req).getAttributes();
+                Integer reference_req = add_req_tag(temp_atribut_req);
+                hidden_objects_array.get(arraylist_atm).get(5).add(reference_req.toString());
+                tel_req = tel_req+1;
+            }
+
+            hidden_objects_array.get(arraylist_atm).add(new ArrayList());
+            NodeList add_line_interaction_nl = hidden_objects_element_atm.getElementsByTagName("add_line");
+            Integer tel_add_line = 0;
+            while(add_line_interaction_nl.getLength() > tel_add_line)
+            {
+                NamedNodeMap temp_atribut_add_line = add_line_interaction_nl.item(tel_add_line).getAttributes();
+                Integer reference_add_line = add_add_line(temp_atribut_add_line);
+                hidden_objects_array.get(arraylist_atm).get(6).add(reference_add_line.toString());
+                tel_add_line = tel_add_line +1;
+            }
+
+            hidden_objects_array.get(arraylist_atm).add(new ArrayList());
+            NodeList drop_item_nl = hidden_objects_element_atm.getElementsByTagName("drop_item_rules");
+            Integer tel_drop_item = 0;
+            while(drop_item_nl.getLength() > tel_drop_item)
+            {
+                Integer reference_drop_item = add_drop_item_rules(drop_item_nl.item(tel_drop_item));
+                hidden_objects_array.get(arraylist_atm).get(7).add(reference_drop_item.toString());
+                tel_drop_item = tel_drop_item +1;
+            }
+
+            hidden_objects_array.get(arraylist_atm).add(new ArrayList());
+            NodeList tel_goto_q_m_nl = hidden_objects_element_atm.getElementsByTagName("goto_q_m");
+            Integer tel_goto_q_m = 0;
+            while(drop_item_nl.getLength() > tel_goto_q_m)
+            {
+                Integer reference_tel_goto_q_m = tel_goto_q_m_rules(tel_goto_q_m_nl.item(tel_goto_q_m).getAttributes());
+                hidden_objects_array.get(arraylist_atm).get(8).add(reference_tel_goto_q_m.toString());
+                tel_goto_q_m = tel_goto_q_m +1;
+            }
+
+            hidden_objects_array.get(arraylist_atm).add(new ArrayList());
+            hidden_objects_array.get(arraylist_atm).get((hidden_objects_array.size()-1)).add(object_interaction_remove);
+
+            tel_hidden_obejcts = tel_hidden_obejcts+1;
+        }
+
 
         draw_field_squarres();
 
@@ -1814,7 +1915,6 @@ public class Questionnaire extends Activity {
             {
                 NamedNodeMap temp_atributes = temp_nl.item(0).getAttributes();
 
-
                 no_enemy_left_trigger.add(new ArrayList<String>());
                 Integer new_arraylist_i =  ( no_enemy_left_trigger.size() -1);
                 no_enemy_left_trigger.get(new_arraylist_i).add("goto");
@@ -1825,6 +1925,7 @@ public class Questionnaire extends Activity {
 
             tel_no_enemy_triggers = tel_no_enemy_triggers+1;
         }
+
         upload_field();
 
     }
@@ -1842,6 +1943,7 @@ public class Questionnaire extends Activity {
         {
             good_place = true;
         }
+        // field_id_newx
 
         return good_place;
     }
@@ -1908,6 +2010,8 @@ public class Questionnaire extends Activity {
                 }
                 else {
                     draw_squarre(tel_x, tel_y, field_ids_and_names.get(id_ofcell_type).get(2), bitmap_field, squarre_size);
+
+                    // field_id_newx
                 }
                 tel_y = tel_y +1;
             }
@@ -1920,19 +2024,89 @@ public class Questionnaire extends Activity {
  //       field_img_view.setImageBitmap(bitmap_field);
 
     }
-    public void add_random_enemy(Integer level, Integer x_spawn, Integer y_spawn, String name)
+    public void add_random_enemy(Integer level, Integer x_spawn, Integer y_spawn, String name, Integer enemy_number)
     {
-        // Log.e("add", "x="+x_spawn+" y="+y_spawn);
-        field_ids_and_names.add(new ArrayList());
-        Integer new_enemy_id = (field_ids_and_names.size()-1);
-        field_ids_and_names.get(new_enemy_id).add(name);
-        field_ids_and_names.get(new_enemy_id).add("3");
-        field_ids_and_names.get(new_enemy_id).add("#ff6666");
-        // field_ids_and_names.get(new_enemy_id).add(name);
-        // doen met lvl;
+
+// enemy_add_from_map, x.0.x = name | x.1.x = req | x.2.x = math | x.3.x = addline
 
 
-        field_atm_array[x_spawn][y_spawn][0] = new_enemy_id;
+
+
+
+        ArrayList<Integer> req_norm_numbers = new ArrayList<Integer>();
+        req_norm_numbers.clear();
+        Integer tel_all_req = 0;
+        while(tel_all_req < enemy_add_from_map.get(enemy_number).get(1).size())
+        {
+            String req_number_temp = enemy_add_from_map.get(enemy_number).get(1).get(tel_all_req);
+            Integer req_number_temp_i = Integer.parseInt(req_number_temp);
+            req_norm_numbers.add(req_number_temp_i);
+            tel_all_req = tel_all_req +1;
+        }
+        Boolean req_pass = check_req_type_extended (req_norm_numbers);
+        // Log.e("tel_atribute_trigers" , "TRUE: "+ req_pass+" trigger:"+enemy_add_from_map.get(enemy_number).get(0).get(0));
+        if(req_pass == true)
+        {
+
+            field_ids_and_names.add(new ArrayList());
+            Integer new_enemy_id = (field_ids_and_names.size()-1);
+            field_ids_and_names.get(new_enemy_id).add(name);
+            field_ids_and_names.get(new_enemy_id).add("3");
+            field_ids_and_names.get(new_enemy_id).add("#ff6666");
+            field_atm_array[x_spawn][y_spawn][0] = new_enemy_id;
+
+            Integer tel_math_problems = 0;
+            while (tel_math_problems < enemy_add_from_map.get(enemy_number).get(2).size())
+            {
+                String math_problem = enemy_add_from_map.get(enemy_number).get(2).get(tel_math_problems);
+                Log.e("temp", "math_problem:" + math_problem + "new_enemy_id:"+new_enemy_id);
+
+                Integer old_target = target_field_id;
+                target_field_id = new_enemy_id;
+                aply_math_to_interaction(math_problem);
+                target_field_id = old_target;
+
+                tel_math_problems = tel_math_problems + 1;
+            }
+
+            // Log.e("temp", "tel_add_line size:"+enemy_add_from_map.get(enemy_number).get(3).size());
+            Integer tel_add_line = 0;
+            while(enemy_add_from_map.get(enemy_number).get(3).size() > tel_add_line)
+            {
+                // add_line_normalized || x.0 = line_id | x.1 = value | x.2 = extra_eq(rep/add)
+                Integer add_line_normalized_atm = Integer.parseInt(enemy_add_from_map.get(enemy_number).get(3).get(tel_add_line));
+                // Log.e("temp", "add_line_normalized_atm:"+add_line_normalized_atm);
+                String line_id_add = add_line_normalized.get(add_line_normalized_atm).get(0);
+                String value_add = add_line_normalized.get(add_line_normalized_atm).get(1);
+                String extra_eq = add_line_normalized.get(add_line_normalized_atm).get(2);
+                Boolean extra_eq_b = false;
+                if(extra_eq != "f")
+                {
+                    extra_eq_b = true;
+                }
+                add_story_line(this_world, value_add, extra_eq_b, line_id_add);
+
+                tel_add_line = tel_add_line +1;
+            }
+            /*
+            // Log.e("temp", "hello:tel_drop_items"+atribute_trigger.get(tel_atribute_trigers).get(5).size());
+            Integer tel_drop_items = 0;
+            while(enemy_add__from_map.get(enemy_number).get(6).size() > tel_drop_items)
+            {
+
+                Integer add_line_normalized_atm = Integer.parseInt(enemy_add__from_map.get(enemy_number).get(6).get(tel_drop_items));
+                // Log.e("temp", "hello:inside_items: "+add_line_normalized_atm);
+                drop_items(add_line_normalized_atm);
+
+                tel_drop_items = tel_drop_items +1;
+            }
+            */
+
+            // Log.e("add", "x="+x_spawn+" y="+y_spawn);
+
+
+            //something else
+        }
 
     }
 
@@ -2031,6 +2205,7 @@ public class Questionnaire extends Activity {
         lin_lay_q.removeAllViews();
 
     }
+
     public TextView create_awnserview(String onclick_temp, String goto_id, String XML_file_input)
     {
 
@@ -3048,13 +3223,13 @@ public class Questionnaire extends Activity {
 
                                             tel_add_line = tel_add_line +1;
                                         }
-                                        Log.e("temp", "hello:tel_drop_items"+enemy_interaction.get(id_interaction).get(5).size());
+                                        // Log.e("temp", "hello:tel_drop_items"+enemy_interaction.get(id_interaction).get(5).size());
                                         Integer tel_drop_items = 0;
                                         while(enemy_interaction.get(id_interaction).get(5).size() > tel_drop_items)
                                         {
 
                                             Integer add_line_normalized_atm = Integer.parseInt(enemy_interaction.get(id_interaction).get(5).get(tel_drop_items));
-                                            Log.e("temp", "hello:inside_items: "+add_line_normalized_atm);
+                                            // Log.e("temp", "hello:inside_items: "+add_line_normalized_atm);
                                             drop_items(add_line_normalized_atm);
 
                                             tel_drop_items = tel_drop_items +1;
@@ -3124,6 +3299,7 @@ public class Questionnaire extends Activity {
         String type_ofirst_perator = math_problem.substring(0, end_name);
         String name_first_atribute = math_problem.substring((end_name+1), first_quote);
         math_problem = math_problem.substring(first_quote +1);
+
         Integer atribute_to_set = find_atribute_if_from_string(name_first_atribute);
 
         // solve () first.
@@ -3159,32 +3335,23 @@ public class Questionnaire extends Activity {
         Integer awnser_mathproblem = calculate_from_string(math_problem);
 
         Integer id_found_of_object = from_name_to_id_field(type_ofirst_perator);
-
-
-        atribute_modifications.get(id_found_of_object).add(new ArrayList<ArrayList<Integer>>());
-        Integer new_mod = atribute_modifications.get(id_found_of_object).size() -1;
-
-        /*
-        while (new_mod >= atribute_modifications.get(id_found_of_object).size())
+        while(id_found_of_object >= (atr_mod.size()))
         {
-            atribute_modifications.get(id_found_of_object).add(new ArrayList<ArrayList<Integer>>());
+            atr_mod.add(new ArrayList<ArrayList<ArrayList<Integer>>>());
         }
-        */
 
-        ArrayList temp = new ArrayList<Integer>();
-        temp.add(0, awnser_mathproblem);
-        ArrayList<ArrayList<Integer>> temp_new = new ArrayList<ArrayList<Integer>>();
+        atr_mod.get(id_found_of_object).add(new ArrayList<ArrayList<Integer>>());
+        Integer new_mod = atr_mod.get(id_found_of_object).size() -1;
 
-        //
-        while (atribute_to_set >= temp_new.size())
-        {
-            temp_new.add(new ArrayList<Integer>());
-        }
-        //
+        atr_mod.get(id_found_of_object).get(new_mod).add(new ArrayList<Integer>());
+        Integer new_atribute = atr_mod.get(id_found_of_object).get(new_mod).size() -1;
 
-        temp_new.add(atribute_to_set, temp);
+        atr_mod.get(id_found_of_object).get(new_mod).get(new_atribute).add(atribute_to_set);
+        atr_mod.get(id_found_of_object).get(new_mod).get(new_atribute).add(awnser_mathproblem);
+        atr_mod.get(id_found_of_object).get(new_mod).get(new_atribute).add(-1);
 
-        atribute_modifications.get(id_found_of_object).set(new_mod, temp_new);
+        Log.e("tel_atribute_trigers" , "obj:"+id_found_of_object+" awnser_mathproblem"+awnser_mathproblem+" opp"+type_ofirst_perator+" atribute_to_set"+atribute_to_set);
+
     }
 
     public void atribute_triggers()
@@ -3206,7 +3373,7 @@ public class Questionnaire extends Activity {
                 tel_all_req = tel_all_req +1;
             }
             req_pass = check_req_type_extended (req_norm_numbers);
-            Log.e("tel_atribute_trigers" , "TRUE: "+ req_pass+" trigger:"+atribute_trigger.get(tel_atribute_trigers).get(0).get(0));
+            // Log.e("tel_atribute_trigers" , "TRUE: "+ req_pass+" trigger:"+atribute_trigger.get(tel_atribute_trigers).get(0).get(0));
             if(req_pass == true)
             {
                 String temp = atribute_trigger.get(tel_atribute_trigers).get(2).get(0);
@@ -3271,9 +3438,6 @@ public class Questionnaire extends Activity {
             tel_atribute_trigers = tel_atribute_trigers+1;
         }
 
-
-
-
     }
 
     public void remove_object(Integer object_id)
@@ -3321,7 +3485,7 @@ public class Questionnaire extends Activity {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            Log.e("temp", "download " );
+            // Log.e("temp", "download " );
             if (login_data.size() > 0)
             {
                 Integer total_numbers = 0;
@@ -3359,7 +3523,7 @@ public class Questionnaire extends Activity {
             return_int[4] = Integer.parseInt(XML_IO.find_value_in_userxml("login_info", "normalized_Openness"));
             // Log.e("temp", "normalized_Extraversion  " + return_int[0].toString());
             // Log.e("temp", "normalized_Openness " + return_int[4].toString());
-            Log.e("temp", "loaded :)" );
+            // Log.e("temp", "loaded :)" );
         }
 
         return return_int;
@@ -3388,6 +3552,12 @@ public class Questionnaire extends Activity {
             return_array[1] = -1;
             return_array[2] = Integer.parseInt(name_atribute_is);
         }
+        else if(type_operator_is.equals("total_players"))
+        {
+            return_array[0] = -1;
+            return_array[1] = -1;
+            return_array[2] = username.size();
+        }
         else if(type_operator_is.equals("u_info"))
         {
 
@@ -3404,7 +3574,13 @@ public class Questionnaire extends Activity {
 
             return_array[0] = -1;
             return_array[1] = -1;
-            Integer tag_value = Integer.parseInt(XML_IO.find_value_in_userxml(world_tag, tag_name));
+            Integer tag_value = 0;
+            String temp = XML_IO.find_value_in_userxml(world_tag, tag_name);
+            if(temp != null)
+            {
+                tag_value = Integer.parseInt(temp);
+            }
+            // Integer tag_value = Integer.parseInt(XML_IO.find_value_in_userxml(world_tag, tag_name));
             return_array[2] = tag_value;
         }
         else if(type_operator_is.equals("u_person"))
@@ -3556,16 +3732,17 @@ public class Questionnaire extends Activity {
             Integer id_found_object_rulebook =from_object_name_to_rule_number(type_operator_is);
 
             Integer total_atribute_value = id_def_atributs.get(id_found_object_rulebook).get(atribute_id_temp_is);
+            /*
             Integer size = atribute_modifications.size();
 
             while(active_player_id >= size)
             {
                 size = size+1;
-                atribute_modifications.add(new ArrayList<ArrayList<ArrayList<Integer>>>());
+                atr_mod.add(new ArrayList<ArrayList<ArrayList<Integer>>>());
             }
 
             Integer tel_modifications = 0;
-            while(tel_modifications < atribute_modifications.get(active_player_id).size())
+            while(tel_modifications < atr_mod.get(active_player_id).size())
             {
                 if(atribute_modifications.get(id_found_object_field).get(tel_modifications).size()>= atribute_id_temp_is)
                 {
@@ -3573,6 +3750,10 @@ public class Questionnaire extends Activity {
                 }
                 tel_modifications = tel_modifications +1 ;
             }
+            */
+
+            total_atribute_value = count_atributs_mod_to_def(id_found_object_rulebook, id_found_object_field, atribute_id_temp_is);
+
             chance_synchrome_id.add( total_atribute_value);
             total_chance = total_chance +  total_atribute_value;
 
@@ -3628,31 +3809,46 @@ public class Questionnaire extends Activity {
             input = input.substring(first_quote + 1);
             first_quote = (input.indexOf("\""));
 
-            Integer atribute_id_temp = 0;
-            Integer id_found_object_field = -1;
-            Integer id_found_object_rulebook = 0;
-
             String type_operator;
             String name_atribute = null;
             boolean do_the_math = false;
             if(first_quote <=2)
             {
                 type_operator = input.substring(0, 1);
+                privious_opperator = type_operator;
             }
             else {
+                /*
                 Integer end_name = (input.indexOf("|"));
                 type_operator = input.substring(0, end_name);
                 name_atribute = input.substring((end_name + 1), first_quote);
                 atribute_id_temp = find_atribute_if_from_string(name_atribute);
+*/
+                String object_string = input.substring(0, first_quote);
+                Integer[] req_value1_array = get_object_rule_world_and_atribute_id(object_string);
+                Integer value1 = 0;
+                if(req_value1_array[0] == -1)
+                {
+                    value1 = req_value1_array[2];
+                }
+                else
+                {
+                    value1 = count_atributs_mod_to_def(req_value1_array[0], req_value1_array[1], req_value1_array[2]);
+                }
 
-                id_found_object_field = from_name_to_id_field(type_operator);
-                id_found_object_rulebook = from_object_name_to_rule_number(type_operator);
+                found_atribute_value = value1;
+
+                // id_found_object_field = from_name_to_id_field(type_operator);
+                // id_found_object_rulebook = from_object_name_to_rule_number(type_operator);
+
+                do_the_math = true;
             }
 
 
-            if(id_found_object_field > -1)
+            // if(id_found_object_field > -1)
+            /*
             {
-/*
+
                 Integer total_atribute_value = id_def_atributs.get(id_found_object_rulebook).get(atribute_id_temp);
                 Integer size = atribute_modifications.size();
                 while(id_found_object_field>= size)
@@ -3670,12 +3866,13 @@ public class Questionnaire extends Activity {
                     tel_modifications = tel_modifications +1 ;
                 }
                 found_atribute_value = total_atribute_value;
-                */
+
 
                 found_atribute_value = count_atributs_mod_to_def(id_found_object_rulebook, id_found_object_field, atribute_id_temp);
                 do_the_math = true;
 
             }
+
             else if(type_operator.equals("v"))
             {
                 found_atribute_value = Integer.parseInt(name_atribute);
@@ -3693,11 +3890,15 @@ public class Questionnaire extends Activity {
                     awnser = distance;
                 }
             }
+            */
+
+            /*
             else
             {
                 privious_opperator = type_operator;
             }
-
+*/
+            Log.e("test calculation", "awnser="+awnser+ " found_atribute_value" +found_atribute_value );
             if(do_the_math == true)
             {
                 if(privious_opperator.equals("="))
@@ -3727,24 +3928,27 @@ public class Questionnaire extends Activity {
         Integer return_total = 0;
 
         Integer total_atribute_value = id_def_atributs.get(id_player_rulebook).get(id_atribute);
-        Integer size = atribute_modifications.size();
+        Integer size = atr_mod.size();
         while(id_player_field>= size)
         {
-            size = atribute_modifications.size();
-            atribute_modifications.add(new ArrayList<ArrayList<ArrayList<Integer>>>());
+            size = atr_mod.size();
+            atr_mod.add(new ArrayList<ArrayList<ArrayList<Integer>>>());
         }
-        Integer tel_modifications = 0;
-        while(tel_modifications < atribute_modifications.get(id_player_field).size())
+        Integer tel_items = 0;
+        while(tel_items < atr_mod.get(id_player_field).size())
         {
-            if(atribute_modifications.get(id_player_field).get(tel_modifications).size()> id_atribute)
+            // id_object | Item id | Atribute count || x.x.x.0 = Atribute number , x.x.x.1 = value x.x.x.2 = extra
+            Integer tel_atributes = 0;
+            while(tel_atributes < atr_mod.get(id_player_field).get(tel_items).size())
             {
-                if(atribute_modifications.get(id_player_field).get(tel_modifications).get(id_atribute).size()> 0)
+                if(id_atribute == atr_mod.get(id_player_field).get(tel_items).get(tel_atributes).get(0) )
                 {
-                    // Log.e("test outofbound", "id_player_field:" + id_player_field + " tel_modifications:" + tel_modifications + " id_atribute:" + id_atribute + " size:" + atribute_modifications.get(id_player_field).get(tel_modifications).get(id_atribute).size());
-                    total_atribute_value = total_atribute_value + atribute_modifications.get(id_player_field).get(tel_modifications).get(id_atribute).get(0);
+                    total_atribute_value = total_atribute_value + atr_mod.get(id_player_field).get(tel_items).get(tel_atributes).get(1);
                 }
+                tel_atributes = tel_atributes +1;
             }
-            tel_modifications = tel_modifications +1 ;
+
+            tel_items = tel_items +1 ;
         }
         return_total = total_atribute_value;
         return return_total;
@@ -3769,7 +3973,13 @@ public class Questionnaire extends Activity {
     {
         if(field_atm_array[x_to][y_to][0] == 1|| field_atm_array[x_to][y_to][0] == 5) {
             field_atm_array[x_to][y_to][0] = field_atm_array[x_from][y_from][0];
-            field_atm_array[x_from][y_from][0] = 1;
+
+            Integer new_value = 1;
+            if(field_atm_array[x_to][y_to][0] == 5)
+            {
+                new_value = trigger_hidden_object(x_to, y_to);
+            }
+            field_atm_array[x_from][y_from][0] = new_value;
 
             String player_id_server = find_value_in_xml("login_info", "id");
             String string_to_send_to_testPHP = "qid="+player_id_server+"&qty=cha&qcx="+x_from+"&qcy="+y_from+"&qtgx="+x_to+"&qtgy="+y_to;
@@ -3783,6 +3993,224 @@ public class Questionnaire extends Activity {
         }
         end_turn();
     }
+
+    public Integer trigger_hidden_object(Integer x_pos, Integer y_pos)
+    {
+
+// x.x.0 = name | x.x.1 = req_int_with |  x.x.2 = object_interaction_x_s  |  x.x.3 = object_interaction_y_s  |  x.x.4 = math
+// |  x.x.5 = req  |  x.x.6 = add_line |  x.x.7 = drop_item_rules |  x.x.8 = goto_q_m |  x.x.9 = remove
+
+        Integer return_i = 1;
+
+        Integer tel_hidden_objects_array = 0;
+        Boolean req_pass = false;
+
+
+        while(tel_hidden_objects_array < hidden_objects_array.size())
+        {
+            req_pass = false;
+            String x_pos_object_s = hidden_objects_array.get(tel_hidden_objects_array).get(2).get(0);
+            Integer x_pos_object = Integer.parseInt(x_pos_object_s);
+            String y_pos_object_s = hidden_objects_array.get(tel_hidden_objects_array).get(3).get(0);
+            Integer y_pos_object = Integer.parseInt(y_pos_object_s);
+
+            if(x_pos == x_pos_object)
+            {
+                if(y_pos == y_pos_object)
+                {
+                    ArrayList<Integer> req_norm_numbers = new ArrayList<Integer>();
+                    req_norm_numbers.clear();
+                    Integer tel_all_req = 0;
+                    while(tel_all_req < hidden_objects_array.get(tel_hidden_objects_array).get(5).size())
+                    {
+                        String req_number_temp = hidden_objects_array.get(tel_hidden_objects_array).get(5).get(tel_all_req);
+                        Integer req_number_temp_i = Integer.parseInt(req_number_temp);
+                        req_norm_numbers.add(req_number_temp_i);
+                        tel_all_req = tel_all_req +1;
+                    }
+                    req_pass = check_req_type_extended (req_norm_numbers);
+                }
+            }
+
+            if(req_pass == true)
+            {
+
+                Integer tel_math_problems = 0;
+                while (tel_math_problems < hidden_objects_array.get(tel_hidden_objects_array).get(4).size()) {
+                    String math_problem = hidden_objects_array.get(tel_hidden_objects_array).get(4).get(tel_math_problems);
+                    aply_math_to_interaction(math_problem);
+                    tel_math_problems = tel_math_problems + 1;
+                }
+
+                Integer tel_add_line = 0;
+                while(hidden_objects_array.get(tel_hidden_objects_array).get(6).size() > tel_add_line)
+                {
+                    Integer add_line_normalized_atm = Integer.parseInt(hidden_objects_array.get(tel_hidden_objects_array).get(6).get(tel_add_line));
+                    String line_id_add = add_line_normalized.get(add_line_normalized_atm).get(0);
+                    String value_add = add_line_normalized.get(add_line_normalized_atm).get(1);
+                    String extra_eq = add_line_normalized.get(add_line_normalized_atm).get(2);
+                    Boolean extra_eq_b = false;
+                    if(extra_eq != "f")
+                    {
+                        extra_eq_b = true;
+                    }
+                    add_story_line(this_world, value_add, extra_eq_b, line_id_add);
+
+                    tel_add_line = tel_add_line +1;
+                }
+                Integer tel_drop_items = 0;
+                while(hidden_objects_array.get(tel_hidden_objects_array).get(7).size() > tel_drop_items)
+                {
+                    Integer add_line_normalized_atm = Integer.parseInt(hidden_objects_array.get(tel_hidden_objects_array).get(7).get(tel_drop_items));
+                    drop_items(add_line_normalized_atm);
+
+                    tel_drop_items = tel_drop_items +1;
+                }
+
+                Integer tel_goto_q_m = 0;
+                while(hidden_objects_array.get(tel_hidden_objects_array).get(7).size() > tel_goto_q_m)
+                {
+                    Integer tel_goto_q_m_atm = Integer.parseInt(hidden_objects_array.get(tel_hidden_objects_array).get(8).get(tel_goto_q_m));
+                    String goto_q_m = goto_normalized.get(tel_goto_q_m_atm).get(0);
+                    String goto_id = goto_normalized.get(tel_goto_q_m_atm).get(1);
+                    String above_map_s = goto_normalized.get(tel_goto_q_m_atm).get(2);
+
+                    goto_q_m_new(goto_q_m, goto_id, above_map_s);
+
+                    tel_goto_q_m = tel_goto_q_m +1;
+                }
+
+            }
+
+            tel_hidden_objects_array = tel_hidden_objects_array+1;
+        }
+
+        return return_i;
+
+    }
+
+    public void goto_q_m_new(String goto_q_m, String goto_id, String above_map_s)
+    {
+        if(goto_id == "m")
+        {
+            end_map(goto_id, goto_q_m);
+        }
+        else if(goto_id == "r")
+        {
+
+        }
+        else
+        {
+            if (above_map_s == "f")
+            {
+                end_map(goto_id, goto_q_m);
+            } else
+            {
+                question_above_ini(goto_q_m);
+            }
+        }
+    }
+
+    public void question_above_ini(String xml_name_goto)
+    {
+        String XML_file = this_world + "_" + xml_name_goto;
+        Document question_doc = null;
+        try {
+            question_doc = XML_IO.open_document_xml(XML_file);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (XmlPullParserException e) {
+            e.printStackTrace();
+        }
+
+        if(XML_user_info_doc == null) {
+            try {
+                XML_user_info_doc = XML_IO.open_document_xml("user_info");
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (XmlPullParserException e) {
+                e.printStackTrace();
+            }
+        }
+
+        NodeList use_font_nl = question_doc.getElementsByTagName("use_font");
+        if(use_font_nl.getLength() == 1)
+        {
+            NamedNodeMap use_font_atributes = use_font_nl.item(0).getAttributes();
+            String new_font = use_font_atributes.getNamedItem("value").getTextContent().toString();
+            font_used(new_font);
+            font_size = Integer.parseInt(use_font_atributes.getNamedItem("set_size").getTextContent().toString());
+        }
+
+        String question_s = "";
+        NodeList question_nl = question_doc.getElementsByTagName("question");
+        if(question_nl.getLength() == 1)
+        {
+            question_s = use_font_nl.item(0).getTextContent();
+        }
+
+    }
+
+    public TextView create_awnserview_above(String onclick_temp, String goto_id, String XML_file_input)
+    {
+
+        TextView question_tv = new TextView(this);
+        question_tv.setId(awnser_id);
+        question_tv.setTextSize(font_size);
+        question_tv.setTypeface(font_face);
+        Bundle inputExtras = question_tv.getInputExtras(true);
+        inputExtras.putString("onclick_temp", onclick_temp);
+        inputExtras.putString("goto_id",goto_id);
+        inputExtras.putString("XML_file_input",XML_file_input);
+
+        //IF a awnser with the same  goto_id is added on the same awnser_id OR a different question with the same goto_id shifts.. serverside world_scores are scewed.
+        inputExtras.putString("to_server",goto_id+awnser_id);
+
+
+        question_tv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                LinearLayout lin_lay_q = (LinearLayout) findViewById(R.id.linearLayout_questuinnaire_vert);
+
+
+                TextView temp_tv = (TextView) v;
+                Bundle inputExtras = temp_tv.getInputExtras(true);
+                String output_questionfile = inputExtras.getString("onclick_temp", "");
+                String goto_id = inputExtras.getString("goto_id", "");
+
+                // only one add_line possible.
+
+                String add_line = inputExtras.getString("add_line", "");
+                if(add_line != "") {
+                    String add_value = inputExtras.getString("value", "");
+                    String replace_add = inputExtras.getString("replace_add", "false");
+                    boolean replace_add_bool = false;
+                    if (replace_add.equals("true")) {
+                        replace_add_bool = true;
+                    }
+                    add_story_line(this_world, add_value, replace_add_bool, add_line);
+                }
+                // add_story_line(add_line, add_value);
+
+                String to_server_awnser_id = inputExtras.getString("to_server", "");
+                String XML_file_input = inputExtras.getString("XML_file_input", "");
+                if(to_server_awnser_id != "")
+                {
+                    add_awnser_personality_scores(to_server_awnser_id, XML_file_input);
+                }
+
+
+                XML_ini_q_or_map(goto_id, output_questionfile);
+
+            }
+        } ) ;
+
+        awnser_id = awnser_id +1;
+
+        return question_tv;
+
+    }
+
 
     public void end_turn()
     {
@@ -3938,7 +4366,7 @@ public class Questionnaire extends Activity {
                 drop_items(Integer.parseInt(end_map_triggers.get(tel_end_map_triggers).get(1)));
             }
             */
-
+            Boolean req_pass = false;
             ArrayList<Integer> req_norm_numbers = new ArrayList<Integer>();
             req_norm_numbers.clear();
             Integer tel_all_req = 0;
@@ -3949,7 +4377,7 @@ public class Questionnaire extends Activity {
                 req_norm_numbers.add(req_number_temp_i);
                 tel_all_req = tel_all_req +1;
             }
-            Boolean req_pass = check_req_type_extended (req_norm_numbers);
+            req_pass = check_req_type_extended (req_norm_numbers);
             // Log.e("tel_end_map_triggers" , "TRUE: "+ req_pass+" trigger:"+end_map_triggers.get(tel_end_map_triggers).get(0).get(0));
             if(req_pass == true)
             {
@@ -4656,6 +5084,34 @@ public class Questionnaire extends Activity {
 
         return return_interger;
     }
+
+    public Integer tel_goto_q_m_rules(NamedNodeMap temp_atribute_2)
+    {
+        String goto_q_m = temp_atribute_2.getNamedItem("goto").getTextContent();
+        String goto_id = temp_atribute_2.getNamedItem("goto_id").getTextContent();
+        Node above_map = temp_atribute_2.getNamedItem("above_map");
+        String above_map_s = "t";
+        if(above_map != null)
+        {
+            above_map_s = above_map.getTextContent();
+            if(above_map_s == "false")
+            {
+                above_map_s = "f";
+            }
+        }
+
+        // tel_goto_q_m_rules || x.0 = goto | x.1 = goto_id | x.2 = above_map_s
+
+        Integer return_interger = 0;
+        goto_normalized.add(new ArrayList<String>());
+        return_interger = goto_normalized.size()-1;
+        goto_normalized.get(return_interger).add(goto_q_m);
+        goto_normalized.get(return_interger).add(goto_id);
+        goto_normalized.get(return_interger).add(above_map_s);
+
+        return return_interger;
+    }
+
 
     public Integer add_req_tag(NamedNodeMap temp_atribute_2)
     {
