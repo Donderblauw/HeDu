@@ -2,7 +2,8 @@
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="fill_parent"
     android:layout_height="match_parent" android:background="#0099cc" tools:context=".main_menu"
     android:focusable="true"
-    android:textAlignment="center" >
+    android:textAlignment="center"
+    >
 
     <!-- The primary full-screen view. This can be replaced with whatever view
          is needed to present your content, e.g. VideoView, SurfaceView,
@@ -21,128 +22,181 @@
         android:background="@color/black_overlay" android:orientation="horizontal"
         tools:ignore="UselessParent"
         android:visibility="gone" />
-    <LinearLayout
-        android:orientation="vertical"
+
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:id="@+id/fullscreen_conten2t" >
 
         <LinearLayout
-            style="?metaButtonBarStyle"
-            tools:ignore="UselessParent"
-            android:id="@+id/linearLayout_test_luuk"
+            android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|center_horizontal"
-            android:background="@color/black_overlay"
-            android:orientation="horizontal" >
+            android:layout_height="match_parent">
 
-            <Button
-                style="?metaButtonBarButtonStyle"
-                android:id="@+id/button_luuk"
-                android:layout_width="fill_parent"
+            <LinearLayout
+                style="?metaButtonBarStyle"
+                tools:ignore="UselessParent"
+                android:id="@+id/linearLayout_test_luuk"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Test Luuk"
-                android:background="#88000288"
-                android:textColor="#AAFFFF"
-                android:onClick="goToLuukTests" />
-        </LinearLayout>
+                android:layout_gravity="bottom|center_horizontal"
+                android:background="@color/black_overlay"
+                android:orientation="horizontal" >
 
-        <LinearLayout
-            style="?metaButtonBarStyle"
-            tools:ignore="UselessParent"
-            android:id="@+id/linearLayout_test_Teun"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|center_horizontal"
-            android:background="@color/black_overlay"
-            android:orientation="horizontal" >
+                <Button
+                    style="?metaButtonBarButtonStyle"
+                    android:id="@+id/button_luuk"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Test Luuk"
+                    android:background="#88000288"
+                    android:textColor="#AAFFFF"
+                    android:onClick="goToLuukTests" />
+            </LinearLayout>
 
-
-            <Button
-                style="?metaButtonBarButtonStyle"
-                android:id="@+id/button_teun"
-                android:layout_width="fill_parent"
+            <LinearLayout
+                style="?metaButtonBarStyle"
+                tools:ignore="UselessParent"
+                android:id="@+id/linearLayout_test_Teun"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Test Teun"
-                android:onClick="goto_questionnaire"
-                android:background="#88000288"
-                android:textColor="#FFFFAA" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            style="?metaButtonBarStyle"
-            tools:ignore="UselessParent"
-            android:id="@+id/linearLayout_test_TextIO"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|center_horizontal"
-            android:background="@color/black_overlay"
-            android:orientation="horizontal" >
+                android:layout_gravity="bottom|center_horizontal"
+                android:background="@color/black_overlay"
+                android:orientation="horizontal" >
 
 
-            <TextView
-                android:layout_width="fill_parent"
-                android:layout_height="118dp"
-                android:id="@+id/textbox_mainmenu"
-                android:text="This does nothing :)"
+                <Button
+                    style="?metaButtonBarButtonStyle"
+                    android:id="@+id/button_teun"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Test Teun"
+                    android:onClick="goto_questionnaire"
+                    android:background="#88000288"
+                    android:textColor="#FFFFAA" />
 
-                android:longClickable="true"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:clickable="true"
-                android:textSize="20dp" />
-        </LinearLayout>
+            </LinearLayout>
 
-        <LinearLayout
-            style="?metaButtonBarStyle"
-            tools:ignore="UselessParent"
-            android:id="@+id/linearLayout_login"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|center_horizontal"
-            android:background="@color/black_overlay"
-            android:orientation="horizontal" >
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="40dp"
-                android:id="@+id/login_name2"
-                android:longClickable="true"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:clickable="true"
-                android:textSize="20dp"
-                android:editable="true"
-                android:enabled="true"
-                android:textIsSelectable="true"
-                android:hint="Enter new user name" />
-
-            <EditText
-                android:hint="Enter new user name"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                style="?metaButtonBarStyle"
+                tools:ignore="UselessParent"
+                android:id="@+id/openCamera_ll"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/login_name" />
+                android:layout_gravity="bottom|center_horizontal"
+                android:background="@color/black_overlay"
+                android:orientation="horizontal" >
 
-            <TextView
-                android:layout_width="fill_parent"
-                android:layout_height="40dp"
-                android:id="@+id/submit_login_name"
-                android:longClickable="true"
-                android:focusable="true"
-                android:focusableInTouchMode="true"
-                android:clickable="true"
-                android:textSize="20dp"
-                android:editable="false"
-                android:enabled="true"
-                android:textIsSelectable="false"
-                android:text="Submit"
-                android:onClick="create_new"
-                android:background="#dd7799" />
+
+                <Button
+                    style="?metaButtonBarButtonStyle"
+                    android:id="@+id/openCamera"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:text="open Camera"
+                    android:onClick="start_camera"
+                    android:background="#88000288"
+                    android:textColor="#FFFFAA" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                style="?metaButtonBarStyle"
+                tools:ignore="UselessParent"
+                android:id="@+id/linearLayout_test_TextIO"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|center_horizontal"
+                android:background="@color/black_overlay"
+                android:orientation="horizontal" >
+
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="118dp"
+                    android:id="@+id/textbox_mainmenu"
+                    android:text="This does nothing :)"
+
+                    android:longClickable="true"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:clickable="true"
+                    android:textSize="20dp" />
+            </LinearLayout>
+
+            <LinearLayout
+                style="?metaButtonBarStyle"
+                tools:ignore="UselessParent"
+                android:id="@+id/linearLayout_login"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|center_horizontal"
+                android:background="@color/black_overlay"
+                android:orientation="horizontal" >
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:id="@+id/login_name2"
+                    android:longClickable="true"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:clickable="true"
+                    android:textSize="20dp"
+                    android:editable="true"
+                    android:enabled="true"
+                    android:textIsSelectable="true"
+                    android:hint="Enter new user name" />
+
+                <EditText
+                    android:hint="Enter new user name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/login_name" />
+
+                <TextView
+                    android:layout_width="fill_parent"
+                    android:layout_height="40dp"
+                    android:id="@+id/submit_login_name"
+                    android:longClickable="true"
+                    android:focusable="true"
+                    android:focusableInTouchMode="true"
+                    android:clickable="true"
+                    android:textSize="20dp"
+                    android:editable="false"
+                    android:enabled="true"
+                    android:textIsSelectable="false"
+                    android:text="Submit"
+                    android:onClick="create_new"
+                    android:background="#dd7799" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                style="?metaButtonBarStyle"
+                tools:ignore="UselessParent"
+                android:id="@+id/imageview_ll"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|center_horizontal"
+                android:background="@color/black_overlay"
+                android:orientation="horizontal" >
+
+
+                <ImageView
+                    android:id="@+id/imageview"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/cat"
+                    />
+
+            </LinearLayout>
+
+
+
+
+
 
         </LinearLayout>
-
-
-    </LinearLayout>
-
+    </ScrollView>
 </FrameLayout>

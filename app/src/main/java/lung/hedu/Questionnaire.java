@@ -65,7 +65,7 @@ public class Questionnaire extends Activity {
 
     // array list 2d =
     // 0 = name
-    // 1 = type (0 = empty 1 = normal 2 = player 3 = enemy 4 = neutral 5 = trigger)
+    // 1 = type (0 = empty, 1 = normal, 2 = player, 3 = enemy, 4 = neutral, 5 = trigger)
     // 2 = color
     // 3 = trigger death
     // 4 = trigger talk
@@ -81,7 +81,9 @@ public class Questionnaire extends Activity {
     Document XML_user_info_doc = null;
     public String this_world = "";
     public Boolean check_if_XMLisset = false;
-    public ArrayList<String> username = new ArrayList();
+
+    // user_name_glob x.0 = name | x.1 = server_id
+    public ArrayList<ArrayList<String>> user_name_glob = new ArrayList(new ArrayList<String>());
 
     public Integer active_player_id = 0;
     public Integer target_field_id = -1;
@@ -110,7 +112,8 @@ public class Questionnaire extends Activity {
     public ArrayList<ArrayList<ArrayList<String>>>  atribute_trigger = new ArrayList<ArrayList<ArrayList<String>>> ();
     // public ArrayList<ArrayList<String>>  req_atribute_trigger_glob = new ArrayList<ArrayList<String>> ();
 
-    public ArrayList<ArrayList<String>>  no_enemy_left_trigger = new ArrayList<ArrayList<String>> ();
+    public ArrayList<ArrayList<Integer>>  no_enemy_left_trigger = new ArrayList<ArrayList<Integer>> ();
+    public ArrayList<ArrayList<Integer>>  no_player_left_trigger = new ArrayList<ArrayList<Integer>> ();
 
     // add_line_normalized || x.0 = line_id | x.1 = value | x.2 = extra_eq(rep/add f=false)
     public ArrayList<ArrayList<String>>  add_line_normalized = new ArrayList<ArrayList<String>> ();
@@ -149,7 +152,9 @@ public class Questionnaire extends Activity {
     // questions_awnser_array: x.0.0 = xml_file_name | x.1.0 = goto_id (q/m) | x.2.0 = above_map (t/f) | x.3.x = math | x.4.x = req | x.5.x = add_line | x.6.x = drop_item | x.7.x = goto_q_m
     public ArrayList<ArrayList<ArrayList<String>>> questions_awnser_array =  new ArrayList<ArrayList<ArrayList<String>>> ();
 
+    public ArrayList<ArrayList<ArrayList<String>>> player_select_array =  new ArrayList<ArrayList<ArrayList<String>>> ();
 
+    public Integer selected_player_q = -1;
 
     /**
      * Whether or not the system UI should be auto-hidden after
@@ -378,22 +383,26 @@ public class Questionnaire extends Activity {
 
     public String read_username ()
     {
-        if(username.size() == 0)
+        if(user_name_glob.size() == 0)
         {
 
             String username_s = find_value_in_xml("login_info", "name");
-            username.add(username_s);
+            user_name_glob.add(new ArrayList<String>());
+            Integer new_id_username = user_name_glob.size() -1;
+            user_name_glob.get(new_id_username).add(username_s);
+            String id_user_s = find_value_in_xml("login_info", "id");
+            user_name_glob.get(new_id_username).add(id_user_s);
             atr_mod.add(new ArrayList<ArrayList<ArrayList<Integer>>>());
 //            objects_names_and_shorts.add(new ArrayList<String>());
 //            objects_names_and_shorts.get( (objects_names_and_shorts.size()-1 )).add(username_s);
         }
         Integer tel = 0;
         String names = "";
-        while(tel < username.size())
+        while(tel < user_name_glob.size())
         {
-            names = names+username.get(tel);
+            names = names+user_name_glob.get(tel).get(0);
             tel = tel +1;
-            if(tel < username.size())
+            if(tel < user_name_glob.size())
             {
                 names = names+" and ";
             }
@@ -401,6 +410,42 @@ public class Questionnaire extends Activity {
         }
         return names;
     }
+
+    public Integer username_to_user_id (String user_name)
+    {
+        Integer return_user_id = -1;
+        Integer tel = 0;
+        while(tel < user_name_glob.size())
+        {
+            if(user_name_glob.get(tel).get(0).equals(user_name))
+            {
+                return_user_id = tel;
+            }
+        }
+        return return_user_id;
+    }
+
+
+    public Integer username_to_field_id_id (String user_name)
+    {
+        Integer return_user_id = -1;
+        Integer tel = 0;
+        while(tel <field_ids_and_names .size())
+        {
+            Integer type_id_atm = Integer.parseInt(field_ids_and_names.get(tel).get(1));
+
+            if(type_id_atm == 2 )
+            {
+                if (field_ids_and_names.get(tel).get(0).equals(user_name))
+                {
+                    return_user_id = tel;
+                }
+            }
+        }
+        return return_user_id;
+    }
+
+
 
     public void XML_ini_q_or_map(String type_xml, String XML_file)
     {
@@ -410,17 +455,20 @@ public class Questionnaire extends Activity {
         XML_IO.set_value_user_info(this_world+"_save", "saved_xml_name", XML_file);
         XML_IO.set_value_user_info(this_world+"_save", "saved_q_or_m", type_xml);
 
-        if(username.size() > 1)
+        /*
+        if(user_name_glob.size() > 1)
         {
-            username.clear();
+            user_name_glob.clear();
             read_username();
+            k
 
             // NOT WELL CODED, CLEAR NAME LIST AFTER MAP. TO REDUCE FRIEND NAME DOUBLE
         }
-
+        */
         if(type_xml.equals("q"))
         {
-            XML_ini_questionairre(XML_file);
+            // XML_ini_questionairre(XML_file);
+            question_above_ini(XML_file);
         }
         else if(type_xml.equals("m"))
         {
@@ -449,10 +497,10 @@ public class Questionnaire extends Activity {
 
             //if(max_players_i > 1) {
 
-                use_items(XML_file);
+            // use_items(XML_file);
             //} else
             //{
-            //    XML_ini_map_new(XML_file);
+            XML_ini_map_new(XML_file);
             // }
 
         }
@@ -549,6 +597,16 @@ public class Questionnaire extends Activity {
         item_header.setId(301);
         item_header.setTextSize(font_size);
         item_header.setTypeface(font_face);
+        // item_header.setText("Start map:");
+        /* item_header.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v)
+            {
+                load_worlds_index();
+            }
+        } ) ;
+        */
+
         item_header.setText("Start map: "+XML_file);
         item_header.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -558,10 +616,12 @@ public class Questionnaire extends Activity {
                 find_seleted_items();
                 String XML_file = temp_tv.getText().toString();
                 XML_file = XML_file.substring(11, XML_file.length());
-                invite_friend_to_game(XML_file);
-                //na_friends_start_map(temp_tv);
+                ini_first_question_or_map(XML_file);
+                // invite_friend_to_game(XML_file);
+                // na_friends_start_map(temp_tv);
             }
         } ) ;
+
 
         lin_lay_q.addView(item_header);
 
@@ -870,11 +930,31 @@ public class Questionnaire extends Activity {
         }
     }
 
-    public void invite_friend_to_game(String XML_file)
+    public void invite_friend_to_game()
     {
         remove_views();
 
         LinearLayout lin_lay_q = (LinearLayout)findViewById(R.id.linearLayout_questuinnaire_vert);
+
+        TextView click_start_map = new TextView(this);
+        click_start_map.setId(399);
+        click_start_map.setTextSize(font_size);
+        click_start_map.setTypeface(font_face);
+
+        click_start_map.setText("Back");
+
+        click_start_map.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                TextView temp_tv = (TextView) v;
+                na_friends_start_map(temp_tv);
+                load_worlds_index();
+            }
+        } ) ;
+
+
+        lin_lay_q.addView(click_start_map);
+
         TextView click_inv_player = new TextView(this);
         click_inv_player.setId(301);
         click_inv_player.setTextSize(font_size);
@@ -902,23 +982,6 @@ public class Questionnaire extends Activity {
         text_name_new_player.setTypeface(font_face);
 
         lin_lay_q.addView(text_name_new_player);
-
-
-        TextView click_start_map = new TextView(this);
-        click_start_map.setId(399);
-        click_start_map.setTextSize(font_size);
-        click_start_map.setTypeface(font_face);
-        click_start_map.setText("Start: "+XML_file);
-
-        click_start_map.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                TextView temp_tv = (TextView) v;
-                na_friends_start_map(temp_tv);
-            }
-        } ) ;
-
-        lin_lay_q.addView(click_start_map);
 
         Integer tel_friends = 0;
         String found_friendname = find_value_in_xml("login_info", "friend_"+ tel_friends);
@@ -948,14 +1011,17 @@ public class Questionnaire extends Activity {
 
     public void na_friends_start_map(TextView click_start_map_tv)
     {
-        String XML_file = click_start_map_tv.getText().toString();
-        XML_file = XML_file.substring(7, XML_file.length());
+        // String XML_file = click_start_map_tv.getText().toString();
+        // XML_file = XML_file.substring(7, XML_file.length());
         // Log.e("temp", "XML_file " + XML_file);
 
-        if(username.size() == 0)
+        if(user_name_glob.size() == 0)
         {
-           String username_s = find_value_in_xml("login_info", "name");
-            username.add(username_s);
+            String username_s = find_value_in_xml("login_info", "name");
+
+            user_name_glob.add(new ArrayList<String>());
+            Integer new_id_username = user_name_glob.size() -1;
+            user_name_glob.get(new_id_username).add(username_s);
             atr_mod.add(new ArrayList<ArrayList<ArrayList<Integer>>>());
         }
 
@@ -970,15 +1036,18 @@ public class Questionnaire extends Activity {
                 if (friends_selected.getHint().toString().equals("selected")) {
                     String selected_friend = friends_selected.getText().toString();
                     // Log.e("temp", "selected_friend " + selected_friend);
-
-                    username.add(selected_friend);
+                    user_name_glob.add(new ArrayList<String>());
+                    Integer new_id_username = user_name_glob.size() -1;
+                    user_name_glob.get(new_id_username).add(selected_friend);
+                    String found_friend_id = find_value_in_xml("login_info", "id_"+ found_friendname);
+                    user_name_glob.get(new_id_username).add(found_friend_id);
                 }
             }
             tel_friends = tel_friends +1;
             found_friendname = find_value_in_xml("login_info", "friend_"+ tel_friends);
         }
 
-        XML_ini_map_new(XML_file);
+        // XML_ini_map_new(XML_file);
     }
 
     public void add_friend_name(String name_new_friend)
@@ -1356,6 +1425,7 @@ public class Questionnaire extends Activity {
         return return_bool;
     }
 
+    /*
     public String XML_ini_questionairre(String XML_file_input) {
         XmlPullParser XmlPullParser_temp = null;
         String text_return = "";
@@ -1491,49 +1561,54 @@ public class Questionnaire extends Activity {
         }
         return text_return;
     }
+    */
 
     public void read_item_atributes(Document document_to_find_items, Integer id_field)
     {
-        NodeList selected_tags = document_to_find_items.getElementsByTagName("Selected_item");
-        Integer count_selected_tags = 0;
-        while(count_selected_tags < selected_tags.getLength())
+        Element this_world_items = (Element) document_to_find_items.getElementsByTagName(this_world+"_item_list").item(0);
+
+        if(this_world_items != null)
         {
-            Node parent_of_item = selected_tags.item(count_selected_tags).getParentNode();
-            Element parent_of_item_e = (Element) parent_of_item;
 
-            NodeList atributes_nl = parent_of_item_e.getElementsByTagName("atribute");
-            Integer count_atributes = 0;
-            while(count_atributes < atributes_nl.getLength())
+            NodeList selected_tags = this_world_items.getElementsByTagName("Selected_item");
+            Integer count_selected_tags = 0;
+            while (count_selected_tags < selected_tags.getLength())
             {
-                NamedNodeMap temp_atributes = atributes_nl.item(count_atributes).getAttributes();
-                String temp_name_item = temp_atributes.getNamedItem("name").getTextContent();
-                Node temp_name_value = temp_atributes.getNamedItem("value");
-                Integer id_atribute = find_atribute_if_from_string(temp_name_item);
-                Integer value_atribute = Integer.parseInt(temp_name_value.getTextContent());
+                Node parent_of_item = selected_tags.item(count_selected_tags).getParentNode();
+                Element parent_of_item_e = (Element) parent_of_item;
 
-                // id_object | Item id | Atribute count || x.x.x.0 = Atribute number , x.x.x.1 = value x.x.x.2 = extra (-1 = continiously)
+                NodeList atributes_nl = parent_of_item_e.getElementsByTagName("atribute");
+                Integer count_atributes = 0;
+                while (count_atributes < atributes_nl.getLength())
+                {
+                    NamedNodeMap temp_atributes = atributes_nl.item(count_atributes).getAttributes();
+                    String temp_name_item = temp_atributes.getNamedItem("name").getTextContent();
+                    Node temp_name_value = temp_atributes.getNamedItem("value");
+                    Integer id_atribute = find_atribute_if_from_string(temp_name_item);
+                    Integer value_atribute = Integer.parseInt(temp_name_value.getTextContent());
 
-
-                // Log.e("XML parser", "id_atribute:"+id_atribute+" value_atribute:"+value_atribute+" new_mod:");
-
-                atr_mod.get(id_field).add(new ArrayList<ArrayList<Integer>>());
-                Integer new_mod = atr_mod.get(id_field).size() -1;
-
-                atr_mod.get(id_field).get(new_mod).add(new ArrayList<Integer>());
-                Integer new_atribute = atr_mod.get(id_field).get(new_mod).size() -1;
-
-                atr_mod.get(id_field).get(new_mod).get(new_atribute).add(id_atribute);
-                atr_mod.get(id_field).get(new_mod).get(new_atribute).add(value_atribute);
-                atr_mod.get(id_field).get(new_mod).get(new_atribute).add(-1);
+                    // id_object | Item id | Atribute count || x.x.x.0 = Atribute number , x.x.x.1 = value x.x.x.2 = extra (-1 = continiously)
 
 
+                    // Log.e("XML parser", "id_atribute:"+id_atribute+" value_atribute:"+value_atribute+" new_mod:");
 
-                count_atributes = count_atributes+1;
+                    atr_mod.get(id_field).add(new ArrayList<ArrayList<Integer>>());
+                    Integer new_mod = atr_mod.get(id_field).size() - 1;
+
+                    atr_mod.get(id_field).get(new_mod).add(new ArrayList<Integer>());
+                    Integer new_atribute = atr_mod.get(id_field).get(new_mod).size() - 1;
+
+                    atr_mod.get(id_field).get(new_mod).get(new_atribute).add(id_atribute);
+                    atr_mod.get(id_field).get(new_mod).get(new_atribute).add(value_atribute);
+                    atr_mod.get(id_field).get(new_mod).get(new_atribute).add(-1);
+
+
+                    count_atributes = count_atributes + 1;
+                }
+
+                count_selected_tags = count_selected_tags + 1;
             }
-
-            count_selected_tags = count_selected_tags +1;
         }
-
     }
 
     public void XML_ini_map_new(String XML_file_input)
@@ -1669,10 +1744,10 @@ public class Questionnaire extends Activity {
         Integer found_startpos_id = find_highest_prio(strt_priority_list);
 
         Integer tel = 0;
-        if (username.size() == 0) {
+        if (user_name_glob.size() == 0) {
             read_username();
         }
-        while (tel < username.size()) {
+        while (tel < user_name_glob.size()) {
             field_ids_and_names.add(new ArrayList());
 
             Integer tot_arraylist = (field_ids_and_names.size()-1);
@@ -1685,7 +1760,7 @@ public class Questionnaire extends Activity {
 
             }
 
-            field_ids_and_names.get(tot_arraylist).add(String.valueOf(username.get(tel)));
+            field_ids_and_names.get(tot_arraylist).add(String.valueOf(user_name_glob.get(tel).get(0)));
             field_ids_and_names.get(tot_arraylist).add("2");
             Integer new_color = 99-(22*tel);
             if(new_color < 10)
@@ -1723,9 +1798,9 @@ public class Questionnaire extends Activity {
              // set position field_atm_array
 
             // UPDATE multiplayer_items
-            String idfriend = XML_IO.find_value_in_userxml("login_info", "id_"+username.get(tel) );
+            String idfriend = XML_IO.find_value_in_userxml("login_info", "id_"+user_name_glob.get(tel) );
             Document fiend_file = null;
-            Log.e("XML parser", "idfriend:"+idfriend+" username.get(tel):"+username.get(tel));
+            // Log.e("XML parser", "idfriend:"+idfriend+" username.get(tel):"+username.get(tel));
             if(idfriend != null)
             {
 
@@ -1742,14 +1817,14 @@ public class Questionnaire extends Activity {
 
                 if(fiend_file != null)
                 {
-                    Log.e("XML parser", "niet leeg!:");
+                    // Log.e("XML parser", "niet leeg!:");
                     read_item_atributes(fiend_file, tot_arraylist);
                 }
 
             }
             else
             {
-                Log.e("XML parser", " leeg!:( "+username.get(tel));
+                // Log.e("XML parser", " leeg!:( "+username.get(tel));
                 read_item_atributes(XML_user_info_doc, tot_arraylist);
             }
 
@@ -1773,6 +1848,12 @@ public class Questionnaire extends Activity {
             Integer enemy_y_spawn = Integer.parseInt(node_temp_atr.getTextContent().toString());
             node_temp_atr = temp_atr.getNamedItem("name");
             String enemy_name = node_temp_atr.getTextContent().toString();
+            node_temp_atr = temp_atr.getNamedItem("abs_id");
+            String id_enemy = "";
+            if(node_temp_atr != null)
+            {
+                id_enemy = node_temp_atr.getTextContent().toString();
+            }
 
             enemy_add_from_map.add(new ArrayList());
             Integer arraylist_atm = (enemy_add_from_map.size() - 1);
@@ -1815,7 +1896,7 @@ public class Questionnaire extends Activity {
                 tel_add_line = tel_add_line +1;
             }
 
-            add_random_enemy(enemy_lvl,enemy_x_spawn,enemy_y_spawn, enemy_name, tel_enemys);
+            add_random_enemy(enemy_lvl,enemy_x_spawn,enemy_y_spawn, enemy_name, tel_enemys, id_enemy);
             tel_enemys = tel_enemys+1;
         }
 
@@ -1937,6 +2018,7 @@ public class Questionnaire extends Activity {
         while (tel_no_enemy_triggers < no_enemy_triggers_nl.getLength())
         {
             Element no_enemy_element_atm = (Element) no_enemy_triggers_nl.item(tel_no_enemy_triggers);
+            /*
             NodeList temp_nl = no_enemy_element_atm.getElementsByTagName("goto_t");
             if(temp_nl.getLength() >0)
             {
@@ -1948,9 +2030,45 @@ public class Questionnaire extends Activity {
                 no_enemy_left_trigger.get(new_arraylist_i).add(temp_atributes.getNamedItem("goto").getTextContent());
                 no_enemy_left_trigger.get(new_arraylist_i).add(temp_atributes.getNamedItem("goto_id").getTextContent());
             }
+            */
+
+            NodeList tel_goto_q_m_nl = no_enemy_element_atm.getElementsByTagName("goto_q_m");
+            Integer tel_goto_q_m = 0;
+            while(tel_goto_q_m_nl.getLength() > tel_goto_q_m)
+            {
+                no_enemy_left_trigger.add(new ArrayList<Integer>());
+                Integer new_arraylist_i =  ( no_enemy_left_trigger.size() -1);
+
+                Integer reference_tel_goto_q_m = tel_goto_q_m_rules(tel_goto_q_m_nl.item(tel_goto_q_m).getAttributes());
+                no_enemy_left_trigger.get(new_arraylist_i).add(reference_tel_goto_q_m);
+                // Log.e("add_hiddenobj", "reference_tel_goto_q_m:" + reference_tel_goto_q_m);
+                tel_goto_q_m = tel_goto_q_m +1;
+            }
 
 
             tel_no_enemy_triggers = tel_no_enemy_triggers+1;
+        }
+
+
+        Integer tel_no_players_triggers = 0;
+        NodeList tel_no_players_triggers_nl = map_doc.getElementsByTagName("no_player_trigger");
+        while (tel_no_players_triggers < no_enemy_triggers_nl.getLength())
+        {
+            Element no_players_element_atm = (Element) tel_no_players_triggers_nl.item(tel_no_players_triggers);
+            NodeList tel_goto_q_m_nl = no_players_element_atm.getElementsByTagName("goto_q_m");
+            Integer tel_goto_q_m = 0;
+            while(tel_goto_q_m_nl.getLength() > tel_goto_q_m)
+            {
+                no_player_left_trigger.add(new ArrayList<Integer>());
+                Integer new_arraylist_i = ( no_player_left_trigger.size() -1);
+
+                Integer reference_tel_goto_q_m = tel_goto_q_m_rules(tel_goto_q_m_nl.item(tel_goto_q_m).getAttributes());
+                no_player_left_trigger.get(new_arraylist_i).add(reference_tel_goto_q_m);
+                tel_goto_q_m = tel_goto_q_m +1;
+            }
+
+
+            tel_no_players_triggers = tel_no_players_triggers+1;
         }
 
         upload_field();
@@ -2051,14 +2169,10 @@ public class Questionnaire extends Activity {
  //       field_img_view.setImageBitmap(bitmap_field);
 
     }
-    public void add_random_enemy(Integer level, Integer x_spawn, Integer y_spawn, String name, Integer enemy_number)
+    public void add_random_enemy(Integer level, Integer x_spawn, Integer y_spawn, String name, Integer enemy_number, String abs_id_enemy)
     {
 
 // enemy_add_from_map, x.0.x = name | x.1.x = req | x.2.x = math | x.3.x = addline
-
-
-
-
 
         ArrayList<Integer> req_norm_numbers = new ArrayList<Integer>();
         req_norm_numbers.clear();
@@ -2080,6 +2194,7 @@ public class Questionnaire extends Activity {
             field_ids_and_names.get(new_enemy_id).add(name);
             field_ids_and_names.get(new_enemy_id).add("3");
             field_ids_and_names.get(new_enemy_id).add("#ff6666");
+            field_ids_and_names.get(new_enemy_id).add(abs_id_enemy);
             field_atm_array[x_spawn][y_spawn][0] = new_enemy_id;
 
             Integer tel_math_problems = 0;
@@ -2107,7 +2222,11 @@ public class Questionnaire extends Activity {
                 String value_add = add_line_normalized.get(add_line_normalized_atm).get(1);
                 String extra_eq = add_line_normalized.get(add_line_normalized_atm).get(2);
                 Boolean extra_eq_b = false;
-                if(extra_eq != "f")
+                if(extra_eq == "true")
+                {
+                    extra_eq = "t";
+                }
+                if(extra_eq == "t")
                 {
                     extra_eq_b = true;
                 }
@@ -2178,7 +2297,7 @@ public class Questionnaire extends Activity {
         // Log.e("temp", "req_tag_name:" + req_tag_name);
         if(req_tag_name.equals("xTotal_players"))
         {
-            Integer temp = username.size();
+            Integer temp = user_name_glob.size();
             found_v = temp.toString();
             // Log.e("temp", "found_v:" + found_v);
         }
@@ -2190,6 +2309,7 @@ public class Questionnaire extends Activity {
         return return_bool;
     }
 
+    /*
     public XmlPullParser load_XML(String input) throws FileNotFoundException, XmlPullParserException {
 
         FileInputStream in = null;
@@ -2205,6 +2325,7 @@ public class Questionnaire extends Activity {
 
         return myparser;
     }
+    */
 
     public void font_used(String new_font)
     {
@@ -2233,6 +2354,7 @@ public class Questionnaire extends Activity {
 
     }
 
+    /*
     public TextView create_awnserview(String onclick_temp, String goto_id, String XML_file_input)
     {
 
@@ -2292,6 +2414,7 @@ public class Questionnaire extends Activity {
         return question_tv;
 
     }
+    */
 
     public void add_awnser_personality_scores (String to_server_awnser_id, String question_name)
     {
@@ -2511,8 +2634,6 @@ public class Questionnaire extends Activity {
                     node_temp_atr.setTextContent(add_value);
                 }
             }
-
-
         }
 
         try {
@@ -2589,6 +2710,41 @@ public class Questionnaire extends Activity {
         } ) ;
 
         lin_lay_q.addView(send_updater_flag);
+        /*
+        TextView use_items_tv = new TextView(this);
+        use_items_tv.setId(101);
+        use_items_tv.setTextSize(font_size);
+        use_items_tv.setText("Change selected items");
+
+        use_items_tv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                use_items();
+                // ArrayList<String> returned_data = new ArrayList<String>();
+                // returned_data = server_side_PHP.get_dataarray_server();
+            }
+        } ) ;
+
+        lin_lay_q.addView(use_items_tv);
+        */
+
+        TextView add_friends_tv = new TextView(this);
+        add_friends_tv.setId(102);
+        add_friends_tv.setTextSize(font_size);
+        add_friends_tv.setText("Add friends");
+
+        add_friends_tv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                invite_friend_to_game();
+                // ArrayList<String> returned_data = new ArrayList<String>();
+                // returned_data = server_side_PHP.get_dataarray_server();
+            }
+        } ) ;
+
+        lin_lay_q.addView(add_friends_tv);
 
      }
 
@@ -2984,8 +3140,9 @@ public class Questionnaire extends Activity {
         {
 
         }
-        // Log.e("temp", "saved_q_or_m:" + saved_q_or_m + " saved_xml_name:" +saved_xml_name);
+        // Log.e("enter_game", "saved_q_or_m:" + saved_q_or_m + " saved_xml_name:" +saved_xml_name + " document_world_index_s:"+document_world_index_s);
         read_map_rules();
+        //Log.e("enter_game2", " document_world_index_s:"+document_world_index_s);
 
         XML_ini_q_or_map(saved_q_or_m, saved_xml_name);
     }
@@ -3007,9 +3164,11 @@ public class Questionnaire extends Activity {
                 TextView temp_tv = (TextView) v;
                 Bundle inputExtras = temp_tv.getInputExtras(true);
                 String world_to_load = inputExtras.getString("onclick_temp", "");
+                Log.e("temp", "world_to_load " + world_to_load);
                 // temp_tv.setText("clicked "+world_to_load);
                 // download_world(world_to_load); START WORLD
-                ini_first_question_or_map(world_to_load);
+                use_items(world_to_load);
+                // ini_first_question_or_map(world_to_load);
 
             }
         }) ;
@@ -3119,7 +3278,7 @@ public class Questionnaire extends Activity {
 
         Integer[] pos_active_player_id = xy_pos_id(active_player_id);
         Integer id_ofcell_type_clicked = field_atm_array[x_clicked][y_clicked][0];
-
+        // Log.e("test_multiplayer", "id_ofcell_type_clicked"+id_ofcell_type_clicked);
         if(id_ofcell_type_clicked != null) {
 
             // 1 = type (0 = empty 1 = normal 2 = player 3 = enemy 4 = neutral 5 = trigger)
@@ -3127,6 +3286,7 @@ public class Questionnaire extends Activity {
             String total_text = "";
 
             Integer id_rulebook = from_object_name_to_rule_number(field_ids_and_names.get(id_ofcell_type_clicked).get(0));
+            // Log.e("test_multiplayer", "id_rulebook"+id_rulebook);
             if (id_rulebook != -1) {
 
                 total_text = total_text + "Name" + " : " + field_ids_and_names.get(id_ofcell_type_clicked).get(0) + "\n";
@@ -3195,7 +3355,7 @@ public class Questionnaire extends Activity {
                             tel_req_interactions = tel_req_interactions +1;
                         }
                         Boolean check_req_bool = check_req_type_extended (req_norm_numbers);
-                        Log.e("temp", "check_req_bool:" + check_req_bool +" ckicked:" +field_ids_and_names.get(id_ofcell_type_clicked).get(0));
+                        // Log.e("temp", "check_req_bool:" + check_req_bool +" ckicked:" +field_ids_and_names.get(id_ofcell_type_clicked).get(0));
                         if(check_req_bool == true)
                         {
 
@@ -3242,7 +3402,11 @@ public class Questionnaire extends Activity {
                                             String value_add = add_line_normalized.get(add_line_normalized_atm).get(1);
                                             String extra_eq = add_line_normalized.get(add_line_normalized_atm).get(2);
                                             Boolean extra_eq_b = false;
-                                            if(extra_eq != "f")
+                                            if(extra_eq == "true")
+                                            {
+                                                extra_eq = "t";
+                                            }
+                                            if(extra_eq == "t")
                                             {
                                                 extra_eq_b = true;
                                             }
@@ -3256,13 +3420,22 @@ public class Questionnaire extends Activity {
                                         {
 
                                             Integer add_line_normalized_atm = Integer.parseInt(enemy_interaction.get(id_interaction).get(5).get(tel_drop_items));
-                                            // Log.e("temp", "hello:inside_items: "+add_line_normalized_atm);
                                             drop_items(add_line_normalized_atm);
 
                                             tel_drop_items = tel_drop_items +1;
                                         }
-                                        // Log.e("temp", "hello:done");
 
+                                        Integer tel_goto_q_m = 0;
+                                        while(enemy_interaction.get(id_interaction).get(6).size() > tel_goto_q_m)
+                                        {
+                                            Integer tel_goto_q_m_atm = Integer.parseInt(enemy_interaction.get(id_interaction).get(6).get(tel_goto_q_m));
+                                            String goto_q_m = goto_normalized.get(tel_goto_q_m_atm).get(0);
+                                            String goto_id = goto_normalized.get(tel_goto_q_m_atm).get(1);
+                                            String above_map_s = goto_normalized.get(tel_goto_q_m_atm).get(2);
+                                            goto_q_m_new(goto_q_m, goto_id, above_map_s);
+
+                                            tel_goto_q_m = tel_goto_q_m +1;
+                                        }
 
                                     }
 
@@ -3404,6 +3577,9 @@ public class Questionnaire extends Activity {
             if(req_pass == true)
             {
                 String temp = atribute_trigger.get(tel_atribute_trigers).get(2).get(0);
+
+                // set new target
+
                 // Log.e("XML parser", "TRUE: "+ temp);
                 if(temp.equals("remove"))
                 {
@@ -3436,7 +3612,11 @@ public class Questionnaire extends Activity {
                         String value_add = add_line_normalized.get(add_line_normalized_atm).get(1);
                         String extra_eq = add_line_normalized.get(add_line_normalized_atm).get(2);
                         Boolean extra_eq_b = false;
-                        if(extra_eq != "f")
+                        if(extra_eq == "true")
+                        {
+                            extra_eq = "t";
+                        }
+                        if(extra_eq == "t")
                         {
                             extra_eq_b = true;
                         }
@@ -3455,6 +3635,20 @@ public class Questionnaire extends Activity {
 
                         tel_drop_items = tel_drop_items +1;
                     }
+
+                    Integer tel_goto_q_m = 0;
+                    while(atribute_trigger.get(tel_atribute_trigers).get(7).size() > tel_goto_q_m)
+                    {
+                        Integer tel_goto_q_m_atm = Integer.parseInt(atribute_trigger.get(tel_atribute_trigers).get(7).get(tel_goto_q_m));
+                        String goto_q_m = goto_normalized.get(tel_goto_q_m_atm).get(0);
+                        String goto_id = goto_normalized.get(tel_goto_q_m_atm).get(1);
+                        String above_map_s = goto_normalized.get(tel_goto_q_m_atm).get(2);
+
+                        goto_q_m_new(goto_q_m, goto_id, above_map_s);
+
+                        tel_goto_q_m = tel_goto_q_m +1;
+                    }
+
 
 
                 }
@@ -3487,18 +3681,32 @@ public class Questionnaire extends Activity {
         //k
     }
 
-    public Integer[] get_user_personality()
+    public Integer[] get_user_personality(Integer user_id_username)
     {
         Integer return_int[] = new Integer[6];
-        String norm_extra_s = XML_IO.find_value_in_userxml("login_info", "normalized_Extraversion");
+        Document player_info_doc = null;
+        String document_name = "user_info";
+        if(user_id_username > 0)
+        {
+            document_name = "uif"+user_name_glob.get(user_id_username).get(1);
+        }
+
+        try
+        {
+            player_info_doc = XML_IO.open_document_xml(document_name);
+        } catch (FileNotFoundException e)
+        {
+            e.printStackTrace();
+        } catch (XmlPullParserException e)
+        {
+            e.printStackTrace();
+        }
+
+
+        String norm_extra_s = XML_IO.find_value_in_doc(player_info_doc, "login_info", "normalized_Extraversion");
         if (norm_extra_s == null)
         {
-            if(player_id_server == "")
-            {
-                player_id_server = find_value_in_xml("login_info", "id");
-            }
-
-            String[] data_url_addon = {player_id_server};
+            String[] data_url_addon = {user_name_glob.get(user_id_username).get(1)};
             String[] id_url_addon = {"qid"};
             String php_file = "user_personality_out.php";
 
@@ -3530,29 +3738,214 @@ public class Questionnaire extends Activity {
                     return_int[tel] = Math.round(return_int[tel] * (correction / 1000));
                     tel = tel +1;
                 }
-                XML_IO.set_value_user_info("login_info", "normalized_Extraversion", return_int[0].toString() );
-                XML_IO.set_value_user_info("login_info", "normalized_Agreeableness", return_int[1].toString() );
-                XML_IO.set_value_user_info("login_info", "normalized_Conscientiousness", return_int[2].toString() );
-                XML_IO.set_value_user_info("login_info", "normalized_Neuroticism", return_int[3].toString() );
-                XML_IO.set_value_user_info("login_info", "normalized_Openness", return_int[4].toString() );
+                XML_IO.set_value_document_info(player_info_doc, "login_info", "normalized_Extraversion", return_int[0].toString() , document_name);
+                XML_IO.set_value_document_info(player_info_doc, "login_info", "normalized_Agreeableness", return_int[1].toString() , document_name);
+                XML_IO.set_value_document_info(player_info_doc, "login_info", "normalized_Conscientiousness", return_int[2].toString() , document_name);
+                XML_IO.set_value_document_info(player_info_doc, "login_info", "normalized_Neuroticism", return_int[3].toString() , document_name);
+                XML_IO.set_value_document_info(player_info_doc, "login_info", "normalized_Openness", return_int[4].toString() , document_name);
+
                 // Log.e("temp", "normalized_Extraversion " + return_int[0].toString());
                 // Log.e("temp", "normalized_Openness " + return_int[4].toString());
             }
-
-
         }
         else
         {
-            return_int[0] = Integer.parseInt(XML_IO.find_value_in_userxml("login_info", "normalized_Extraversion"));
-            return_int[1] = Integer.parseInt(XML_IO.find_value_in_userxml("login_info", "normalized_Agreeableness"));
-            return_int[2] = Integer.parseInt(XML_IO.find_value_in_userxml("login_info", "normalized_Conscientiousness"));
-            return_int[3] = Integer.parseInt(XML_IO.find_value_in_userxml("login_info", "normalized_Neuroticism"));
-            return_int[4] = Integer.parseInt(XML_IO.find_value_in_userxml("login_info", "normalized_Openness"));
-            // Log.e("temp", "normalized_Extraversion  " + return_int[0].toString());
-            // Log.e("temp", "normalized_Openness " + return_int[4].toString());
-            // Log.e("temp", "loaded :)" );
+            return_int[0] = Integer.parseInt(XML_IO.find_value_in_doc(player_info_doc, "login_info", "normalized_Extraversion"));
+            return_int[1] = Integer.parseInt(XML_IO.find_value_in_doc(player_info_doc, "login_info", "normalized_Agreeableness"));
+            return_int[2] = Integer.parseInt(XML_IO.find_value_in_doc(player_info_doc, "login_info", "normalized_Conscientiousness"));
+            return_int[3] = Integer.parseInt(XML_IO.find_value_in_doc(player_info_doc, "login_info", "normalized_Neuroticism"));
+            return_int[4] = Integer.parseInt(XML_IO.find_value_in_doc(player_info_doc, "login_info", "normalized_Openness"));
         }
 
+        return return_int;
+    }
+
+
+    public Integer selected_player_user_id_from_s(String input)
+    {
+        // k
+        Integer return_player = -1;
+        Integer end_name = (input.indexOf("|"));
+        String type_operator_is = input.substring(0, end_name);
+        String name_atribute_is_and_opperator = input.substring((end_name + 1), input.length());
+
+        Integer end_name2 = (name_atribute_is_and_opperator.indexOf("|"));
+        String name_atribute_is = name_atribute_is_and_opperator.substring(0, end_name2);
+        String name_opperator2_is = name_atribute_is_and_opperator.substring((end_name2 + 1), name_atribute_is_and_opperator.length());
+        // add u_info en u_person
+        // k
+        if(name_atribute_is.equals("distance"))
+        {
+            Integer tel_ids = 0;
+            Integer smallest_distance = -1;
+            Integer smallest_distance_id = -1;
+            while(tel_ids < field_ids_and_names.size())
+            {
+                Integer type_id_atm = Integer.parseInt(field_ids_and_names.get(tel_ids).get(1));
+
+                if(type_id_atm == 2 )
+                {
+                    Integer[] xy_pos_target = xy_pos_id(target_field_id);
+                    Integer[] xy_pos_player = xy_pos_id(active_player_id);
+                    Integer distance = range_to(xy_pos_player[0], xy_pos_player[1], xy_pos_target[0], xy_pos_target[1]);
+                    if(name_opperator2_is.equals("bi"))
+                    {
+                        if (distance > smallest_distance || smallest_distance == -1)
+                        {
+                            smallest_distance_id = tel_ids;
+                            smallest_distance = distance;
+                        }
+                    }
+                    else
+                    {
+                        if (distance < smallest_distance || smallest_distance == -1)
+                        {
+                            smallest_distance_id = tel_ids;
+                            smallest_distance = distance;
+                        }
+                    }
+                }
+                tel_ids = tel_ids+1;
+            }
+            Integer user_id_username = username_to_user_id(field_ids_and_names.get(smallest_distance_id).get(0));
+
+            return_player = user_id_username;
+        }
+
+        else if(type_operator_is.equals("tag_world"))
+        {
+            Integer end_name_2 = (name_atribute_is.indexOf("|"));
+            String world_tag = name_atribute_is.substring(0, end_name_2);
+            String tag_name = name_atribute_is.substring((end_name_2 + 1), name_atribute_is.length());
+
+            String temp = XML_IO.find_value_in_userxml(world_tag, tag_name);
+            Integer biggest_integer = -1;
+            if(temp != null)
+            {
+                biggest_integer = Integer.parseInt(temp);
+                return_player = 0;
+            }
+
+            Integer tel_user_ids = 1;
+
+            while(tel_user_ids < user_name_glob.size())
+            {
+                Integer friend_check_id = Integer.parseInt(user_name_glob.get(tel_user_ids).get(1));
+                Document fiend_file = null;
+                try
+                {
+                    fiend_file = XML_IO.open_document_xml("uif"+friend_check_id);
+                } catch (FileNotFoundException e)
+                {
+                    e.printStackTrace();
+                } catch (XmlPullParserException e)
+                {
+                    e.printStackTrace();
+                }
+
+                if(fiend_file != null)
+                {
+                    temp = XML_IO.find_value_in_doc(fiend_file, world_tag, tag_name);
+                }
+                if(temp != null)
+                {
+                    Integer temp_int = Integer.parseInt(temp);
+                    if(temp_int > biggest_integer)
+                    {
+                        biggest_integer = temp_int;
+                        return_player = tel_user_ids;
+                    }
+                }
+                tel_user_ids = tel_user_ids+1;
+            }
+        }
+        else if(type_operator_is.equals("u_person"))
+        {
+            Integer tel_user_ids = 0;
+            Integer most_extreme_number = null;
+            Integer most_extreme_id = null;
+
+            while(tel_user_ids < user_name_glob.size())
+            {
+                Integer[] personality_array_found = get_user_personality(tel_user_ids);
+                Integer personality_found = from_personality_array_to_number(personality_array_found, name_atribute_is);
+                if(tel_user_ids == 0)
+                {
+                    most_extreme_number = personality_found;
+                    most_extreme_id = tel_user_ids;
+                }
+                else
+                {
+                    if (name_opperator2_is.equals("bi"))
+                    {
+                        if(personality_found > most_extreme_number)
+                        {
+                            most_extreme_number = personality_found;
+                            most_extreme_id = tel_user_ids;
+                        }
+                    }
+                    else
+                    {
+                        if(personality_found < most_extreme_number)
+                        {
+                            most_extreme_number = personality_found;
+                            most_extreme_id = tel_user_ids;
+                        }
+                    }
+                }
+                tel_user_ids = tel_user_ids + 1;
+            }
+            return_player = most_extreme_id;
+        }
+        else if(type_operator_is.equals("random"))
+        {
+            Integer tel_ids = 0;
+            ArrayList<Integer> found_players = new ArrayList<Integer>();
+            while(tel_ids < field_ids_and_names.size())
+            {
+                Integer type_id_atm = Integer.parseInt(field_ids_and_names.get(tel_ids).get(1));
+
+                if(type_id_atm == 2 )
+                {
+                    found_players.add(tel_ids);
+                }
+                tel_ids = tel_ids+1;
+            }
+            //Integer user_id_username = username_to_user_id(field_ids_and_names.get(smallest_distance_id).get(0));
+
+            Random rand = new Random();
+            int determained_random = rand.nextInt(found_players.size());
+            Integer random_player_id = found_players.get(determained_random);
+
+            return_player = username_to_user_id(field_ids_and_names.get(random_player_id).get(0));
+        }
+        return return_player;
+    }
+
+
+    public Integer from_personality_array_to_number(Integer[] personality_array, String type_name)
+    {
+        Integer return_int = 0;
+        if(type_name.equals("Extraversion"))
+        {
+            return_int = personality_array[0];
+        }
+        else if(type_name.equals("Agreeableness"))
+        {
+            return_int = personality_array[1];
+        }
+        else if(type_name.equals("Conscientiousness"))
+        {
+            return_int = personality_array[2];
+        }
+        else if(type_name.equals("Neuroticism"))
+        {
+            return_int = personality_array[3];
+        }
+        else if(type_name.equals("Openness"))
+        {
+            return_int = personality_array[4];
+        }
         return return_int;
     }
 
@@ -3583,7 +3976,7 @@ public class Questionnaire extends Activity {
         {
             return_array[0] = -1;
             return_array[1] = -1;
-            return_array[2] = username.size();
+            return_array[2] = user_name_glob.size();
         }
         else if(type_operator_is.equals("u_info"))
         {
@@ -3614,40 +4007,31 @@ public class Questionnaire extends Activity {
         {
             return_array[0] = -1;
             return_array[1] = -1;
-            if(name_atribute_is.equals("Extraversion"))
-            {
-                return_array[2] = get_user_personality()[0];
-            }
-            else if(name_atribute_is.equals("Agreeableness"))
-            {
-                return_array[2] = get_user_personality()[1];
+            Integer[] personality_array_found = get_user_personality(from_active_player_to_user_id());
+            Integer personality_found = from_personality_array_to_number(personality_array_found, name_atribute_is);
+            return_array[2] = personality_found;
 
-            }
-            else if(name_atribute_is.equals("Conscientiousness"))
-            {
-                return_array[2] = get_user_personality()[2];
+        }
+        else if(type_operator_is.equals("abs_id"))
+        {
+            Integer end_name_2 = (name_atribute_is.indexOf("|"));
+            String abs_id_s = name_atribute_is.substring(0, end_name_2);
+            String abtribute_s = name_atribute_is.substring((end_name_2 + 1), name_atribute_is.length());
 
-            }
-            else if(name_atribute_is.equals("Neuroticism"))
-            {
-                return_array[2] = get_user_personality()[3];
+            Integer rulebook_id = from_object_name_to_rule_number(abs_id_s);
+            Integer atribute_nr = find_atribute_if_from_string(abtribute_s);
+            Integer field_id = from_name_to_id_field(abs_id_s);
 
-            }
-            else if(name_atribute_is.equals("Openness"))
-            {
-                return_array[2] = get_user_personality()[4];
-            }
-            else
-            {
-                return_array[2] = 0;
-            }
+            return_array[0] = rulebook_id;
+            return_array[1] = field_id;
+            return_array[2] = atribute_nr;
 
         }
         else
         {
             Integer rulebook_id = from_object_name_to_rule_number(type_operator_is);
             Integer atribute_nr = find_atribute_if_from_string(name_atribute_is);
-            Integer field_id =from_name_to_id_field(type_operator_is);
+            Integer field_id = from_name_to_id_field(type_operator_is);
             return_array[0] = rulebook_id;
             return_array[1] = field_id;
             return_array[2] = atribute_nr;
@@ -3666,6 +4050,23 @@ public class Questionnaire extends Activity {
         return input;
     }
 
+    public Integer from_active_player_to_user_id()
+    {
+        Integer return_int = 0;
+        String name_active_player = field_ids_and_names.get(active_player_id).get(0);
+        Integer tel_usernames = 0;
+        while(tel_usernames < user_name_glob.size())
+        {
+            String name_temp = user_name_glob.get(tel_usernames).get(0);
+            if(name_temp.equals(name_active_player))
+            {
+                return_int = tel_usernames;
+            }
+            tel_usernames = tel_usernames +1;
+        }
+        return return_int;
+
+    }
 
     public Integer from_name_to_id_field(String name)
     {
@@ -3678,6 +4079,26 @@ public class Questionnaire extends Activity {
         {
             return_id = target_field_id;
         }
+        if(name.equals("q_active"))
+        {
+            return_id = selected_player_q;
+        }
+
+
+        Integer tel_field_ids = 0;
+        while(tel_field_ids < field_ids_and_names.size() && return_id == -1)
+        {
+            if(field_ids_and_names.get(tel_field_ids).size() > 3)
+            {
+                String abs_id_temp = field_ids_and_names.get(tel_field_ids).get(3);
+                if (name.equals(abs_id_temp))
+                {
+                    return_id = tel_field_ids;
+                }
+            }
+            tel_field_ids = tel_field_ids +1;
+        }
+
         Integer tel_names = 0;
         while(tel_names < field_ids_and_names.size())
         {
@@ -3694,7 +4115,8 @@ public class Questionnaire extends Activity {
 
     public Integer from_object_name_to_rule_number(String name)
     {
-        Integer return_id = -1;
+        Integer return_id = 0;
+        /*
         if(name.equals("pl"))
         {
             name = field_ids_and_names.get(active_player_id).get(0);
@@ -3710,25 +4132,42 @@ public class Questionnaire extends Activity {
             return_id = 0;
         }
         Integer tel_usernames = 0;
-        while(tel_usernames < username.size())
+        while(tel_usernames < user_name_glob.size())
         {
-            if(username.get(tel_usernames).equals(name))
+            if(user_name_glob.get(tel_usernames).get(0).equals(name))
             {
                 return_id = 0;
             }
             tel_usernames = tel_usernames+1;
         }
 
+        Integer tel_field_ids = 0;
+        while(tel_field_ids < field_ids_and_names.size() && return_id == -1)
+        {
+            if(field_ids_and_names.get(tel_field_ids).size() > 3)
+            {
+                String abs_id_temp = field_ids_and_names.get(tel_field_ids).get(3);
+                if (name.equals(abs_id_temp))
+                {
+                    name = field_ids_and_names.get(tel_field_ids).get(0);
+                }
+            }
+            tel_field_ids = tel_field_ids +1;
+        }
+*/
+        Integer found_field_id = from_name_to_id_field(name);
+        String name_found = field_ids_and_names.get(found_field_id).get(0);
         Integer tel_names = 0;
         while(tel_names < names_objects_id_sync.size())
         {
-            String found_name = names_objects_id_sync.get(tel_names);
-            if(name.equals(found_name))
+            String name_object = names_objects_id_sync.get(tel_names);
+            if(name_found.equals(name_object))
             {
                 return_id = tel_names;
             }
             tel_names = tel_names +1;
         }
+
         return return_id;
     }
 
@@ -3756,7 +4195,7 @@ public class Questionnaire extends Activity {
             atribute_synchrome_id.add(atribute_id_temp_is);
 
             Integer id_found_object_field = from_name_to_id_field(type_operator_is);
-            Integer id_found_object_rulebook =from_object_name_to_rule_number(type_operator_is);
+            Integer id_found_object_rulebook = from_object_name_to_rule_number(type_operator_is);
 
             Integer total_atribute_value = id_def_atributs.get(id_found_object_rulebook).get(atribute_id_temp_is);
             /*
@@ -3872,60 +4311,6 @@ public class Questionnaire extends Activity {
             }
 
 
-            // if(id_found_object_field > -1)
-            /*
-            {
-
-                Integer total_atribute_value = id_def_atributs.get(id_found_object_rulebook).get(atribute_id_temp);
-                Integer size = atribute_modifications.size();
-                while(id_found_object_field>= size)
-                {
-                    size = atribute_modifications.size();
-                    atribute_modifications.add(new ArrayList<ArrayList<ArrayList<Integer>>>());
-                }
-                Integer tel_modifications = 0;
-                while(tel_modifications < atribute_modifications.get(id_found_object_field).size())
-                {
-                    if(atribute_modifications.get(id_found_object_field).get(tel_modifications).size()> atribute_id_temp)
-                    {
-                        total_atribute_value = total_atribute_value + atribute_modifications.get(id_found_object_field).get(tel_modifications).get(atribute_id_temp).get(0);
-                    }
-                    tel_modifications = tel_modifications +1 ;
-                }
-                found_atribute_value = total_atribute_value;
-
-
-                found_atribute_value = count_atributs_mod_to_def(id_found_object_rulebook, id_found_object_field, atribute_id_temp);
-                do_the_math = true;
-
-            }
-
-            else if(type_operator.equals("v"))
-            {
-                found_atribute_value = Integer.parseInt(name_atribute);
-                // awnser = awnser + Integer.parseInt(name_atribute);
-                do_the_math = true;
-            }
-            else if(type_operator.equals("xx"))
-            {
-                if(name_atribute.equals("distance"))
-                {
-                    Integer[] xy_pos_target = xy_pos_id(target_field_id);
-                    Integer[] xy_pos_player = xy_pos_id(active_player_id);
-                    Integer distance = range_to(xy_pos_player[0], xy_pos_player[1], xy_pos_target[0], xy_pos_target[0]);
-
-                    awnser = distance;
-                }
-            }
-            */
-
-            /*
-            else
-            {
-                privious_opperator = type_operator;
-            }
-*/
-            // Log.e("test calculation", "awnser="+awnser+ " found_atribute_value" +found_atribute_value );
             if(do_the_math == true)
             {
                 if(privious_opperator.equals("="))
@@ -3954,30 +4339,38 @@ public class Questionnaire extends Activity {
         // if id_player_rulebook == -1 then return_total == id_atribute
         Integer return_total = 0;
 
-        Integer total_atribute_value = id_def_atributs.get(id_player_rulebook).get(id_atribute);
-        Integer size = atr_mod.size();
-        while(id_player_field>= size)
-        {
-            size = atr_mod.size();
-            atr_mod.add(new ArrayList<ArrayList<ArrayList<Integer>>>());
-        }
-        Integer tel_items = 0;
-        while(tel_items < atr_mod.get(id_player_field).size())
-        {
-            // id_object | Item id | Atribute count || x.x.x.0 = Atribute number , x.x.x.1 = value x.x.x.2 = extra
-            Integer tel_atributes = 0;
-            while(tel_atributes < atr_mod.get(id_player_field).get(tel_items).size())
-            {
-                if(id_atribute == atr_mod.get(id_player_field).get(tel_items).get(tel_atributes).get(0) )
-                {
-                    total_atribute_value = total_atribute_value + atr_mod.get(id_player_field).get(tel_items).get(tel_atributes).get(1);
-                }
-                tel_atributes = tel_atributes +1;
-            }
 
-            tel_items = tel_items +1 ;
+        if(id_player_rulebook != -1)
+        {
+            Integer total_atribute_value = id_def_atributs.get(id_player_rulebook).get(id_atribute);
+            Integer size = atr_mod.size();
+            while (id_player_field >= size)
+            {
+                size = atr_mod.size();
+                atr_mod.add(new ArrayList<ArrayList<ArrayList<Integer>>>());
+            }
+            Integer tel_items = 0;
+            while (tel_items < atr_mod.get(id_player_field).size())
+            {
+                // id_object | Item id | Atribute count || x.x.x.0 = Atribute number , x.x.x.1 = value x.x.x.2 = extra
+                Integer tel_atributes = 0;
+                while (tel_atributes < atr_mod.get(id_player_field).get(tel_items).size())
+                {
+                    if (id_atribute == atr_mod.get(id_player_field).get(tel_items).get(tel_atributes).get(0))
+                    {
+                        total_atribute_value = total_atribute_value + atr_mod.get(id_player_field).get(tel_items).get(tel_atributes).get(1);
+                    }
+                    tel_atributes = tel_atributes + 1;
+                }
+
+                tel_items = tel_items + 1;
+            }
+            return_total = total_atribute_value;
         }
-        return_total = total_atribute_value;
+        else
+        {
+            Log.e("temp", "id_player_rulebook:" + id_player_rulebook+" id_player_field:" + id_player_field+" id_atribute:" + id_atribute);
+        }
         return return_total;
     }
 
@@ -4054,7 +4447,7 @@ public class Questionnaire extends Activity {
                     req_pass = check_req_type_extended (req_norm_numbers);
                 }
             }
-            Log.e("hiddenobj", "tel_hidden_objects_array:"+tel_hidden_objects_array+" req_pass " + req_pass+" size"+hidden_objects_array.get(tel_hidden_objects_array).get(5));
+            // Log.e("hiddenobj", "tel_hidden_objects_array:"+tel_hidden_objects_array+" req_pass " + req_pass+" size"+hidden_objects_array.get(tel_hidden_objects_array).get(5));
 
             if(req_pass == true)
             {
@@ -4074,7 +4467,11 @@ public class Questionnaire extends Activity {
                     String value_add = add_line_normalized.get(add_line_normalized_atm).get(1);
                     String extra_eq = add_line_normalized.get(add_line_normalized_atm).get(2);
                     Boolean extra_eq_b = false;
-                    if(extra_eq != "f")
+                    if(extra_eq == "true")
+                    {
+                        extra_eq = "t";
+                    }
+                    if(extra_eq == "t")
                     {
                         extra_eq_b = true;
                     }
@@ -4099,10 +4496,23 @@ public class Questionnaire extends Activity {
                     String goto_q_m = goto_normalized.get(tel_goto_q_m_atm).get(0);
                     String goto_id = goto_normalized.get(tel_goto_q_m_atm).get(1);
                     String above_map_s = goto_normalized.get(tel_goto_q_m_atm).get(2);
-                    Log.e("hiddenobj", "goto_q_m:"+goto_q_m+" above_map_s " + above_map_s);
+                    // Log.e("hiddenobj", "goto_q_m:"+goto_q_m+" above_map_s " + above_map_s);
                     goto_q_m_new(goto_q_m, goto_id, above_map_s);
 
                     tel_goto_q_m = tel_goto_q_m +1;
+                }
+                Boolean remove_hidden_obj = true;
+                if(hidden_objects_array.get(tel_hidden_objects_array).size() > 9)
+                {
+                    if(hidden_objects_array.get(tel_hidden_objects_array).get(9).equals("f"))
+                    {
+                        remove_hidden_obj = false;
+                    }
+                }
+                if(remove_hidden_obj == true)
+                {
+                    hidden_objects_array.get(tel_hidden_objects_array).get(3).set(0,"-1");
+                    hidden_objects_array.remove(tel_hidden_objects_array);
                 }
 
             }
@@ -4116,13 +4526,19 @@ public class Questionnaire extends Activity {
 
     public void goto_q_m_new(String goto_q_m, String goto_id, String above_map_s)
     {
+        // Log.e("goto_q_m_new", "goto_q_m_new:"+goto_q_m+" goto_id:" + goto_id);
+
+        XML_IO.set_value_user_info(this_world+"_save", "saved_xml_name", goto_q_m);
+        XML_IO.set_value_user_info(this_world+"_save", "saved_q_or_m", goto_id);
+
         if(goto_id == "m")
         {
             end_map(goto_id, goto_q_m);
         }
-        else if(goto_id == "r")
+        else if(goto_id.equals("r"))
         {
-
+           // Log.e("goto_q_m_new", "Remove?:");
+            remove_question_above();
         }
         else
         {
@@ -4136,9 +4552,21 @@ public class Questionnaire extends Activity {
         }
     }
 
+    public void remove_question_above()
+    {
+        awnser_id = 102;
+        FrameLayout frame_layout_parent = (FrameLayout)findViewById(R.id.frame_layout_q);
+        LinearLayout lin_lay_q = (LinearLayout)findViewById(R.id.linearLayout_questuinnaire_vert);
+        View remove_view = (View) findViewById(999);
+        if(remove_view != null)
+        {
+            frame_layout_parent.removeView(remove_view);
+        }
+    }
+
     public void question_above_ini(String xml_name_goto)
     {
-
+        awnser_id = 102;
         questions_awnser_array.clear();
 
         LinearLayout new_ll_vert = new LinearLayout(ApplicationContextProvider.getContext());
@@ -4181,6 +4609,7 @@ public class Questionnaire extends Activity {
         {
             question_s = question_nl.item(0).getTextContent();
             question_s = replace_q_texts(question_s);
+            question_s = question_s +"\n";
         }
 
         TextView question_tv = new TextView(ApplicationContextProvider.getContext());
@@ -4188,20 +4617,86 @@ public class Questionnaire extends Activity {
         question_tv.setText(question_s);
         question_tv.setTextSize(font_size);
         question_tv.setTypeface(font_face);
+        question_tv.setTextColor(Color.parseColor("#eeeeee"));
 
         new_ll_vert.addView(question_tv);
 
-        String answer_text = "";
+        NodeList player_select_nl = question_doc.getElementsByTagName("player_select");
+        Integer tel_player_select = 0;
+        while(tel_player_select < player_select_nl.getLength() )
+        {
+
+            Element player_select_element_atm = (Element) player_select_nl.item(tel_player_select);
+            NamedNodeMap player_select_atributes = player_select_element_atm.getAttributes();
+            String req_name_player = player_select_atributes.getNamedItem("req_name").getTextContent().toString();
+            String set_vriable = player_select_atributes.getNamedItem("set").getTextContent().toString();
+
+            player_select_array.get(tel_player_select).add(new ArrayList());
+            NodeList req_interaction_nl = player_select_element_atm.getElementsByTagName("req");
+            Integer tel_req = 0;
+            while(req_interaction_nl.getLength() > tel_req)
+            {
+                NamedNodeMap temp_atribut_req = req_interaction_nl.item(tel_req).getAttributes();
+                Integer reference_req = add_req_tag(temp_atribut_req);
+                player_select_array.get(tel_player_select).get(0).add(reference_req.toString());
+                tel_req = tel_req+1;
+            }
+
+            ArrayList<Integer> req_norm_numbers = new ArrayList<Integer>();
+            req_norm_numbers.clear();
+            Integer tel_all_req = 0;
+            while(tel_all_req < player_select_array.get(tel_player_select).get(0).size())
+            {
+                String req_number_temp = player_select_array.get(tel_player_select).get(0).get(tel_all_req);
+                Integer req_number_temp_i = Integer.parseInt(req_number_temp);
+                req_norm_numbers.add(req_number_temp_i);
+                tel_all_req = tel_all_req +1;
+            }
+            Boolean req_pass = check_req_type_extended (req_norm_numbers);
+
+            if(req_pass == true)
+            {
+                Integer from_interger_player = selected_player_user_id_from_s(req_name_player);
+
+                if(set_vriable.equals("selected_player_q"))
+                {
+                    selected_player_q = from_interger_player;
+                }
+                else if(set_vriable.equals("active_player_id"))
+                {
+                    active_player_id = from_interger_player;
+                }
+                else if(set_vriable.equals("target_field_id"))
+                {
+                    target_field_id = from_interger_player;
+                }
+            }
+
+            tel_player_select = tel_player_select +1 ;
+        }
+
         NodeList awnsers_nl = question_doc.getElementsByTagName("awnser");
         Integer tel_awnsers = 0;
         while(tel_awnsers < awnsers_nl.getLength() )
         {
-            answer_text = awnsers_nl.item(tel_awnsers).getTextContent();
+            String answer_text = "";
+            NodeList all_childer_nl = awnsers_nl.item(tel_awnsers).getChildNodes();
+            Integer tel_childeren = 0;
+            while(tel_childeren < all_childer_nl.getLength())
+            {
+                if(all_childer_nl.item(tel_childeren).getNodeType() == Node.TEXT_NODE )
+                {
+                    answer_text = answer_text + all_childer_nl.item(tel_childeren).getTextContent();
+                }
+                tel_childeren = tel_childeren+1;
+            }
+            // answer_text = awnsers_nl.item(tel_awnsers).getChildNodes().getNodeValue();
 
             NamedNodeMap awnser_atributes = awnsers_nl.item(tel_awnsers).getAttributes();
             String xml_file_name = awnser_atributes.getNamedItem("goto").getTextContent().toString();
             String goto_id = awnser_atributes.getNamedItem("goto_id").getTextContent().toString();
             Node above_map_node = awnser_atributes.getNamedItem("above_map");
+
             String above_map = "t";
             if(above_map_node != null)
             {
@@ -4267,7 +4762,7 @@ public class Questionnaire extends Activity {
             questions_awnser_array.get(arraylist_atm).add(new ArrayList());
             NodeList tel_goto_q_m_nl = awnsers_element_atm.getElementsByTagName("goto_q_m");
             Integer tel_goto_q_m = 0;
-            while(drop_item_nl.getLength() > tel_goto_q_m)
+            while(tel_goto_q_m_nl.getLength() > tel_goto_q_m)
             {
                 Integer reference_tel_goto_q_m = tel_goto_q_m_rules(tel_goto_q_m_nl.item(tel_goto_q_m).getAttributes());
                 questions_awnser_array.get(arraylist_atm).get(7).add(reference_tel_goto_q_m.toString());
@@ -4307,6 +4802,16 @@ public class Questionnaire extends Activity {
         question_tv.setId(awnser_id);
         question_tv.setTextSize(font_size);
         question_tv.setTypeface(font_face);
+        if((awnser_id%2)==0)
+        {
+            question_tv.setTextColor(Color.parseColor("#aaaaaa"));
+            question_tv.setBackgroundColor(Color.parseColor("#000000"));
+        }
+        else
+        {
+            question_tv.setTextColor(Color.parseColor("#dddddd"));
+            question_tv.setBackgroundColor(Color.parseColor("#444444"));
+        }
         Bundle inputExtras = question_tv.getInputExtras(true);
 
         inputExtras.putString("awnser_number",awnser_number.toString());
@@ -4320,7 +4825,7 @@ public class Questionnaire extends Activity {
             public void onClick(View v) {
                 LinearLayout lin_lay_q = (LinearLayout) findViewById(R.id.linearLayout_questuinnaire_vert);
 
-// questions_awnser_array: x.0.0 = xml_file_name | x.1.0 = goto_id (q/m) | x.2.0 = above_map (t/f) | x.3.x = math | x.4.x = req | x.5.x = add_line | x.6.x = drop_item | x.7.x = goto_q_m
+                // questions_awnser_array: x.0.0 = xml_file_name | x.1.0 = goto_id (q/m) | x.2.0 = above_map (t/f) | x.3.x = math | x.4.x = req | x.5.x = add_line | x.6.x = drop_item | x.7.x = goto_q_m
                 TextView temp_tv = (TextView) v;
                 Bundle inputExtras = temp_tv.getInputExtras(true);
                 String awnser_number_s = inputExtras.getString("awnser_number", "");
@@ -4347,7 +4852,11 @@ public class Questionnaire extends Activity {
                     String value_add = add_line_normalized.get(add_line_normalized_atm).get(1);
                     String extra_eq = add_line_normalized.get(add_line_normalized_atm).get(2);
                     Boolean extra_eq_b = false;
-                    if(extra_eq != "f")
+                    if(extra_eq == "true")
+                    {
+                        extra_eq = "t";
+                    }
+                    if(extra_eq == "t")
                     {
                         extra_eq_b = true;
                     }
@@ -4398,6 +4907,10 @@ public class Questionnaire extends Activity {
     public void end_turn()
     {
         atribute_triggers();
+        find_if_enemy_left();
+        find_if_players_left();
+
+
         Integer tel_ids = 0;
         // ArrayList<Integer> speeds = new ArrayList<Integer>();
         Integer speed_atribute_id = find_atribute_if_from_string("Speed");
@@ -4464,8 +4977,9 @@ public class Questionnaire extends Activity {
         {
             enemy_turn();
         }
-        Boolean temp = find_if_enemy_left();
+
     }
+
     public Boolean find_if_players_left()
     {
         Boolean return_b = false;
@@ -4475,12 +4989,29 @@ public class Questionnaire extends Activity {
         {
             Integer type_id_atm = Integer.parseInt(field_ids_and_names.get(tel_ids).get(1));
 
-            // if(type_id_atm == 2 || type_id_atm == 3)
             if(type_id_atm == 2 )
             {
                 return_b = true;
             }
             tel_ids = tel_ids+1;
+        }
+        if(return_b == false)
+        {
+            Integer no_player_left_tel = 0;
+            Boolean stop = false;
+            while(no_player_left_tel < no_player_left_trigger.size() && stop == false)
+            {
+                Integer tel_goto_q_m_atm = no_player_left_trigger.get(no_player_left_tel).get(0);
+                String goto_q_m = goto_normalized.get(tel_goto_q_m_atm).get(0);
+                String goto_id = goto_normalized.get(tel_goto_q_m_atm).get(1);
+                String above_map_s = goto_normalized.get(tel_goto_q_m_atm).get(2);
+
+                goto_q_m_new(goto_q_m, goto_id, above_map_s);
+
+                stop = true;
+
+                no_player_left_tel = no_player_left_tel+1;
+            }
         }
 
         return return_b;
@@ -4509,20 +5040,20 @@ public class Questionnaire extends Activity {
             Boolean stop = false;
             while(no_enemy_left_tel < no_enemy_left_trigger.size() && stop == false)
             {
-                if(no_enemy_left_trigger.get(no_enemy_left_tel).get(0).equals("goto"))
-                {
-                    // XML_ini_q_or_map(no_enemy_left_trigger.get(no_enemy_left_tel).get(2), no_enemy_left_trigger.get(no_enemy_left_tel).get(1));
-                    end_map(no_enemy_left_trigger.get(no_enemy_left_tel).get(2), no_enemy_left_trigger.get(no_enemy_left_tel).get(1));
+                Integer tel_goto_q_m_atm = no_enemy_left_trigger.get(no_enemy_left_tel).get(0);
+                String goto_q_m = goto_normalized.get(tel_goto_q_m_atm).get(0);
+                String goto_id = goto_normalized.get(tel_goto_q_m_atm).get(1);
+                String above_map_s = goto_normalized.get(tel_goto_q_m_atm).get(2);
+                // Log.e("hiddenobj", "goto_q_m:"+goto_q_m+" above_map_s " + above_map_s);
+                goto_q_m_new(goto_q_m, goto_id, above_map_s);
 
-                    stop = true;
+                // end_map(no_enemy_left_trigger.get(no_enemy_left_tel).get(2), no_enemy_left_trigger.get(no_enemy_left_tel).get(1));
 
-                }
+                stop = true;
 
                 no_enemy_left_tel = no_enemy_left_tel+1;
             }
-
         }
-
         return return_b;
     }
 
@@ -4584,7 +5115,11 @@ public class Questionnaire extends Activity {
                     String value_add = add_line_normalized.get(add_line_normalized_atm).get(1);
                     String extra_eq = add_line_normalized.get(add_line_normalized_atm).get(2);
                     Boolean extra_eq_b = false;
-                    if(extra_eq != "f")
+                    if(extra_eq == "true")
+                    {
+                        extra_eq = "t";
+                    }
+                    if(extra_eq == "t")
                     {
                         extra_eq_b = true;
                     }
@@ -4859,14 +5394,17 @@ public class Questionnaire extends Activity {
 
     public void read_map_rules()
     {
+
+        Log.e("new_game", this_world + "_map_rules");
         Document map_rules = null;
         try {
-            map_rules = XML_IO.open_document_xml(this_world + "_map_rules");
+            map_rules = XML_IO.open_document_xml(this_world + "_" +this_world +"_map_rules");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (XmlPullParserException e) {
             e.printStackTrace();
         }
+        Log.e("new_game", this_world + "_map_rules22");
 
         NodeList atribute_nodelist = map_rules.getElementsByTagName("atribute");
         Integer tel_atributes =0;
@@ -4989,8 +5527,8 @@ public class Questionnaire extends Activity {
             }
 
             enemy_interaction.get(arraylist_atm).add(new ArrayList());
-            Element drop_item_element_atm = (Element) enemy_interactions_nl.item(tel_enemy_interaction);
-            NodeList drop_item_nl = drop_item_element_atm.getElementsByTagName("drop_item_rules");
+            // Element drop_item_element_atm = (Element) enemy_interactions_nl.item(tel_enemy_interaction);
+            NodeList drop_item_nl = add_line_element_atm.getElementsByTagName("drop_item_rules");
             Integer tel_drop_item = 0;
             while(drop_item_nl.getLength() > tel_drop_item)
             {
@@ -4998,6 +5536,17 @@ public class Questionnaire extends Activity {
                 enemy_interaction.get(arraylist_atm).get(5).add(reference_drop_item.toString());
                 tel_drop_item = tel_drop_item +1;
             }
+
+            enemy_interaction.get(arraylist_atm).add(new ArrayList());
+            NodeList tel_goto_q_m_nl = add_line_element_atm.getElementsByTagName("goto_q_m");
+            Integer tel_goto_q_m = 0;
+            while(tel_goto_q_m_nl.getLength() > tel_goto_q_m)
+            {
+                Integer reference_tel_goto_q_m = tel_goto_q_m_rules(tel_goto_q_m_nl.item(tel_goto_q_m).getAttributes());
+                enemy_interaction.get(arraylist_atm).get(6).add(reference_tel_goto_q_m.toString());
+                tel_goto_q_m = tel_goto_q_m +1;
+            }
+
 
             tel_enemy_interaction = tel_enemy_interaction+1;
         }
@@ -5076,8 +5625,15 @@ public class Questionnaire extends Activity {
                 tel_drop_item = tel_drop_item +1;
             }
 
-
-            //
+            atribute_trigger.get(arraylist_atm).add(new ArrayList());
+            NodeList tel_goto_q_m_nl = drop_item_element_atm.getElementsByTagName("goto_q_m");
+            Integer tel_goto_q_m = 0;
+            while(tel_goto_q_m_nl.getLength() > tel_goto_q_m)
+            {
+                Integer reference_tel_goto_q_m = tel_goto_q_m_rules(tel_goto_q_m_nl.item(tel_goto_q_m).getAttributes());
+                atribute_trigger.get(arraylist_atm).get(7).add(reference_tel_goto_q_m.toString());
+                tel_goto_q_m = tel_goto_q_m +1;
+            }
 
 
             tel_atribute_trigger = tel_atribute_trigger+1;

@@ -37,7 +37,7 @@ public class XML_IO {
     public static Document open_document_xml(String input) throws FileNotFoundException, XmlPullParserException {
 
         String infile = FileIO.loadStringFilePrivate(input, "xml");
-//        Log.e("XML parser", "infile" + infile);
+        // Log.e("XML parser", "input:"+input+" infile" + infile);
         if(infile.length() < 2)
         {
             saveStringFilePrivate(input, "xml", "");
@@ -217,6 +217,73 @@ public class XML_IO {
 
         try {
             XML_IO.save_XML("user_info", user_info_xml);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (XmlPullParserException e) {
+            e.printStackTrace();
+        }
+        user_info_xml = null;
+    }
+
+
+    public static void set_value_document_info(Document doc_input, String add_line_id, String value_id, String add_value, String save_name)
+    {
+        // Log.e("XML parser", "read doc");
+        Document user_info_xml = doc_input;
+
+        NodeList info_list = user_info_xml.getElementsByTagName("info");
+        Node info_node = null;
+        if(info_list.getLength() == 0)
+        {
+            Element new_info = user_info_xml.createElement("info");
+            info_node = user_info_xml.appendChild(new_info);
+        }
+        else
+        {
+            info_node = info_list.item(0);
+        }
+
+        NodeList worlds_list = user_info_xml.getElementsByTagName("user_info");
+        Node node_found_userinfo = null;
+        if(worlds_list.getLength() == 0)
+        {
+            Element new_worlds = user_info_xml.createElement("user_info");
+            node_found_userinfo = info_node.appendChild(new_worlds);
+        }
+        else
+        {
+            node_found_userinfo = worlds_list.item(0);
+        }
+
+        NodeList new_added = user_info_xml.getElementsByTagName(add_line_id);
+        Node node_found_new_added = null;
+        if(new_added.getLength() == 0)
+        {
+            Element new_add_line_id = user_info_xml.createElement(add_line_id);
+            node_found_new_added = node_found_userinfo.appendChild(new_add_line_id);
+        }
+        else
+        {
+            node_found_new_added = worlds_list.item(0);
+        }
+
+        // NamedNodeMap temp_atr = node_found_userinfo.getAttributes();
+        NamedNodeMap temp_atr = node_found_new_added.getAttributes();
+        Node node_temp_atr = temp_atr.getNamedItem(value_id);
+        if(node_temp_atr == null)
+        {
+            Element temp = (Element) user_info_xml.getElementsByTagName(add_line_id).item(0);
+            temp.setAttribute(value_id, add_value);
+        }
+        else
+        {
+            node_temp_atr.setTextContent(add_value);
+        }
+
+
+
+        try {
+            XML_IO.save_XML(save_name, user_info_xml);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (XmlPullParserException e) {
