@@ -8,6 +8,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
+import android.media.Image;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -15,15 +16,19 @@ import android.speech.tts.TextToSpeech;
 import android.speech.tts.Voice;
 import android.support.v4.view.ViewPager;
 import android.text.InputType;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 // import android.support.v4.app.NavUtils;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+// import android.widget.ScrollView;
 import android.widget.TextView;
 import android.graphics.Typeface;
 
@@ -42,7 +47,11 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Locale;
 import java.util.Random;
 
@@ -151,6 +160,7 @@ public class Questionnaire extends Activity {
 
     // questions_awnser_array: x.0.0 = xml_file_name | x.1.0 = goto_id (q/m) | x.2.0 = above_map (t/f) | x.3.x = math | x.4.x = req | x.5.x = add_line | x.6.x = drop_item | x.7.x = goto_q_m
     public ArrayList<ArrayList<ArrayList<String>>> questions_awnser_array =  new ArrayList<ArrayList<ArrayList<String>>> ();
+
 
     public ArrayList<ArrayList<ArrayList<String>>> player_select_array =  new ArrayList<ArrayList<ArrayList<String>>> ();
 
@@ -455,6 +465,27 @@ public class Questionnaire extends Activity {
         XML_IO.set_value_user_info(this_world+"_save", "saved_xml_name", XML_file);
         XML_IO.set_value_user_info(this_world+"_save", "saved_q_or_m", type_xml);
 
+        Document map_doc = null;
+        reset_all_variable_map();
+        try {
+            map_doc = XML_IO.open_document_xml(this_world + "_" + XML_file);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (XmlPullParserException e) {
+            e.printStackTrace();
+        }
+
+        String x_tot_sqre = XML_IO.find_value_in_doc(map_doc, "map", "x_sqre");
+
+        if(x_tot_sqre == null)
+        {
+            type_xml = "q";
+        }
+        else
+        {
+            type_xml = "m";
+        }
+
         /*
         if(user_name_glob.size() > 1)
         {
@@ -472,15 +503,6 @@ public class Questionnaire extends Activity {
         }
         else if(type_xml.equals("m"))
         {
-            Document map_doc = null;
-            reset_all_variable_map();
-            try {
-                map_doc = XML_IO.open_document_xml(this_world + "_" + XML_file);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (XmlPullParserException e) {
-                e.printStackTrace();
-            }
 
             Integer max_players_i = 1;
             String found_value_maxplayers = XML_IO.find_value_in_doc(map_doc, "map", "max_players");
@@ -586,6 +608,10 @@ public class Questionnaire extends Activity {
             e.printStackTrace();
         }
     }
+
+
+
+
 
     public void use_items(String XML_file)
     {
@@ -906,6 +932,344 @@ public class Questionnaire extends Activity {
 
             tel_world_items = tel_world_items+1;
         }
+
+    }
+
+
+
+    public void use_items_mp()
+    {
+        remove_views();
+
+        LinearLayout lin_lay_q = (LinearLayout)findViewById(R.id.linearLayout_questuinnaire_vert);
+
+        TextView upload_userfile_tv = new TextView(this);
+        upload_userfile_tv.setId(302);
+        upload_userfile_tv.setTextSize(font_size);
+        upload_userfile_tv.setTypeface(font_face);
+        upload_userfile_tv.setText("Upload UIF (for multiplayer)");
+        upload_userfile_tv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                // TODO versie check
+
+                TextView upload_userfile_tv = (TextView) v;
+                upload_userfile_tv.setEnabled(false);
+                upload_userfile_tv.setFocusable(false);
+                upload_userfile_tv.setBackgroundColor(Color.parseColor("#cccccc"));
+
+                try
+                {
+                    String send_to_server_flag = find_value_in_xml("login_info", "flag_send_server");
+                    String user_id = find_value_in_xml("login_info", "id");
+                    server_side_PHP.push_file_to_server(XML_user_info_doc, "write_uifiles", "qid="+user_id, send_to_server_flag, "uifiles");
+                    // Log.e("XML parser", "Done :)");
+                } catch (IOException e)
+                {
+                    e.printStackTrace();
+                }
+            }
+        } ) ;
+
+        lin_lay_q.addView(upload_userfile_tv);
+
+        ArrayList<LinearLayout> new_slot_list_ll = new ArrayList<LinearLayout>();
+
+        Integer tel_atribute_slots = 0;
+        while(tel_atribute_slots < atribute_slot.size())
+        {
+            LinearLayout new_slot_ll = new LinearLayout(this);
+            new_slot_ll.setOrientation(LinearLayout.VERTICAL);
+            new_slot_ll.setId(310+tel_atribute_slots);
+            lin_lay_q.addView(new_slot_ll);
+            new_slot_list_ll.add(new_slot_ll);
+
+            TextView slot_tv = new TextView(this);
+            slot_tv.setTextSize(font_size);
+            slot_tv.setTypeface(font_face);
+            slot_tv.setText(atribute_slot.get(tel_atribute_slots));
+            new_slot_ll.addView(slot_tv);
+
+            tel_atribute_slots = tel_atribute_slots +1;
+        }
+
+        if(check_if_XMLisset == false)
+        {
+            check_world_excists();
+            check_if_XMLisset = true;
+        }
+
+        // user_name_glob
+
+        NodeList nodes_items_nl = XML_user_info_doc.getElementsByTagName(this_world+"_item");
+        Integer tel_world_items = 0;
+        while(tel_world_items < nodes_items_nl.getLength())
+        {
+            Element item_atm = (Element) nodes_items_nl.item(tel_world_items);
+            NamedNodeMap item_atributes = item_atm.getAttributes();
+            String item_name = item_atributes.getNamedItem("name").getTextContent();
+            String item_slot = item_atributes.getNamedItem("slot").getTextContent();
+
+            tel_atribute_slots = 0;
+            while(tel_atribute_slots < atribute_slot.size())
+            {
+                if(atribute_slot.get(tel_atribute_slots).equals(item_slot))
+                {
+                    LinearLayout found_slot_ll = new_slot_list_ll.get(tel_atribute_slots);
+                    EditText item_name_et = new EditText(this);
+
+                    Integer tempy_i = 321+tel_world_items;
+                    item_name_et.setId(tempy_i);
+
+                    item_name_et.setTextSize(font_size);
+                    item_name_et.setTypeface(font_face);
+                    item_name_et.setText(item_name);
+                    item_name_et.setHint(item_name);
+                    item_name_et.setFocusable(true);
+
+                    Bundle input_extras = item_name_et.getInputExtras(true);
+
+                    NodeList atributes_of_item = item_atm.getElementsByTagName("atribute");
+                    Integer tel_atributes_of_item = 0;
+                    while(tel_atributes_of_item < atributes_of_item.getLength())
+                    {
+                        Element atribute_of_item_atm = (Element) atributes_of_item.item(tel_atributes_of_item);
+                        NamedNodeMap atribute_of_item_atr = atribute_of_item_atm.getAttributes();
+                        String name_atribute = atribute_of_item_atr.getNamedItem("name").getTextContent();
+                        String value_atribute = atribute_of_item_atr.getNamedItem("value").getTextContent();
+                        input_extras.putString("atr_name_"+tel_atributes_of_item, name_atribute);
+                        input_extras.putString("atr_value_"+tel_atributes_of_item, value_atribute);
+                        input_extras.putString("slot_view", tel_atribute_slots.toString());
+                        // Log.e("temp", "slot_view " + tel_atribute_slots.toString());
+
+                        tel_atributes_of_item = tel_atributes_of_item+1;
+                    }
+
+                    NodeList Selected_item_nl = item_atm.getElementsByTagName("Selected_item");
+
+                    if( Selected_item_nl.getLength() > 0)
+                    {
+                        item_name_et.setBackgroundColor(Color.parseColor("#000000"));
+                        item_name_et.setTextColor(Color.parseColor("#00ee00"));
+                    }
+
+                    item_name_et.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            EditText temp_tv = (EditText) v;
+                            Bundle input_extras = temp_tv.getInputExtras(true);
+                            Integer slot_view = Integer.parseInt(input_extras.getString("slot_view", "-1"));
+
+                            // Log.e("temp", "slot_view " + slot_view.toString());
+
+                            if(slot_view!= -1)
+                            {
+                                Integer tel_set_item_edittexts = 0;
+                                Boolean stop = false;
+                                while(stop == false)
+                                {
+                                    Integer temp_i = 321+tel_set_item_edittexts;
+                                    // Log.e("temp", "tel_set_item_edittexts " + (temp_i));
+                                    EditText item_looper_atm_et = (EditText)findViewById(temp_i);
+
+
+                                    if(item_looper_atm_et != null)
+                                    {
+                                        Bundle input_extras_looper = item_looper_atm_et.getInputExtras(true);
+                                        Integer slot_view_looper = Integer.parseInt(input_extras_looper.getString("slot_view", "-1"));
+                                        // Log.e("temp", "slot_view_looper=" + slot_view_looper + " slot_view="+slot_view);
+                                        if(slot_view_looper == slot_view)
+                                        {
+                                            item_looper_atm_et.setBackgroundColor(Color.parseColor("#ffffff"));
+                                            item_looper_atm_et.setTextColor(Color.parseColor("#ee0000"));
+                                        }
+
+
+                                    }
+                                    else
+                                    {
+                                        stop = true;
+                                    }
+                                    tel_set_item_edittexts = tel_set_item_edittexts+1;
+                                }
+
+                            }
+
+                            temp_tv.setBackgroundColor(Color.parseColor("#000000"));
+                            temp_tv.setTextColor(Color.parseColor("#00ee00"));
+
+                            TextView delete_question_tv = (TextView)findViewById(320);
+                            if(delete_question_tv != null)
+                            {
+                                ((ViewGroup) delete_question_tv.getParent()).removeView(delete_question_tv);
+                            }
+
+                        }
+                    } ) ;
+
+                    item_name_et.setOnLongClickListener(new View.OnLongClickListener()
+                    {
+                        public boolean onLongClick(View v)
+                        {
+
+                            LinearLayout new_ll_vert = new LinearLayout(ApplicationContextProvider.getContext());
+                            new_ll_vert.setOrientation(LinearLayout.VERTICAL);
+
+                            TextView delete_question_tv = new TextView(ApplicationContextProvider.getContext());
+
+                            delete_question_tv.setText("Click to delete.");
+                            delete_question_tv.setTextSize(font_size);
+                            delete_question_tv.setBackgroundColor(Color.parseColor("#ff9999"));
+                            delete_question_tv.setTextColor(Color.parseColor("#ee0000"));
+                            String id_view_s = String.valueOf(v.getId());
+                            delete_question_tv.setHint(id_view_s);
+
+                            delete_question_tv.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    TextView v_tv = (TextView) v;
+                                    String id_to_delete = (String) v_tv.getHint();
+                                    EditText item_to_delete = (EditText)findViewById(Integer.parseInt(id_to_delete));
+                                    item_to_delete.setText("Deleted");
+                                    item_to_delete.setEnabled(false);
+                                    item_to_delete.setBackgroundColor(Color.parseColor("#ffffff"));
+                                    item_to_delete.setTextColor(Color.parseColor("#ee0000"));
+
+                                    FrameLayout frame_layout_parent = (FrameLayout)findViewById(R.id.frame_layout_q);
+                                    View remove_view = (View) findViewById(999);
+                                    if(remove_view != null)
+                                    {
+                                        frame_layout_parent.removeView(remove_view);
+                                    }
+
+
+                                }
+                            } ) ;
+
+                            TextView nevermind = new TextView(ApplicationContextProvider.getContext());
+
+                            nevermind.setText("Cancel.");
+                            nevermind.setTextSize(font_size);
+                            nevermind.setBackgroundColor(Color.parseColor("#99ff99"));
+                            nevermind.setTextColor(Color.parseColor("#00ee00"));
+
+                            // nevermind.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, 50));
+
+                            nevermind.setOnClickListener(new View.OnClickListener()
+                            {
+                                @Override
+                                public void onClick(View v)
+                                {
+
+                                    FrameLayout frame_layout_parent = (FrameLayout)findViewById(R.id.frame_layout_q);
+                                    View remove_view = (View) findViewById(999);
+                                    if(remove_view != null)
+                                    {
+                                        frame_layout_parent.removeView(remove_view);
+                                    }
+
+                                }
+                            } ) ;
+
+                            Integer tel_atributes = 0;
+                            EditText temp_tv = (EditText)v;
+                            Bundle input_extras = temp_tv.getInputExtras(true);
+                            String atribute_name = input_extras.getString("atr_name_"+tel_atributes, "");
+                            String atribute_value = input_extras.getString("atr_value_"+tel_atributes, "");
+
+                            while(atribute_name != "" )
+                            {
+                                TextView atribute_of_item = new TextView(ApplicationContextProvider.getContext());
+
+                                atribute_of_item.setText(atribute_name+": "+atribute_value);
+                                atribute_of_item.setTextSize(font_size);
+                                atribute_of_item.setBackgroundColor(Color.parseColor("#000000"));
+                                new_ll_vert.addView(atribute_of_item);
+
+                                tel_atributes = tel_atributes + 1;
+                                atribute_name = input_extras.getString("atr_name_"+tel_atributes, "");
+                                atribute_value = input_extras.getString("atr_value_"+tel_atributes, "");
+                            }
+
+                            // delete_question_tv.setWidth(100);
+                            // delete_question_tv.setHeight(25);
+
+                            new_ll_vert.addView(delete_question_tv);
+                            new_ll_vert.addView(nevermind);
+
+                            add_view_op_top(new_ll_vert);
+
+                            return true;
+                        }
+                    } ) ;
+
+                    found_slot_ll.addView(item_name_et);
+                }
+
+                tel_atribute_slots = tel_atribute_slots +1;
+            }
+
+            tel_world_items = tel_world_items+1;
+        }
+
+    }
+
+
+
+    public void after_entering_world(String XML_file)
+    {
+        // k;
+        this_world = XML_file;
+        remove_views();
+        LinearLayout lin_lay_q = (LinearLayout)findViewById(R.id.linearLayout_questuinnaire_vert);
+        TextView item_header = new TextView(this);
+        item_header.setId(301);
+        item_header.setTextSize(font_size);
+        item_header.setTypeface(font_face);
+
+        item_header.setText("Start map: "+XML_file);
+        item_header.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                ini_first_question_or_map(this_world);
+                // invite_friend_to_game(XML_file);
+                // na_friends_start_map(temp_tv);
+            }
+        } ) ;
+
+        TextView add_friends_tv = new TextView(this);
+        add_friends_tv.setId(102);
+        add_friends_tv.setTextSize(font_size);
+        add_friends_tv.setText("Add friends");
+
+        add_friends_tv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                invite_friend_to_game();
+                // ArrayList<String> returned_data = new ArrayList<String>();
+                // returned_data = server_side_PHP.get_dataarray_server();
+            }
+        } ) ;
+
+        lin_lay_q.addView(add_friends_tv);
+
+        TextView add_change_gear_tv = new TextView(this);
+        add_change_gear_tv.setId(103);
+        add_change_gear_tv.setTextSize(font_size);
+        add_change_gear_tv.setText("Change gear");
+
+        add_change_gear_tv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                use_items(this_world);
+            }
+        } ) ;
+
+        lin_lay_q.addView(add_change_gear_tv);
+
 
     }
 
@@ -2011,7 +2375,7 @@ public class Questionnaire extends Activity {
         }
 
 
-        draw_field_squarres();
+
 
         Integer tel_no_enemy_triggers = 0;
         NodeList no_enemy_triggers_nl = map_doc.getElementsByTagName("no_enemy_trigger");
@@ -2070,6 +2434,9 @@ public class Questionnaire extends Activity {
 
             tel_no_players_triggers = tel_no_players_triggers+1;
         }
+        // Log.e("temp", "hello ?!" );
+
+        draw_field_squarres();
 
         upload_field();
 
@@ -2155,6 +2522,7 @@ public class Questionnaire extends Activity {
                 }
                 else {
                     draw_squarre(tel_x, tel_y, field_ids_and_names.get(id_ofcell_type).get(2), bitmap_field, squarre_size);
+                    // Log.e("draw squarre", "squarre " + field_ids_and_names.get(id_ofcell_type).get(0));
 
                     // field_id_newx
                 }
@@ -2729,24 +3097,104 @@ public class Questionnaire extends Activity {
         lin_lay_q.addView(use_items_tv);
         */
 
-        TextView add_friends_tv = new TextView(this);
-        add_friends_tv.setId(102);
-        add_friends_tv.setTextSize(font_size);
-        add_friends_tv.setText("Add friends");
+        /*
 
-        add_friends_tv.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        Integer top_margin = 60;
+        RelativeLayout lin_lay_signs = new RelativeLayout(this);
 
-                invite_friend_to_game();
-                // ArrayList<String> returned_data = new ArrayList<String>();
-                // returned_data = server_side_PHP.get_dataarray_server();
-            }
-        } ) ;
+        String text_into_sign = "hello!";
+        TextView tv_text_1 = new TextView(this);
 
-        lin_lay_q.addView(add_friends_tv);
+
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        WindowManager wm = (WindowManager) getApplicationContext().getSystemService(Context.WINDOW_SERVICE); // the results will be higher than using the activity context object or the getWindowManager() shortcut
+        wm.getDefaultDisplay().getMetrics(displayMetrics);
+        int total_width = displayMetrics.widthPixels;
+
+        // Integer total_width = temp_fullscreen.getWidth();
+        Integer max_width_tv = (int)(total_width /100 * 40);
+        Log.e("Image", "max_width_tv:" + max_width_tv.toString());
+        tv_text_1.setMaxWidth(max_width_tv);
+
+        tv_text_1.setText(text_into_sign);
+        tv_text_1.setTextSize(font_size);
+
+        font_face = Typeface.createFromAsset(getAssets(), "niconne_regular.ttf");
+        tv_text_1.setTypeface(font_face);
+
+        Integer pixels_roomleft = ((int)(total_width /100 * 50) - max_width_tv )-1;
+
+        RelativeLayout rl_text = new RelativeLayout(this);
+
+        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        params.leftMargin = pixels_roomleft;
+        params.topMargin = top_margin;
+        rl_text.addView(tv_text_1, params);
+        rl_text.setBackgroundColor(Color.parseColor("#999999"));
+
+        lin_lay_signs.addView(rl_text);
+        lin_lay_signs.setBackgroundColor(Color.parseColor("#aaaaaa"));
+
+
+
+        //  k;
+
+
+        RelativeLayout rl_top_left = new RelativeLayout(this);
+
+        ImageView iv_top_left = new ImageView(this);
+        iv_top_left.setMinimumWidth(pixels_roomleft);
+
+        iv_top_left.setImageResource(R.drawable.l_left_top);
+
+        iv_top_left.setBackgroundColor(Color.parseColor("#555555"));
+
+        params = new RelativeLayout.LayoutParams(pixels_roomleft, pixels_roomleft);
+        params.leftMargin = 1;
+        params.topMargin = top_margin;
+        rl_top_left.addView(iv_top_left, params);
+        rl_top_left.setBackgroundColor(Color.parseColor("#777777"));
+        lin_lay_signs.addView(rl_top_left);
+
+
+
+        lin_lay_q.addView(lin_lay_signs);
+        */
+
 
      }
+
+    public String curent_time_stamp()
+    {
+        String return_i = null;
+
+        SimpleDateFormat format_date =  new SimpleDateFormat("yyyyMMddHHmm");
+        String curent_date = format_date.format(new Date());
+        return_i = curent_date;
+
+        return return_i;
+    }
+
+    public int time_difference(String begin_date)
+    {
+        int return_i = 0;
+
+        SimpleDateFormat format_date =  new SimpleDateFormat("yyyyMMddHHmm");
+        String curent_date = format_date.format(new Date());
+
+        try
+        {
+            Date dateStart_d = format_date.parse(begin_date);
+            Date curent_date_d = format_date.parse(curent_date);
+            long diff_min = (curent_date_d.getTime() - dateStart_d.getTime()) / (60 * 1000) % 60; ;
+            return_i = (int) diff_min;
+
+        }catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return return_i;
+    }
+
 
 
     public void set_5person()
@@ -3142,9 +3590,11 @@ public class Questionnaire extends Activity {
         }
         // Log.e("enter_game", "saved_q_or_m:" + saved_q_or_m + " saved_xml_name:" +saved_xml_name + " document_world_index_s:"+document_world_index_s);
         read_map_rules();
-        //Log.e("enter_game2", " document_world_index_s:"+document_world_index_s);
+        // Log.e("enter_game2", " document_world_index_s:"+document_world_index_s);
 
         XML_ini_q_or_map(saved_q_or_m, saved_xml_name);
+
+        // Log.e("enter_game3", " document_world_index_s:"+saved_q_or_m);
     }
 
     public TextView create_text_view_worlds_start(String world_adding, String prefix)
@@ -4528,11 +4978,13 @@ public class Questionnaire extends Activity {
     {
         // Log.e("goto_q_m_new", "goto_q_m_new:"+goto_q_m+" goto_id:" + goto_id);
 
-        XML_IO.set_value_user_info(this_world+"_save", "saved_xml_name", goto_q_m);
-        XML_IO.set_value_user_info(this_world+"_save", "saved_q_or_m", goto_id);
+
 
         if(goto_id == "m")
         {
+            XML_IO.set_value_user_info(this_world+"_save", "saved_xml_name", goto_q_m);
+            XML_IO.set_value_user_info(this_world+"_save", "saved_q_or_m", goto_id);
+
             end_map(goto_id, goto_q_m);
         }
         else if(goto_id.equals("r"))
@@ -4544,6 +4996,8 @@ public class Questionnaire extends Activity {
         {
             if (above_map_s == "f")
             {
+                XML_IO.set_value_user_info(this_world+"_save", "saved_xml_name", goto_q_m);
+                XML_IO.set_value_user_info(this_world+"_save", "saved_q_or_m", goto_id);
                 end_map(goto_id, goto_q_m);
             } else
             {
@@ -4748,12 +5202,14 @@ public class Questionnaire extends Activity {
                 questions_awnser_array.get(arraylist_atm).get(5).add(reference_add_line.toString());
                 tel_add_line = tel_add_line +1;
             }
+            Log.e("drop_question", "Dus ");
 
             questions_awnser_array.get(arraylist_atm).add(new ArrayList());
             NodeList drop_item_nl = awnsers_element_atm.getElementsByTagName("drop_item_rules");
             Integer tel_drop_item = 0;
             while(drop_item_nl.getLength() > tel_drop_item)
             {
+                Log.e("drop_question", "Found ");
                 Integer reference_drop_item = add_drop_item_rules(drop_item_nl.item(tel_drop_item));
                 questions_awnser_array.get(arraylist_atm).get(6).add(reference_drop_item.toString());
                 tel_drop_item = tel_drop_item +1;
@@ -4839,7 +5295,7 @@ public class Questionnaire extends Activity {
                 Integer tel_math_problems = 0;
                 while (tel_math_problems < questions_awnser_array.get(awnser_number).get(3).size()) {
                     String math_problem = questions_awnser_array.get(awnser_number).get(3).get(tel_math_problems);
-                    // SET TARGET ?
+                    // TODO SET TARGET ?
                     aply_math_to_interaction(math_problem);
                     tel_math_problems = tel_math_problems + 1;
                 }
@@ -4864,10 +5320,13 @@ public class Questionnaire extends Activity {
 
                     tel_add_line = tel_add_line +1;
                 }
+                Log.e("aa_item_question", "Hier " );
                 Integer tel_drop_items = 0;
                 while(questions_awnser_array.get(awnser_number).get(6).size() > tel_drop_items)
                 {
+
                     Integer add_line_normalized_atm = Integer.parseInt(questions_awnser_array.get(awnser_number).get(6).get(tel_drop_items));
+                    Log.e("aa_item_question", "Add " + add_line_normalized_atm.toString());
                     drop_items(add_line_normalized_atm);
 
                     tel_drop_items = tel_drop_items +1;
@@ -5155,6 +5614,7 @@ public class Questionnaire extends Activity {
         ArrayList<String> atribute_values_togo = new ArrayList<String>();
 
         String name_slot = "";
+        String item_name="new";
 
         Integer total_chance_slot = 0;
         ArrayList<ArrayList<String>>  slot_chance = new ArrayList<ArrayList<String>> ();
@@ -5164,8 +5624,14 @@ public class Questionnaire extends Activity {
             slot_chance.add(new ArrayList<String>());
             String slot_chance_found = drop_item_rules.get(found_drop_item_rules).get(tel_rand_slot_drop).get(0).get(1);
             slot_chance.get(slot_chance.size()-1).add(drop_item_rules.get(found_drop_item_rules).get(tel_rand_slot_drop).get(0).get(0));
+
             total_chance_slot = total_chance_slot + Integer.parseInt(slot_chance_found);
             slot_chance.get(slot_chance.size()-1).add(slot_chance_found);
+
+            String item_name_temp = drop_item_rules.get(found_drop_item_rules).get(tel_rand_slot_drop).get(0).get(2);
+            Log.e("item_name_temp", "item_name_temp " + item_name_temp);
+
+            slot_chance.get(slot_chance.size()-1).add(item_name_temp);
 
             tel_rand_slot_drop = tel_rand_slot_drop+1;
         }
@@ -5181,6 +5647,7 @@ public class Questionnaire extends Activity {
             tel_rand_slot_chance = tel_rand_slot_chance+1;
             chance_sum_atm = Integer.parseInt(slot_chance.get(tel_rand_slot_chance).get(1)) + chance_sum_atm;
             name_slot = slot_chance.get(tel_rand_slot_chance).get(0);
+            item_name = slot_chance.get(tel_rand_slot_chance).get(2);
 
         }
         Log.e("item", "slot rand:" + random_for_slot+", chance_sum_atm:"+chance_sum_atm+", name:"+name_slot);
@@ -5279,7 +5746,7 @@ public class Questionnaire extends Activity {
             tel_total_chance_atributs = tel_total_chance_atributs+1;
 
         }
-        add_item_to_user_info("new", atribute_name_togo, atribute_values_togo, name_slot );
+        add_item_to_user_info(item_name, atribute_name_togo, atribute_values_togo, name_slot );
     }
 
     public void add_item_to_user_info(String item_name, ArrayList<String> atribute_names, ArrayList<String> atribute_values, String slot_name)
@@ -5395,7 +5862,7 @@ public class Questionnaire extends Activity {
     public void read_map_rules()
     {
 
-        Log.e("new_game", this_world + "_map_rules");
+        // Log.e("new_game", this_world + "_map_rules");
         Document map_rules = null;
         try {
             map_rules = XML_IO.open_document_xml(this_world + "_" +this_world +"_map_rules");
@@ -5404,7 +5871,7 @@ public class Questionnaire extends Activity {
         } catch (XmlPullParserException e) {
             e.printStackTrace();
         }
-        Log.e("new_game", this_world + "_map_rules22");
+        // Log.e("new_game", this_world + "_map_rules22");
 
         NodeList atribute_nodelist = map_rules.getElementsByTagName("atribute");
         Integer tel_atributes =0;
@@ -5902,12 +6369,20 @@ public class Questionnaire extends Activity {
             NamedNodeMap rand_slot_drop_atribute = rand_slot_drop_nl.item(tel_rand_slot_drop).getAttributes();
             String name_rand_slot_drop = rand_slot_drop_atribute.getNamedItem("name").getTextContent();
             String chance_rand_slot_drop = rand_slot_drop_atribute.getNamedItem("chance").getTextContent();
+            Node temp_node = rand_slot_drop_atribute.getNamedItem("item_name");
+
+            String item_name = "newnf";
+            if(temp_node.hasAttributes() == true)
+            {
+                item_name = temp_node.getTextContent();
+            }
 
             drop_item_rules.get(drop_item_rule_atm).add(new ArrayList<ArrayList<String>>());
             Integer rand_slot_drop_atm = drop_item_rules.get(drop_item_rule_atm).size() -1;
             drop_item_rules.get(drop_item_rule_atm).get(rand_slot_drop_atm).add(new ArrayList<String>());
             drop_item_rules.get(drop_item_rule_atm).get(rand_slot_drop_atm).get(0).add(name_rand_slot_drop);
             drop_item_rules.get(drop_item_rule_atm).get(rand_slot_drop_atm).get(0).add(chance_rand_slot_drop);
+            drop_item_rules.get(drop_item_rule_atm).get(rand_slot_drop_atm).get(0).add(item_name);
 
             // Log.e("temp", "name_rand_slot_drop=" + name_rand_slot_drop +" chance_rand_slot_drop=" + chance_rand_slot_drop );
 

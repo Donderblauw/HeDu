@@ -347,10 +347,20 @@ public class main_menu extends Activity
 
     public void goto_questionnaire(View v)
     {
-        Intent goto_questionnaire_intent = new Intent(this, Questionnaire.class);
-        // versturen information between intents, test. ik snap het .
+        String login_name = XML_IO.find_value_in_userxml("login_info", "name");
+
+        if (login_name != null)
+        {
+            Intent goto_questionnaire_intent = new Intent(this, Questionnaire.class);
+            // versturen information between intents, test. ik snap het .
 //        goto_questionnaire_intent.putExtra(give_text, "Gelder");
-        startActivity(goto_questionnaire_intent);
+            startActivity(goto_questionnaire_intent);
+        }
+        else
+        {
+            TextView test_teun_tv = (TextView) v;
+            test_teun_tv.setText("No loggin found.");
+        }
     }
 
 

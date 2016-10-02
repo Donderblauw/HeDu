@@ -126,8 +126,8 @@ public class server_side_PHP {
                 }
             }
         }
-//        String [] return_array = data_list.toArray(new String[data_list.size()]);
-        // Log.e("php", "output_return: " + return_array.toString() );
+ //       String [] return_array = data_list.toArray(new String[data_list.size()]);
+ //       Log.e("php", "output_return: " + return_array.toString() );
 
         return data_list;
 
@@ -287,7 +287,7 @@ public class server_side_PHP {
 
     }
 
-    public static void push_file_to_server(Document document, String php_file, String suffix, String send_to_server_flag, String map) throws IOException
+    public static Document push_file_to_server(Document document, String php_file, String suffix, String send_to_server_flag, String map) throws IOException
     {
         // SPATIES!!!
         // Log.e("XML parser", "send_to_server_flag:" + send_to_server_flag + " php_file:" + php_file + " suffix:" + suffix);
@@ -358,8 +358,10 @@ public class server_side_PHP {
                 e.printStackTrace();
                 Log.e("XML parser", "nope :( 2" );
             }
+            // document.
 
         }
+        return document;
     }
 
     public static String document_to_string(Document document)
