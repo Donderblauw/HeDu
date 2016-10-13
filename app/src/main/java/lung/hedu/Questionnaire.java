@@ -81,7 +81,7 @@ public class Questionnaire extends Activity {
     public ArrayList<ArrayList<String>> field_ids_and_names = new ArrayList<ArrayList<String>>();
 
     public Typeface font_face = null;
-    public Integer font_size = 20;
+    public static Integer font_size = 20;
     public Integer awnser_id = 102;
     public Integer squarre_size = 30;
     public Bitmap bitmap_field = null;
@@ -165,6 +165,8 @@ public class Questionnaire extends Activity {
     public ArrayList<ArrayList<ArrayList<String>>> player_select_array =  new ArrayList<ArrayList<ArrayList<String>>> ();
 
     public Integer selected_player_q = -1;
+
+    public Integer min_server_update = 5;
 
     /**
      * Whether or not the system UI should be auto-hidden after
@@ -669,7 +671,7 @@ public class Questionnaire extends Activity {
                     // Log.e("XML parser", "start");
                     String send_to_server_flag = find_value_in_xml("login_info", "flag_send_server");
                     String user_id = find_value_in_xml("login_info", "id");
-                    server_side_PHP.push_file_to_server(XML_user_info_doc, "write_uifiles", "qid="+user_id, send_to_server_flag, "uifiles");
+                    server_side_PHP.push_file_to_server(XML_user_info_doc, "write_uifiles", "qid="+user_id, send_to_server_flag, "uifiles", min_server_update);
                     // Log.e("XML parser", "Done :)");
                 } catch (IOException e)
                 {
@@ -963,7 +965,7 @@ public class Questionnaire extends Activity {
                 {
                     String send_to_server_flag = find_value_in_xml("login_info", "flag_send_server");
                     String user_id = find_value_in_xml("login_info", "id");
-                    server_side_PHP.push_file_to_server(XML_user_info_doc, "write_uifiles", "qid="+user_id, send_to_server_flag, "uifiles");
+                    server_side_PHP.push_file_to_server(XML_user_info_doc, "write_uifiles", "qid="+user_id, send_to_server_flag, "uifiles", min_server_update);
                     // Log.e("XML parser", "Done :)");
                 } catch (IOException e)
                 {
@@ -1269,8 +1271,104 @@ public class Questionnaire extends Activity {
         } ) ;
 
         lin_lay_q.addView(add_change_gear_tv);
+    }
 
+    public void check_version_uif_self()
+    {
+        if(XML_user_info_doc == null) {
+            try {
+                XML_user_info_doc = XML_IO.open_document_xml("user_info");
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (XmlPullParserException e) {
+                e.printStackTrace();
+            }
+        }
 
+        if(player_id_server == "")
+        {
+            player_id_server = find_value_in_xml("login_info", "id");
+        }
+
+        Boolean found_server_version_newer = server_side_PHP.check_new_uif_server(XML_user_info_doc, player_id_server);
+
+        if(found_server_version_newer == true)
+        {
+            LinearLayout new_ll_vert = new LinearLayout(ApplicationContextProvider.getContext());
+            new_ll_vert.setOrientation(LinearLayout.VERTICAL);
+
+            TextView updater_iuf_question_tv = new TextView(ApplicationContextProvider.getContext());
+
+            updater_iuf_question_tv.setText("Update user file. (Server data will be downloaded, device userfiles will be updated) ");
+            updater_iuf_question_tv.setTextSize(font_size);
+            updater_iuf_question_tv.setBackgroundColor(Color.parseColor("#ff9999"));
+            updater_iuf_question_tv.setTextColor(Color.parseColor("#ee0000"));
+
+            updater_iuf_question_tv.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    String file_name= "uif" +player_id_server+ ".xml";
+                    String folder = "uifiles";
+                    Document new_user_file = null;
+
+                    try
+                    {
+                        new_user_file = server_side_PHP.get_document_from_server(file_name, folder);
+                    } catch (IOException e)
+                    {
+                        e.printStackTrace();
+                    }
+
+                    XML_user_info_doc = new_user_file ;
+
+                    try {
+                        XML_IO.save_XML("user_info", XML_user_info_doc);
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (XmlPullParserException e) {
+                        e.printStackTrace();
+                    }
+
+                    FrameLayout frame_layout_parent = (FrameLayout)findViewById(R.id.frame_layout_q);
+                    View remove_view = (View) findViewById(999);
+                    if(remove_view != null)
+                    {
+                        frame_layout_parent.removeView(remove_view);
+                    }
+
+                }
+            } ) ;
+
+            TextView nevermind = new TextView(ApplicationContextProvider.getContext());
+
+            nevermind.setText("Cancel, use curent user files on this device. (Server data might be overwriten) ");
+            nevermind.setTextSize(font_size);
+            nevermind.setBackgroundColor(Color.parseColor("#99ff99"));
+            nevermind.setTextColor(Color.parseColor("#00ee00"));
+
+            // nevermind.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, 50));
+
+            nevermind.setOnClickListener(new View.OnClickListener()
+            {
+                @Override
+                public void onClick(View v)
+                {
+
+                    FrameLayout frame_layout_parent = (FrameLayout)findViewById(R.id.frame_layout_q);
+                    View remove_view = (View) findViewById(999);
+                    if(remove_view != null)
+                    {
+                        frame_layout_parent.removeView(remove_view);
+                    }
+
+                }
+            } ) ;
+
+            new_ll_vert.addView(updater_iuf_question_tv);
+            new_ll_vert.addView(nevermind);
+
+            add_view_op_top(new_ll_vert);
+        }
     }
 
     public void add_view_op_top(View view_to_add)
@@ -1418,82 +1516,100 @@ public class Questionnaire extends Activity {
     {
         String tot_friends = find_value_in_xml("login_info", "tot_friends");
         Integer tot_friends_i = 0;
-        if(tot_friends != "")
+
+        //check of friend al friends is.
+
+        Boolean stop = false;
+        Integer tel_friends = 0;
+        String found_friendname = find_value_in_xml("login_info", "friend_"+ tel_friends);
+        while (found_friendname != "")
         {
-            tot_friends_i = Integer.parseInt(tot_friends);
-            tot_friends_i = tot_friends_i + 1;
+            if(found_friendname == name_new_friend)
+            {
+                stop = true;
+            }
+            tel_friends = tel_friends +1;
+            found_friendname = find_value_in_xml("login_info", "friend_"+ tel_friends);
         }
-        Integer check_if_playername_excist_bool = check_if_playername_excist(name_new_friend);
-        // Log.e("temp", "check_if_playername_excist_bool " + check_if_playername_excist_bool.toString());
-        if(check_if_playername_excist_bool != 0)
+
+        if(stop == false)
         {
-
-            //Log.e("temp", "friend_ " + tot_friends_i.toString() + " name" +name_new_friend);
-
-            Document index_worlds = null;
-            try {
-                index_worlds = server_side_PHP.load_wolrd_index("uif"+check_if_playername_excist_bool.toString(), "uifiles");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            if(index_worlds == null)
+            Integer check_if_playername_excist_bool = check_if_playername_excist(name_new_friend);
+            // Log.e("temp", "check_if_playername_excist_bool " + check_if_playername_excist_bool.toString());
+            if (check_if_playername_excist_bool != 0)
             {
-                EditText text_name_new_player_click = (EditText)findViewById(302);
-                text_name_new_player_click.setText("");
-                text_name_new_player_click.setHint("No file uploaded");
-            }
-            else
-            {
+                if (tot_friends != "")
+                {
+                    tot_friends_i = Integer.parseInt(tot_friends);
+                    tot_friends_i = tot_friends_i + 1;
+                }
 
-                XML_IO.set_value_user_info("login_info", "friend_" + tot_friends_i.toString(), name_new_friend);
 
-                XML_IO.set_value_user_info("login_info", "tot_friends", tot_friends_i.toString());
-
-                XML_IO.set_value_user_info("login_info", "id_"+name_new_friend , check_if_playername_excist_bool.toString());
-
+                Document index_worlds = null;
                 try
                 {
-                    XML_IO.save_XML("uif"+check_if_playername_excist_bool.toString(), index_worlds);
-                } catch (FileNotFoundException e)
-                {
-                    e.printStackTrace();
-                } catch (XmlPullParserException e)
+                    index_worlds = server_side_PHP.load_wolrd_index("uif" + check_if_playername_excist_bool.toString(), "uifiles");
+                } catch (IOException e)
                 {
                     e.printStackTrace();
                 }
-
-                TextView click_inv_friend = new TextView(this);
-                click_inv_friend.setId(303 + tot_friends_i);
-                click_inv_friend.setTextSize(font_size);
-                click_inv_friend.setTypeface(font_face);
-
-                click_inv_friend.setText(name_new_friend);
-
-                click_inv_friend.setOnClickListener(new View.OnClickListener()
+                if (index_worlds == null)
                 {
-                    @Override
-                    public void onClick(View v)
-                    {
-                        TextView temp_tv = (TextView) v;
-                        // String name_new_friend = temp_tv.getText().toString();
-                        add_friend_to_game(temp_tv);
-                    }
-                });
+                    EditText text_name_new_player_click = (EditText) findViewById(302);
+                    text_name_new_player_click.setText("");
+                    text_name_new_player_click.setHint("No file uploaded");
+                } else
+                {
 
+                    XML_IO.set_value_user_info("login_info", "friend_" + tot_friends_i.toString(), name_new_friend);
+
+                    XML_IO.set_value_user_info("login_info", "tot_friends", tot_friends_i.toString());
+
+                    XML_IO.set_value_user_info("login_info", "id_" + name_new_friend, check_if_playername_excist_bool.toString());
+
+                    try
+                    {
+                        XML_IO.save_XML("uif" + check_if_playername_excist_bool.toString(), index_worlds);
+                    } catch (FileNotFoundException e)
+                    {
+                        e.printStackTrace();
+                    } catch (XmlPullParserException e)
+                    {
+                        e.printStackTrace();
+                    }
+
+                    TextView click_inv_friend = new TextView(this);
+                    click_inv_friend.setId(303 + tot_friends_i);
+                    click_inv_friend.setTextSize(font_size);
+                    click_inv_friend.setTypeface(font_face);
+
+                    click_inv_friend.setText(name_new_friend);
+
+                    click_inv_friend.setOnClickListener(new View.OnClickListener()
+                    {
+                        @Override
+                        public void onClick(View v)
+                        {
+                            TextView temp_tv = (TextView) v;
+                            // String name_new_friend = temp_tv.getText().toString();
+                            add_friend_to_game(temp_tv);
+                        }
+                    });
+
+                    EditText text_name_new_player_click = (EditText) findViewById(302);
+                    text_name_new_player_click.setText("");
+                    text_name_new_player_click.setHint("Player added");
+
+                    LinearLayout lin_lay_q = (LinearLayout) findViewById(R.id.linearLayout_questuinnaire_vert);
+                    lin_lay_q.addView(click_inv_friend);
+                }
+            } else
+            {
                 EditText text_name_new_player_click = (EditText) findViewById(302);
                 text_name_new_player_click.setText("");
-                text_name_new_player_click.setHint("Player added");
+                text_name_new_player_click.setHint("Not found");
 
-                LinearLayout lin_lay_q = (LinearLayout) findViewById(R.id.linearLayout_questuinnaire_vert);
-                lin_lay_q.addView(click_inv_friend);
             }
-        }
-        else
-        {
-            EditText text_name_new_player_click = (EditText)findViewById(302);
-            text_name_new_player_click.setText("");
-            text_name_new_player_click.setHint("Not found");
-
         }
     }
 
@@ -1504,10 +1620,11 @@ public class Questionnaire extends Activity {
         String[] data_url_addon = {name_player};
         String[] id_url_addon = {"qnm"};
         String php_file = "check_name_excist.php";
+        String folder = "phpfree";
 
         ArrayList<String> login_data = null;
         try {
-            login_data = server_side_PHP.get_dataarray_server(php_file, id_url_addon, data_url_addon);
+            login_data = server_side_PHP.get_dataarray_server(php_file, id_url_addon, data_url_addon, folder);
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         } catch (URISyntaxException e) {
@@ -2794,10 +2911,11 @@ public class Questionnaire extends Activity {
         String php_file = "add_awn_scr.php";
         String[] id_url_addon = {"qid", "qwn", "qnm", "qai"};
         String[] data_url_addon = {player_id_server, this_world, question_name, to_server_awnser_id};
+        String folder = "phpfree";
 
         ArrayList<String> login_data = null;
         try {
-            login_data = server_side_PHP.get_dataarray_server(php_file, id_url_addon, data_url_addon);
+            login_data = server_side_PHP.get_dataarray_server(php_file, id_url_addon, data_url_addon, folder);
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         } catch (URISyntaxException e) {
@@ -3164,39 +3282,6 @@ public class Questionnaire extends Activity {
 
      }
 
-    public String curent_time_stamp()
-    {
-        String return_i = null;
-
-        SimpleDateFormat format_date =  new SimpleDateFormat("yyyyMMddHHmm");
-        String curent_date = format_date.format(new Date());
-        return_i = curent_date;
-
-        return return_i;
-    }
-
-    public int time_difference(String begin_date)
-    {
-        int return_i = 0;
-
-        SimpleDateFormat format_date =  new SimpleDateFormat("yyyyMMddHHmm");
-        String curent_date = format_date.format(new Date());
-
-        try
-        {
-            Date dateStart_d = format_date.parse(begin_date);
-            Date curent_date_d = format_date.parse(curent_date);
-            long diff_min = (curent_date_d.getTime() - dateStart_d.getTime()) / (60 * 1000) % 60; ;
-            return_i = (int) diff_min;
-
-        }catch (ParseException e) {
-            e.printStackTrace();
-        }
-        return return_i;
-    }
-
-
-
     public void set_5person()
     {
 
@@ -3406,7 +3491,8 @@ public class Questionnaire extends Activity {
 
                     try
                     {
-                        ArrayList<String> data_from_server = server_side_PHP.get_dataarray_server("5pers.php",  toserver_id, toserver_value);
+                        String folder = "phpfree";
+                        ArrayList<String> data_from_server = server_side_PHP.get_dataarray_server("5pers.php",  toserver_id, toserver_value, folder);
                     } catch (ClassNotFoundException e)
                     {
                         e.printStackTrace();
@@ -4159,10 +4245,11 @@ public class Questionnaire extends Activity {
             String[] data_url_addon = {user_name_glob.get(user_id_username).get(1)};
             String[] id_url_addon = {"qid"};
             String php_file = "user_personality_out.php";
+            String folder = "phpfree";
 
             ArrayList<String> login_data = null;
             try {
-                login_data = server_side_PHP.get_dataarray_server(php_file, id_url_addon, data_url_addon);
+                login_data = server_side_PHP.get_dataarray_server(php_file, id_url_addon, data_url_addon, folder);
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
             } catch (URISyntaxException e) {
@@ -5730,7 +5817,6 @@ public class Questionnaire extends Activity {
             Log.e("temp", "tel_total_chance_atributs=" + tel_total_chance_atributs + " tel_rand_atribute=" + tel_rand_atribute);
             Integer chance_atributs_sum_atm = total_chance_atributs_array_s.get(tel_total_chance_atributs).get(tel_rand_atribute).get(0);
             Integer add_atribute_to_slot =  total_chance_atributs_array_s.get(tel_total_chance_atributs).get(tel_rand_atribute).get(1);
-
 
             while(random_for_atribute > chance_atributs_sum_atm)
             {

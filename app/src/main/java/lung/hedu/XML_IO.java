@@ -293,6 +293,38 @@ public class XML_IO {
     }
 
 
+    public static Document set_value_document(Document doc_input, String tag_name, String value_id, String add_value)
+    {
+
+        NodeList info_list = doc_input.getElementsByTagName(tag_name);
+        Node info_node = null;
+        if(info_list.getLength() == 0)
+        {
+            Element new_info = doc_input.createElement(tag_name);
+            info_node = doc_input.appendChild(new_info);
+        }
+        else
+        {
+            info_node = info_list.item(0);
+        }
+
+        NamedNodeMap temp_atr = info_node.getAttributes();
+        Node node_temp_atr = temp_atr.getNamedItem(value_id);
+        if(node_temp_atr == null)
+        {
+            Element temp = (Element) info_node;
+            temp.setAttribute(value_id, add_value);
+        }
+        else
+        {
+            node_temp_atr.setTextContent(add_value);
+        }
+
+        return doc_input;
+    }
+
+
+
     public static void save_XML(String input, Document doc) throws FileNotFoundException, XmlPullParserException {
         try{
             input = input+".xml";

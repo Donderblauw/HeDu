@@ -6,21 +6,9 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.ImageFormat;
-import android.graphics.SurfaceTexture;
-import android.hardware.camera2.CameraAccessException;
-import android.hardware.camera2.CameraCaptureSession;
-import android.hardware.camera2.CameraCharacteristics;
+
 import android.hardware.camera2.CameraDevice;
-import android.hardware.camera2.CameraManager;
-import android.hardware.camera2.CameraMetadata;
-import android.hardware.camera2.CaptureRequest;
-import android.hardware.camera2.TotalCaptureResult;
-import android.hardware.camera2.params.StreamConfigurationMap;
-import android.media.Image;
-import android.media.ImageReader;
+
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -46,16 +34,22 @@ import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.api.GoogleApiClient;
 
+/*
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xmlpull.v1.XmlPullParserException;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.ImageFormat;
+import android.graphics.SurfaceTexture;
+import android.hardware.camera2.CameraAccessException;
+import android.hardware.camera2.CameraCaptureSession;
+import android.hardware.camera2.CameraCharacteristics;
+import java.nio.ByteBuffer;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
+
 import java.util.List;
 import java.util.Objects;
 
@@ -63,6 +57,21 @@ import lung.hedu.FileIO;
 
 import static lung.hedu.FileIO.loadStringFilePrivate;
 import static lung.hedu.FileIO.saveStringFilePrivate;
+
+import android.hardware.camera2.CameraManager;
+import android.hardware.camera2.CameraMetadata;
+import android.hardware.camera2.CaptureRequest;
+import android.hardware.camera2.TotalCaptureResult;
+import android.hardware.camera2.params.StreamConfigurationMap;
+import android.media.Image;
+import android.media.ImageReader;
+
+*/
+import java.io.IOException;
+import java.net.URISyntaxException;
+
+import java.util.ArrayList;
+
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -347,6 +356,11 @@ public class main_menu extends Activity
 
     public void goto_questionnaire(View v)
     {
+
+        // TODO: 06/10/2016  check nieuwe versie
+
+
+
         String login_name = XML_IO.find_value_in_userxml("login_info", "name");
 
         if (login_name != null)
@@ -362,6 +376,8 @@ public class main_menu extends Activity
             test_teun_tv.setText("No loggin found.");
         }
     }
+
+
 
 
     public void check_send_server_flag(String userid)

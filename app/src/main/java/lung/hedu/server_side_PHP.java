@@ -30,7 +30,10 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -52,9 +55,9 @@ public class server_side_PHP {
     public String server = "http://hedu-free.uphero.com";
 
 
-    public static ArrayList<String> get_dataarray_server(String php_file, String[] id_url_addon, String[] data_url_addon) throws ClassNotFoundException, URISyntaxException, IOException
+    public static ArrayList<String> get_dataarray_server(String php_file, String[] id_url_addon, String[] data_url_addon, String folder) throws ClassNotFoundException, URISyntaxException, IOException
     {
-        String website_url = "http://hedu-free.uphero.com/phpfree/";
+        String website_url = "http://hedu-free.uphero.com/"+folder+"/";
 /*        String login_name = "";
         if(login_name.matches("[a-zA-Z]*") ==true)
         {
@@ -206,6 +209,78 @@ public class server_side_PHP {
         return return_doc;
     }
 
+
+    public static Document get_document_from_server(String file_name, String map) throws IOException {
+        String server = "http://hedu-free.uphero.com";
+        String file_path = "/"+map+"/"+file_name;
+        String link = server + file_path;
+        link = link.replaceAll(" ", "_");
+        link = link.replace("\r","").replace("\n","");
+        HttpClient client = new DefaultHttpClient();
+        HttpGet request = new HttpGet();
+        try {
+            request.setURI(new URI(link));
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+
+        HttpResponse response = null;
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+        try {
+            response = client.execute(request);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        BufferedReader in = null;
+        try {
+            in = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        StringBuffer sb = new StringBuffer("");
+        String line="";
+        while ((line = in.readLine()) != null) {
+            sb.append(line);
+        }
+        try {
+            in.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        String sb_string = sb.toString();
+
+        Document return_doc = null;
+        if(sb_string.equals(0))
+        {
+
+        }
+        else {
+            DocumentBuilder db = null;
+            try {
+                db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+            } catch (ParserConfigurationException e) {
+                e.printStackTrace();
+            }
+            InputSource is = new InputSource();
+            is.setCharacterStream(new StringReader(sb_string));
+
+            try {
+                return_doc = db.parse(is);
+            } catch (SAXException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return return_doc;
+    }
+
+
+
     public static String load_wolrd_index_string(String next_idex) throws IOException {
         String server = "http://hedu-free.uphero.com";
         String file_path = "/xml_words/"+next_idex+".xml";
@@ -274,7 +349,6 @@ public class server_side_PHP {
                 e.printStackTrace();
             }
 
-
             HttpResponse response = null;
             StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
             StrictMode.setThreadPolicy(policy);
@@ -287,13 +361,30 @@ public class server_side_PHP {
 
     }
 
-    public static Document push_file_to_server(Document document, String php_file, String suffix, String send_to_server_flag, String map) throws IOException
+
+    public static Document push_file_to_server(Document document, String php_file, String suffix, String send_to_server_flag, String map, Integer min_difference) throws IOException
     {
         // SPATIES!!!
         // Log.e("XML parser", "send_to_server_flag:" + send_to_server_flag + " php_file:" + php_file + " suffix:" + suffix);
 
         // if(send_to_server_flag.equals("true"))
+
+        Boolean check_time_difference_bool = false;
+
+        if(min_difference == null)
         {
+            check_time_difference_bool = true;
+        }
+        else
+        {
+            check_time_difference_bool = check_time_difference(document, min_difference);
+        }
+
+
+
+        if(check_time_difference_bool == true)
+        {
+            set_date_version_number(document);
 
             suffix = suffix.replaceAll(" ", "_");
             String server = "http://hedu-free.uphero.com/"+map+"/"+php_file+".php?";
@@ -390,5 +481,137 @@ public class server_side_PHP {
 
         return return_string;
     }
+
+
+    public static String curent_time_stamp()
+    {
+        String return_i = null;
+
+        SimpleDateFormat format_date =  new SimpleDateFormat("yyyyMMddHHmm");
+        String curent_date = format_date.format(new Date());
+        return_i = curent_date;
+
+        return return_i;
+    }
+
+    public static int time_difference(String begin_date)
+    {
+        int return_i = 0;
+
+        SimpleDateFormat format_date =  new SimpleDateFormat("yyyyMMddHHmm");
+        String curent_date = format_date.format(new Date());
+
+        try
+        {
+            Date dateStart_d = format_date.parse(begin_date);
+            Date curent_date_d = format_date.parse(curent_date);
+            long diff_min = (curent_date_d.getTime() - dateStart_d.getTime()) / (60 * 1000) % 60; ;
+            return_i = (int) diff_min;
+
+        }catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return return_i;
+    }
+
+
+    public static Document set_date_version_number(Document input_document)
+    {
+        String date_atm = curent_time_stamp();
+
+        input_document = XML_IO.set_value_document(input_document, "version", "date", date_atm);
+
+        return input_document;
+    }
+
+
+    public static Boolean check_time_difference(Document input_document, Integer min_difference)
+    {
+        Boolean return_bool = false;
+
+        String found_date = XML_IO.find_value_in_doc(input_document, "version", "date");
+
+        int time_difference_i = time_difference(found_date);
+
+        if(time_difference_i > min_difference)
+        {
+            return_bool = true;
+        }
+        else
+        {
+            return_bool = false;
+        }
+
+        return return_bool;
+    }
+
+    public static Boolean check_new_uif_server(Document input_document, String user_id)
+    {
+        Boolean return_bool = false;
+
+        Document found_document = null;
+        // todo Check check_new_version.php
+        // todo mismatch, ask change
+
+        String found_date = XML_IO.find_value_in_doc(input_document, "version", "date");
+        Integer found_date_i = Integer.parseInt(found_date);
+
+        String php_file = "check_new_version.php";
+        String[] id_url_addon = {"qid"};
+        String[] data_url_addon = {user_id};
+        String folder = "uifiles";
+        String found_date_from_server = "";
+        try
+        {
+            ArrayList<String> found_date_from_server_al = get_dataarray_server(php_file, id_url_addon,  data_url_addon, folder);
+            if(found_date_from_server_al.size() > 0)
+            {
+                found_date_from_server = found_date_from_server_al.get(0);
+            }
+        } catch (ClassNotFoundException e)
+        {
+            e.printStackTrace();
+        } catch (URISyntaxException e)
+        {
+            e.printStackTrace();
+        } catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+
+        if(found_date_from_server == found_date)
+        {
+            return_bool = false;
+        }
+        else if (found_date_from_server.length() > 7)
+        {
+            Integer found_date_from_server_i = Integer.parseInt(found_date_from_server);
+            if(found_date_from_server_i > found_date_i)
+            {
+                return_bool = true;
+
+
+               // server is new'er ask update of file.
+                /*
+
+                try
+                {
+                    found_document = get_document_from_server(user_id, "uifiles");
+                } catch (IOException e)
+                {
+                    e.printStackTrace();
+                }
+                */
+            }
+            else
+            {
+                // mobiel nieuwe versie
+            }
+        }
+
+
+        return return_bool;
+    }
+
 
 }
