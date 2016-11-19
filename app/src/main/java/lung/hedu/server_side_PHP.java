@@ -384,7 +384,7 @@ public class server_side_PHP {
 
         if(check_time_difference_bool == true)
         {
-            set_date_version_number(document);
+            set_date_version_number_server(document);
 
             suffix = suffix.replaceAll(" ", "_");
             String server = "http://hedu-free.uphero.com/"+map+"/"+php_file+".php?";
@@ -500,26 +500,44 @@ public class server_side_PHP {
 
         SimpleDateFormat format_date =  new SimpleDateFormat("yyyyMMddHHmm");
         String curent_date = format_date.format(new Date());
+        if(begin_date == null)
+        {
+            begin_date = "0";
+        }
 
         try
         {
             Date dateStart_d = format_date.parse(begin_date);
             Date curent_date_d = format_date.parse(curent_date);
-            long diff_min = (curent_date_d.getTime() - dateStart_d.getTime()) / (60 * 1000) % 60; ;
+            long diff_min = (curent_date_d.getTime() - dateStart_d.getTime()) / (60 * 1000) % 60;
             return_i = (int) diff_min;
 
-        }catch (ParseException e) {
+        } catch (ParseException e)
+        {
             e.printStackTrace();
         }
+
         return return_i;
     }
 
 
-    public static Document set_date_version_number(Document input_document)
+    public static Document set_date_version_number_server(Document input_document)
     {
         String date_atm = curent_time_stamp();
 
-        input_document = XML_IO.set_value_document(input_document, "version", "date", date_atm);
+        input_document = XML_IO.set_value_document(input_document, "version", "date_server", date_atm, false);
+
+        return input_document;
+    }
+
+
+    public static Document set_date_version_number_phone(Document input_document)
+    {
+        String date_atm = curent_time_stamp();
+
+        Boolean temp = false;
+
+        input_document = XML_IO.set_value_document(input_document, "version", "version_on_phone", date_atm, temp);
 
         return input_document;
     }
@@ -529,7 +547,7 @@ public class server_side_PHP {
     {
         Boolean return_bool = false;
 
-        String found_date = XML_IO.find_value_in_doc(input_document, "version", "date");
+        String found_date = XML_IO.find_value_in_doc(input_document, "version", "date_server");
 
         int time_difference_i = time_difference(found_date);
 
@@ -538,6 +556,12 @@ public class server_side_PHP {
             return_bool = true;
         }
         else
+        {
+            return_bool = false;
+        }
+
+        String version_push_pulled = XML_IO.find_value_in_doc(input_document, "version", "version_on_phone");
+        if(version_push_pulled == found_date)
         {
             return_bool = false;
         }
@@ -552,9 +576,15 @@ public class server_side_PHP {
         Document found_document = null;
         // todo Check check_new_version.php
         // todo mismatch, ask change
-
-        String found_date = XML_IO.find_value_in_doc(input_document, "version", "date");
-        Integer found_date_i = Integer.parseInt(found_date);
+        String found_date = XML_IO.find_value_in_doc(input_document, "version", "version_on_phone");
+        // String found_date = XML_IO.find_value_in_doc(input_document, "version", "date_server");
+        long found_date_i = 0;
+        if(found_date != null)
+        {
+            found_date = found_date.replaceAll("\\D+","");
+            found_date = found_date.trim();
+            found_date_i = Long.parseLong(found_date);
+        }
 
         String php_file = "check_new_version.php";
         String[] id_url_addon = {"qid"};
@@ -585,7 +615,7 @@ public class server_side_PHP {
         }
         else if (found_date_from_server.length() > 7)
         {
-            Integer found_date_from_server_i = Integer.parseInt(found_date_from_server);
+            long found_date_from_server_i = Long.parseLong(found_date_from_server);
             if(found_date_from_server_i > found_date_i)
             {
                 return_bool = true;

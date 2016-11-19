@@ -72,13 +72,13 @@ public class XML_IO {
         return doc;
     }
 
-    public static String find_value_in_userxml(String add_line_id, String value_id)
+    public static String find_value_in_userxml(String add_line_id, String value_id , String file_name)
     {
 
         String return_string = null;
         Document user_info_xml = null;
         try {
-            user_info_xml = XML_IO.open_document_xml("user_info");
+            user_info_xml = XML_IO.open_document_xml(file_name);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (XmlPullParserException e) {
@@ -213,7 +213,7 @@ public class XML_IO {
             node_temp_atr.setTextContent(add_value);
         }
 
-
+        user_info_xml = server_side_PHP.set_date_version_number_phone(user_info_xml);
 
         try {
             XML_IO.save_XML("user_info", user_info_xml);
@@ -280,6 +280,7 @@ public class XML_IO {
             node_temp_atr.setTextContent(add_value);
         }
 
+        user_info_xml = server_side_PHP.set_date_version_number_phone(user_info_xml);
 
 
         try {
@@ -293,15 +294,16 @@ public class XML_IO {
     }
 
 
-    public static Document set_value_document(Document doc_input, String tag_name, String value_id, String add_value)
+    public static Document set_value_document(Document doc_input, String tag_name, String value_id, String add_value, boolean update_time_stamp)
     {
 
         NodeList info_list = doc_input.getElementsByTagName(tag_name);
         Node info_node = null;
         if(info_list.getLength() == 0)
         {
+            Element info_list_2 = (Element) doc_input.getElementsByTagName("info").item(0);
             Element new_info = doc_input.createElement(tag_name);
-            info_node = doc_input.appendChild(new_info);
+            info_node = info_list_2.appendChild(new_info);
         }
         else
         {
@@ -319,6 +321,11 @@ public class XML_IO {
         {
             node_temp_atr.setTextContent(add_value);
         }
+        if(update_time_stamp == true)
+        {
+            doc_input = server_side_PHP.set_date_version_number_phone(doc_input);
+        }
+
 
         return doc_input;
     }

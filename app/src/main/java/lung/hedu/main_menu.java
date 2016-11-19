@@ -361,7 +361,7 @@ public class main_menu extends Activity
 
 
 
-        String login_name = XML_IO.find_value_in_userxml("login_info", "name");
+        String login_name = XML_IO.find_value_in_userxml("login_info", "name", "user_info");
 
         if (login_name != null)
         {
@@ -385,11 +385,12 @@ public class main_menu extends Activity
         String[] data_url_addon = {userid, "send_server"};
         String[] id_url_addon = {"qid", "qnm"};
         String php_file = "select_flag.php";
+        String folder = "phpfree";
 
         ArrayList<String> login_data = null;
         try
         {
-            login_data = server_side_PHP.get_dataarray_server(php_file, id_url_addon, data_url_addon);
+            login_data = server_side_PHP.get_dataarray_server(php_file, id_url_addon, data_url_addon, folder);
         } catch (ClassNotFoundException e)
         {
             e.printStackTrace();
@@ -413,7 +414,7 @@ public class main_menu extends Activity
 
     public void login()
     {
-        String login_name = XML_IO.find_value_in_userxml("login_info", "name");
+        String login_name = XML_IO.find_value_in_userxml("login_info", "name", "user_info");
 
         if (login_name == null)
         {
@@ -423,11 +424,12 @@ public class main_menu extends Activity
             String[] data_url_addon = {android_id};
             String[] id_url_addon = {"qid"};
             String php_file = "free_login.php";
+            String folder = "phpfree";
 
             ArrayList<String> login_data = null;
             try
             {
-                login_data = server_side_PHP.get_dataarray_server(php_file, id_url_addon, data_url_addon);
+                login_data = server_side_PHP.get_dataarray_server(php_file, id_url_addon, data_url_addon, folder);
             } catch (ClassNotFoundException e)
             {
                 e.printStackTrace();
@@ -501,10 +503,11 @@ public class main_menu extends Activity
                     // Log.e("XML parser", "start");
                     login_name = login_name.replaceAll(" ", "_");
                     String[] data_url_addon = {android_id, login_name};
+                    String folder = "phpfree";
                     ArrayList<String> login_data = null;
                     try
                     {
-                        login_data = server_side_PHP.get_dataarray_server(php_file, id_url_addon, data_url_addon);
+                        login_data = server_side_PHP.get_dataarray_server(php_file, id_url_addon, data_url_addon, folder);
                     } catch (ClassNotFoundException e)
                     {
                         e.printStackTrace();
