@@ -502,19 +502,20 @@ public class server_side_PHP {
         String curent_date = format_date.format(new Date());
         if(begin_date == null)
         {
-            begin_date = "0";
+            return_i = 60;
         }
+        else{
+            try
+            {
+                Date dateStart_d = format_date.parse(begin_date);
+                Date curent_date_d = format_date.parse(curent_date);
+                long diff_min = (curent_date_d.getTime() - dateStart_d.getTime()) / (60 * 1000) % 60;
+                return_i = (int) diff_min;
 
-        try
-        {
-            Date dateStart_d = format_date.parse(begin_date);
-            Date curent_date_d = format_date.parse(curent_date);
-            long diff_min = (curent_date_d.getTime() - dateStart_d.getTime()) / (60 * 1000) % 60;
-            return_i = (int) diff_min;
-
-        } catch (ParseException e)
-        {
-            e.printStackTrace();
+            } catch (ParseException e)
+            {
+                e.printStackTrace();
+            }
         }
 
         return return_i;
