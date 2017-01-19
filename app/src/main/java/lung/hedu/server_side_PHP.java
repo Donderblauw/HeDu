@@ -129,6 +129,9 @@ public class server_side_PHP {
                 }
             }
         }
+
+        client.getConnectionManager().shutdown();
+
  //       String [] return_array = data_list.toArray(new String[data_list.size()]);
  //       Log.e("php", "output_return: " + return_array.toString() );
 
@@ -206,6 +209,8 @@ public class server_side_PHP {
                 e.printStackTrace();
             }
         }
+
+        client.getConnectionManager().shutdown();
         return return_doc;
     }
 
@@ -276,11 +281,13 @@ public class server_side_PHP {
                 e.printStackTrace();
             }
         }
+
+        client.getConnectionManager().shutdown();
         return return_doc;
     }
 
 
-
+    // TODO double function! makes no sence!
     public static String load_wolrd_index_string(String next_idex) throws IOException {
         String server = "http://hedu-free.uphero.com";
         String file_path = "/xml_words/"+next_idex+".xml";
@@ -325,6 +332,7 @@ public class server_side_PHP {
 
         String sb_string = sb.toString();
 
+        client.getConnectionManager().shutdown();
         return sb_string;
     }
 
@@ -340,7 +348,7 @@ public class server_side_PHP {
             String link = server + file_path;
             link = link.replaceAll(" ", "_");
             link = link.replace("\r","").replace("\n","");
-            // Log.e("XML parser", link);
+            Log.e("XML parser", link);
             HttpClient client = new DefaultHttpClient();
             HttpGet request = new HttpGet();
             try {
@@ -357,8 +365,73 @@ public class server_side_PHP {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            client.getConnectionManager().shutdown();
         }
 
+    }
+
+
+
+    public static void push_map_to_testphp(Document document, String qid ) throws IOException
+    {
+
+        String server = "http://hedu-free.uphero.com/active_games/test.php?qid="+qid+"&qty=new_file";
+
+        String data_to_send = document_to_string(document);
+
+        HttpClient httpclient = new DefaultHttpClient();
+        HttpPost httppost = new HttpPost(server);
+        // Log.e("XML parser", "link:" + link);
+
+        try {
+            StringEntity data_to_send_se = new StringEntity( data_to_send, HTTP.UTF_8);
+            data_to_send_se.setContentType("text/xml");
+
+            httppost.setEntity(data_to_send_se );
+
+            HttpResponse response = null;
+
+            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+            StrictMode.setThreadPolicy(policy);
+            response = httpclient.execute(httppost);
+
+            BufferedReader in = null;
+            try {
+                in = new BufferedReader
+                (new InputStreamReader(response.getEntity().getContent()));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            StringBuffer sb = new StringBuffer("");
+            String line="";
+            while ((line = in.readLine()) != null) {
+                sb.append(line);
+            }
+            try {
+                in.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            String sb_string = sb.toString();
+
+
+            // HttpEntity resEntity = httpresponse.getEntity();
+            // String response = EntityUtils.toString(resEntity);
+            //Log.e("XML parser", "response:" + sb_string);
+
+
+        } catch (ClientProtocolException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            Log.e("XML parser", "nope :( 1" );
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            Log.e("XML parser", "nope :( 2" );
+        }
+        httpclient.getConnectionManager().shutdown();
     }
 
 
@@ -397,7 +470,7 @@ public class server_side_PHP {
 
             HttpClient httpclient = new DefaultHttpClient();
             HttpPost httppost = new HttpPost(link);
-            // Log.e("XML parser", "link:" + link);
+            Log.e("XML parser", "link:" + link);
 
             try {
                 StringEntity data_to_send_se = new StringEntity( data_to_send, HTTP.UTF_8);
@@ -450,6 +523,7 @@ public class server_side_PHP {
                 Log.e("XML parser", "nope :( 2" );
             }
             // document.
+            httpclient.getConnectionManager().shutdown();
 
         }
         return document;

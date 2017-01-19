@@ -72,6 +72,22 @@ public class XML_IO {
         return doc;
     }
 
+    public static Document create_dom_document()
+    {
+        Document return_ducoment = null;
+
+        DocumentBuilderFactory dbfactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder dbuilder = null;
+        try {
+            dbuilder = dbfactory.newDocumentBuilder();
+        } catch (ParserConfigurationException e) {
+            e.printStackTrace();
+        }
+        return_ducoment = dbuilder.newDocument();
+
+        return return_ducoment;
+    }
+
     public static String find_value_in_userxml(String add_line_id, String value_id , String file_name)
     {
 
@@ -128,7 +144,6 @@ public class XML_IO {
                 Node node_temp_atr = temp_atr.getNamedItem(value_id);
                 if (node_temp_atr != null) {
                     return_string = node_temp_atr.getTextContent();
-
                 }
              }
          }

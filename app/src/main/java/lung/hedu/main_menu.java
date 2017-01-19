@@ -380,7 +380,7 @@ public class main_menu extends Activity
 
 
 
-    public void check_send_server_flag(String userid)
+    static public void check_send_server_flag(String userid)
     {
         String[] data_url_addon = {userid, "send_server"};
         String[] id_url_addon = {"qid", "qnm"};
@@ -489,7 +489,7 @@ public class main_menu extends Activity
         textbox_mainmenu_tv = (TextView) findViewById(R.id.textbox_mainmenu);
         textbox_mainmenu_tv.setText(login_name);
 
-        if (login_name.matches("[a-z A-Z 0-9 -]*") == true)
+        if (login_name.matches("[a-z A-Z 0-9 -]*") == true && login_name.contains(" ") == false)
         {
             if (login_name.length() > 2)
             {
@@ -498,10 +498,12 @@ public class main_menu extends Activity
 
                     String android_id = Settings.Secure.getString(ApplicationContextProvider.getContext().getContentResolver(), Settings.Secure.ANDROID_ID);
 
+                    login_name = login_name.replaceAll(" ", "_");
+                    // TODO check all " " "_" conversions
                     XML_IO.set_value_user_info("login_info", "name", login_name);
 
                     // Log.e("XML parser", "start");
-                    login_name = login_name.replaceAll(" ", "_");
+
                     String[] data_url_addon = {android_id, login_name};
                     String folder = "phpfree";
                     ArrayList<String> login_data = null;
@@ -534,7 +536,7 @@ public class main_menu extends Activity
             }
         } else
         {
-            textbox_mainmenu_tv.setText("please only use normal Chars.");
+            textbox_mainmenu_tv.setText("please only use normal Chars no spaces.");
         }
     }
 

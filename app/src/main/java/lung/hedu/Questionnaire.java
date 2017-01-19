@@ -406,7 +406,7 @@ public class Questionnaire extends Activity {
         }
         else if(selected_player_q != null)
         {
-            output = output.replace("|qselected", user_name_glob.get(selected_player_q).get(0));
+            output = output.replace("|qselected", user_name_glob.get(0).get(0));
         }
 
         return output;
@@ -1494,6 +1494,24 @@ public class Questionnaire extends Activity {
 
     }
 
+    public void check_user_name_set()
+    {
+
+        if(user_name_glob.size() == 0)
+        {
+            String username_s = find_value_in_xml("login_info", "name");
+
+            user_name_glob.add(new ArrayList<String>());
+            Integer new_id_username = user_name_glob.size() -1;
+            user_name_glob.get(new_id_username).add(username_s);
+            String id_user_s = find_value_in_xml("login_info", "id");
+            user_name_glob.get(new_id_username).add(id_user_s);
+
+            atr_mod.add(new ArrayList<ArrayList<ArrayList<Integer>>>());
+        }
+
+    }
+
     public void na_friends_start_map(TextView click_start_map_tv)
     {
         // String XML_file = click_start_map_tv.getText().toString();
@@ -1550,7 +1568,7 @@ public class Questionnaire extends Activity {
         String found_friendname = find_value_in_xml("login_info", "friend_"+ tel_friends);
         while (found_friendname != "")
         {
-            if(found_friendname == name_new_friend)
+            if(found_friendname.equals(name_new_friend))
             {
                 stop = true;
             }
@@ -1574,6 +1592,7 @@ public class Questionnaire extends Activity {
                 Document index_worlds = null;
                 try
                 {
+                    // TODO double function! makes no sence!
                     index_worlds = server_side_PHP.load_wolrd_index("uif" + check_if_playername_excist_bool.toString(), "uifiles");
                 } catch (IOException e)
                 {
@@ -1584,7 +1603,8 @@ public class Questionnaire extends Activity {
                     EditText text_name_new_player_click = (EditText) findViewById(302);
                     text_name_new_player_click.setText("");
                     text_name_new_player_click.setHint("No file uploaded");
-                } else
+                }
+                else
                 {
 
                     XML_IO.set_value_user_info("login_info", "friend_" + tot_friends_i.toString(), name_new_friend);
@@ -1629,7 +1649,8 @@ public class Questionnaire extends Activity {
                     LinearLayout lin_lay_q = (LinearLayout) findViewById(R.id.linearLayout_questuinnaire_vert);
                     lin_lay_q.addView(click_inv_friend);
                 }
-            } else
+            }
+            else
             {
                 EditText text_name_new_player_click = (EditText) findViewById(302);
                 text_name_new_player_click.setText("");
@@ -3249,6 +3270,9 @@ public class Questionnaire extends Activity {
         return_tv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                String user_id = find_value_in_xml("login_info", "id");
+                main_menu.check_send_server_flag(user_id);
                 load_worlds_index_server();
             }
         } ) ;
@@ -3739,6 +3763,8 @@ public class Questionnaire extends Activity {
         String saved_q_or_m = find_value_in_xml(this_world+"_save", "saved_q_or_m");
         // String saved_xml_name = "";
         // String saved_q_or_m = "";
+
+        check_user_name_set();
 
         if(saved_xml_name == "") {
 
@@ -5477,6 +5503,7 @@ public class Questionnaire extends Activity {
         {
             question_s = question_nl.item(0).getTextContent();
             question_s = replace_q_texts(question_s);
+            text_to_speak.speak(question_s, TextToSpeech.QUEUE_ADD, null);
             question_s = question_s +"\n";
         }
 
@@ -5603,6 +5630,7 @@ public class Questionnaire extends Activity {
             {
                 TextView awnser_tv = create_awnserview_above(arraylist_atm, xml_name_goto);
                 answer_text = replace_q_texts(answer_text);
+                text_to_speak.speak(answer_text, TextToSpeech.QUEUE_ADD, null);
                 awnser_tv.setText(answer_text);
                 new_ll_vert.addView(awnser_tv);
 
@@ -5699,6 +5727,16 @@ public class Questionnaire extends Activity {
                     tel_drop_items = tel_drop_items +1;
                 }
 
+
+                String to_server_awnser_id = inputExtras.getString("to_server", "");
+                String to_server_awnser_id2 = inputExtras.getString("to_server2", "");
+                String XML_file_input = questions_awnser_array.get(awnser_number).get(0).get(0);
+                if(to_server_awnser_id != "")
+                {
+                    add_awnser_personality_scores(to_server_awnser_id, to_server_awnser_id2);
+                }
+
+
                 Integer tel_goto_q_m = 0;
                 if(questions_awnser_array.get(awnser_number).get(7).size() < 1)
                 {
@@ -5707,28 +5745,25 @@ public class Questionnaire extends Activity {
                     String above_map_s = questions_awnser_array.get(awnser_number).get(2).get(0);
 
                     goto_q_m_new(goto_q_m, goto_id, above_map_s);
+                    tel_goto_q_m = 1;
+                    // Double check if goto is performed ?!
                 }
-
-                while(questions_awnser_array.get(awnser_number).get(7).size() > tel_goto_q_m)
+                else
                 {
-                    Integer tel_goto_q_m_atm = Integer.parseInt(questions_awnser_array.get(awnser_number).get(7).get(tel_goto_q_m));
-                    String goto_q_m = goto_normalized.get(tel_goto_q_m_atm).get(0);
-                    String goto_id = goto_normalized.get(tel_goto_q_m_atm).get(1);
-                    String above_map_s = goto_normalized.get(tel_goto_q_m_atm).get(2);
 
-                    Log.e("goto new", "goto new " + goto_id);
+                    while (questions_awnser_array.get(awnser_number).get(7).size() > tel_goto_q_m)
+                    {
+                        Integer tel_goto_q_m_atm = Integer.parseInt(questions_awnser_array.get(awnser_number).get(7).get(tel_goto_q_m));
+                        String goto_q_m = goto_normalized.get(tel_goto_q_m_atm).get(0);
+                        String goto_id = goto_normalized.get(tel_goto_q_m_atm).get(1);
+                        String above_map_s = goto_normalized.get(tel_goto_q_m_atm).get(2);
 
-                    goto_q_m_new(goto_q_m, goto_id, above_map_s);
+                        Log.e("goto new", "goto new " + goto_id);
 
-                    tel_goto_q_m = tel_goto_q_m +1;
-                }
+                        goto_q_m_new(goto_q_m, goto_id, above_map_s);
 
-                String to_server_awnser_id = inputExtras.getString("to_server", "");
-                String to_server_awnser_id2 = inputExtras.getString("to_server2", "");
-                String XML_file_input = questions_awnser_array.get(awnser_number).get(0).get(0);
-                if(to_server_awnser_id != "")
-                {
-                    add_awnser_personality_scores(to_server_awnser_id, to_server_awnser_id2);
+                        tel_goto_q_m = tel_goto_q_m + 1;
+                    }
                 }
 
                 // Log.e("goto new", "tel_goto_q_m " + tel_goto_q_m + " XML_file_input"+XML_file_input + " 1" +questions_awnser_array.get(awnser_number).get(1).get(0)+ " 2" +questions_awnser_array.get(awnser_number).get(2).get(0));
@@ -5780,8 +5815,8 @@ public class Questionnaire extends Activity {
                         smallest_difference_time = difference_time;
                         new_active_player = tel_ids;
                     }
-
-                    check_send_atributes(tel_ids.toString(), name);
+// TODO SEND NEW ATRIBUTES TO THE SERVER!!
+                    // check_send_atributes(tel_ids.toString(), name);
 
                 }
 
@@ -6037,6 +6072,7 @@ public class Questionnaire extends Activity {
         item_name = slot_chance.get(tel_rand_slot_chance).get(2);
         target_player_item = slot_chance.get(tel_rand_slot_chance).get(3);
 
+
         while(random_for_slot > chance_sum_atm)
         {
             tel_rand_slot_chance = tel_rand_slot_chance+1;
@@ -6044,12 +6080,14 @@ public class Questionnaire extends Activity {
             name_slot = slot_chance.get(tel_rand_slot_chance).get(0);
             item_name = slot_chance.get(tel_rand_slot_chance).get(2);
             target_player_item = slot_chance.get(tel_rand_slot_chance).get(3);
-            if(target_player_item == "")
-            {
-                target_player_item = "pl";
-            }
+
         }
-        Log.e("item", "slot rand:" + random_for_slot+", chance_sum_atm:"+chance_sum_atm+", name:"+name_slot+", item_name"+item_name);
+
+        if(target_player_item == "")
+        {
+            target_player_item = "pl";
+        }
+        // Log.e("item", "slot rand:" + random_for_slot+", chance_sum_atm:"+chance_sum_atm+", name:"+name_slot+", item_name"+item_name);
 
         ArrayList<ArrayList<String>>  add_item_atribute = new ArrayList<ArrayList<String>> ();
         ArrayList<ArrayList<ArrayList<Integer>>> total_chance_atributs_array_s = new ArrayList<ArrayList<ArrayList<Integer>>>() ;
@@ -6828,9 +6866,10 @@ public class Questionnaire extends Activity {
             Node target_player_item = rand_slot_drop_atribute.getNamedItem("target_player_item");
 
             String item_name = "newnf";
-            if(temp_node.hasAttributes() == true)
+            boolean testy = temp_node.hasAttributes();
+            if(testy == true || temp_node != null)
             {
-                item_name = temp_node.getTextContent();
+                item_name = temp_node.getNodeValue();
             }
 
             String target_player_item_s = "";
@@ -7000,6 +7039,10 @@ public class Questionnaire extends Activity {
                     move_player(move_to_found[0], move_to_found[1], active_player_xy[0], active_player_xy[1]);
 
                 }
+                else
+                {
+                    end_turn();
+                }
             }
             else if(type_activity.equals("interact"))
             {
@@ -7010,17 +7053,23 @@ public class Questionnaire extends Activity {
                 while(start_item_value_ATM_tel < (enemy_turn.get(move_id_choosen).size() -1))
                 {
                     String target_s = enemy_turn.get(move_id_choosen).get(start_item_value_ATM_tel+3);
-
+                    // TODO CHECK this code.
                     if (target_s.equals("closest player"))
                     {
                         String math_problem = enemy_turn.get(move_id_choosen).get(start_item_value_ATM_tel +2);
                         aply_math_to_interaction(math_problem);
                     }
-                    end_turn();
+                    else
+                    {
+                        String math_problem = enemy_turn.get(move_id_choosen).get(start_item_value_ATM_tel +2);
+                        aply_math_to_interaction(math_problem);
+                    }
+
 
                     tel_math_problems = tel_math_problems +1;
                     start_item_value_ATM_tel = (tel_math_problems * multiplier) + offset_tel;
                 }
+                end_turn();
             }
         }
         else
@@ -7571,6 +7620,17 @@ public class Questionnaire extends Activity {
 
     public void upload_field()
     {
+        Document temp_activegamefile = XML_IO.create_dom_document();
+
+        Element active_game_element = temp_activegamefile.createElement("active_game");
+        Node active_game_node = temp_activegamefile.appendChild(active_game_element);
+
+        String username_s = find_value_in_xml("login_info", "name");
+        active_game_element.setAttribute("name_player", username_s);
+
+        Element map_element = temp_activegamefile.createElement("map");
+        Node map_node = active_game_node.appendChild(map_element);
+
         if(player_id_server == "")
         {
             player_id_server = find_value_in_xml("login_info", "id");
@@ -7578,6 +7638,7 @@ public class Questionnaire extends Activity {
         String string_to_send_to_testPHP = "";
 
         // DELETE PREVIOUS XML
+        /*
         string_to_send_to_testPHP = "qid="+player_id_server+"&qty=DELETE";
         String send_to_server_flag = find_value_in_xml("login_info", "flag_send_server");
 
@@ -7586,6 +7647,8 @@ public class Questionnaire extends Activity {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+*/
 
         int tel_x = 0;
         String id_name_field_cell = "";
@@ -7609,15 +7672,27 @@ public class Questionnaire extends Activity {
                     {
                         id_name_field_cell = "0";
                     }
-                    // Log.e("XML parser", id_name_field_cell);
+                    Log.e("XML parser", "x"+tel_x+" y"+tel_y+" -"+id_name_field_cell);
                     if(type_field_cell != "0")
                     {
                         if(type_field_cell != "1")
                         {
                             // INT TO STRING USELESS
-                            send_object(id_field_cell.toString(), id_name_field_cell);
-                            check_send_atributes(id_field_cell.toString(), id_name_field_cell);
+                            temp_activegamefile = send_object(id_field_cell.toString(), id_name_field_cell, temp_activegamefile);
+                            temp_activegamefile = check_send_atributes(id_field_cell.toString(), id_name_field_cell, temp_activegamefile);
                         }
+
+                        Element cell_temp_element = temp_activegamefile.createElement("cell");
+
+                        cell_temp_element.setAttribute("type", type_field_cell);
+                        cell_temp_element.setAttribute("value", Integer.toString(id_field_cell));
+                        cell_temp_element.setAttribute("x", Integer.toString(tel_x));
+                        cell_temp_element.setAttribute("y", Integer.toString(tel_y));
+
+                        Node cell_temp_node = map_node.appendChild(cell_temp_element);
+
+                        /*
+
                         string_to_send_to_testPHP = "qid="+player_id_server+"&qty=cell&qcx="+tel_x+"&qcy="+tel_y+"&qcv="+id_field_cell+"&qct="+type_field_cell;
 
                         // NAME MOET NOG  id_name_field_cell
@@ -7626,6 +7701,7 @@ public class Questionnaire extends Activity {
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
+                        */
                     }
 
                 }
@@ -7637,10 +7713,18 @@ public class Questionnaire extends Activity {
         // hedu-free.uphero.com/active_games/test.php?qid=9&qty=cell&qcx=1&qcy=2&qcv=2
         // hedu-free.uphero.com/active_games/test.php?qid=9&qty=enemy&nme=testobj&fid=2
         // hedu-free.uphero.com/active_games/test.php?qid=9&qty=atri&nme=test_stat&fid=2&atv=10
+        try
+        {
+            server_side_PHP.push_map_to_testphp(temp_activegamefile, player_id_server);
+        } catch (IOException e)
+        {
+            e.printStackTrace();
+        }
     }
 
-    public void check_send_atributes(String id_object_field_s, String name_object_field_s)
+    public Document check_send_atributes(String id_object_field_s, String name_object_field_s, Document map_document)
     {
+        /*
         if(player_id_server == "")
         {
             player_id_server = find_value_in_xml("login_info", "id");
@@ -7670,12 +7754,45 @@ public class Questionnaire extends Activity {
                     if(total_atribute_value != atributs_send_php.get(id_object_field_i).get(tel_atributes))
                         {
                             atributs_send_php.get(id_object_field_i).set(tel_atributes, total_atribute_value);
+
+                            Node object_temp_node = map_document.getElementsByTagName("object"+id_object_field_s).item(0);
+                            NodeList childs_in_object = object_temp_node.getChildNodes();
+                            Integer tel_nodes = 0;
+
+                            Boolean atribute_present = false;
+
+                            while(tel_nodes < childs_in_object.getLength())
+                            {
+                                Node temp = childs_in_object.item(tel_nodes);
+                                Node temp_node_atribute = temp.getAttributes().getNamedItem("name");
+                                if (temp_node_atribute != null) {
+                                    String atribute_s = temp_node_atribute.getTextContent();
+                                    if(atribute_s.equals(atribut_name))
+                                    {
+                                        temp_node_atribute.setTextContent(String.valueOf(total_atribute_value));
+                                        atribute_present = true;
+                                    }
+                                }
+                                tel_nodes = tel_nodes +1;
+                            }
+                            if(atribute_present == false)
+                            {
+
+                                Element new_atribute = map_document.createElement("atribute");
+                                new_atribute.setAttribute("name", atribut_name);
+                                new_atribute.setAttribute("value", String.valueOf(total_atribute_value));
+
+                                Node new_atribute_node = object_temp_node.appendChild(new_atribute);
+
+                            }
+                            /*
                             String string_to_send_to_testPHP = "qid=" + player_id_server + "&qty=atri&nme=" + atribut_name + "&fid=" + id_object_field_s + "&atv=" + total_atribute_value;
                         try {
                             server_side_PHP.push_to_testphp(string_to_send_to_testPHP, send_to_server_flag);
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
+                        */
                     }
                     // hedu-free.uphero.com/active_games/test.php?qid=9&qty=atri&nme=test_stat&fid=2&atv=10
 
@@ -7684,13 +7801,23 @@ public class Questionnaire extends Activity {
                     tel_atributes = tel_atributes + 1;
                 }
             }
+        return map_document;
 
     }
 
 
     // hedu-free.uphero.com/active_games/test.php?qid=9&qty=enemy&nme=testobj&fid=2
-    public void send_object(String id_object_field_s, String name_object_field_s)
+    public Document send_object(String id_object_field_s, String name_object_field_s, Document map_document)
     {
+        Element root = map_document.getDocumentElement();
+        Element new_object_e = map_document.createElement("object"+id_object_field_s);
+        new_object_e.setAttribute("name", name_object_field_s);
+        new_object_e.setAttribute("field_id", id_object_field_s);
+        Node cell_temp_node = root.appendChild(new_object_e);
+
+        return map_document;
+
+        /*
         String send_to_server_flag = find_value_in_xml("login_info", "flag_send_server");
         if(player_id_server == "")
         {
@@ -7702,6 +7829,8 @@ public class Questionnaire extends Activity {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        */
     }
 
 
