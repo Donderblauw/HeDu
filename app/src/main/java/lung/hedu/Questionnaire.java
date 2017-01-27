@@ -168,6 +168,8 @@ public class Questionnaire extends Activity {
 
     public Integer min_server_update = 5;
 
+    public Integer upload_field_version = 0;
+
     /**
      * Whether or not the system UI should be auto-hidden after
      * {@link #AUTO_HIDE_DELAY_MILLIS} milliseconds.
@@ -4368,11 +4370,13 @@ public class Questionnaire extends Activity {
 
         String send_to_server_flag = find_value_in_xml("login_info", "flag_send_server");
 
+        /*
         try {
             server_side_PHP.push_to_testphp(string_to_send_to_testPHP, send_to_server_flag);
         } catch (IOException e) {
             e.printStackTrace();
         }
+        */
         //k
     }
 
@@ -5178,11 +5182,13 @@ public class Questionnaire extends Activity {
             String player_id_server = find_value_in_xml("login_info", "id");
             String string_to_send_to_testPHP = "qid="+player_id_server+"&qty=cha&qcx="+x_from+"&qcy="+y_from+"&qtgx="+x_to+"&qtgy="+y_to;
             String send_to_server_flag = find_value_in_xml("login_info", "flag_send_server");
+            /*
             try {
                 server_side_PHP.push_to_testphp(string_to_send_to_testPHP, send_to_server_flag);
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            */
 
         }
         end_turn();
@@ -5517,7 +5523,6 @@ public class Questionnaire extends Activity {
         new_ll_vert.addView(question_tv);
 
 
-
         NodeList awnsers_nl = question_doc.getElementsByTagName("awnser");
         Integer tel_awnsers = 0;
         while(tel_awnsers < awnsers_nl.getLength() )
@@ -5630,6 +5635,9 @@ public class Questionnaire extends Activity {
             {
                 TextView awnser_tv = create_awnserview_above(arraylist_atm, xml_name_goto);
                 answer_text = replace_q_texts(answer_text);
+
+                text_to_speak.playSilence(750, TextToSpeech.QUEUE_ADD, null);
+                text_to_speak.speak("Option.   \n", TextToSpeech.QUEUE_ADD, null);
                 text_to_speak.speak(answer_text, TextToSpeech.QUEUE_ADD, null);
                 awnser_tv.setText(answer_text);
                 new_ll_vert.addView(awnser_tv);
@@ -5846,6 +5854,7 @@ public class Questionnaire extends Activity {
                 TextView active_player_name_tv = new TextView(this);
                 active_player_name_tv.setId(299);
                 active_player_name_tv.setTextSize(font_size);
+                upload_field();
 //        add_target_atribute.setsc
 
                 active_player_name_tv.setText("Active Player: " + field_ids_and_names.get(new_active_player).get(0));
@@ -7036,7 +7045,14 @@ public class Questionnaire extends Activity {
                 {
                     Integer[] active_player_xy = xy_pos_id(active_player_id);
                     Integer[] move_to_found = get_firststep_to_player(active_player_xy[0], active_player_xy[1]);
-                    move_player(move_to_found[0], move_to_found[1], active_player_xy[0], active_player_xy[1]);
+                    if(move_to_found[0] != -1)
+                    {
+                        move_player(move_to_found[0], move_to_found[1], active_player_xy[0], active_player_xy[1]);
+                    }
+                    else
+                    {
+                        end_turn();
+                    }
 
                 }
                 else
@@ -7627,6 +7643,10 @@ public class Questionnaire extends Activity {
 
         String username_s = find_value_in_xml("login_info", "name");
         active_game_element.setAttribute("name_player", username_s);
+
+        String current_time_stamp = server_side_PHP.curent_time_stamp() + upload_field_version.toString();
+        active_game_element.setAttribute("version", current_time_stamp);
+        upload_field_version = upload_field_version +1;
 
         Element map_element = temp_activegamefile.createElement("map");
         Node map_node = active_game_node.appendChild(map_element);
