@@ -110,7 +110,7 @@ public class server_side_PHP {
             Integer index_data_start = (sb_string.indexOf("%qa", offset) +5 );
             offset = index_data_start;
             // Log.e("php", "offset: " + offset);
-            if(index_data_start == -1)
+            if(index_data_start == -4)
             {
                 stop = true;
             }

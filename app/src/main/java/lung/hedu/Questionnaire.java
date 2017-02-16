@@ -1740,18 +1740,18 @@ public class Questionnaire extends Activity {
         }
     }
 
-
+/*
     public boolean check_req_type (String found_v, String req_type, String req_v, String then_tag_name, String then_id, Boolean equal_true)
     {
         Boolean return_bool = false;
-/*
+
         bt = bigger then xx
         st = smaller then xx
         eq = equal
         nq = not equal
         bi = bigger > value
         sm = smaller < value
-*/
+
         if(req_type.equals("eq"))
         {
             if(req_v.equals(found_v))
@@ -1817,7 +1817,7 @@ public class Questionnaire extends Activity {
 
         return return_bool;
     }
-
+*/
     public boolean check_req_type_extended (ArrayList<Integer> req_arraylist)
     {
         Boolean return_bool = false;
@@ -2200,16 +2200,37 @@ public class Questionnaire extends Activity {
             NamedNodeMap temp_atr = row_node_atm.getAttributes();
 
             Element row_element_atm = (Element) cells_map.item(cells_tel);
-            NodeList cells_req = row_element_atm.getElementsByTagName("cell_req");
+            // NodeList cells_req = row_element_atm.getElementsByTagName("cell_req");
 
-            Node node_temp_atr = temp_atr.getNamedItem("x");
-            Integer x_pos_cell = Integer.parseInt(node_temp_atr.getTextContent().toString());
-            node_temp_atr = temp_atr.getNamedItem("y");
-            Integer y_pos_cell = Integer.parseInt(node_temp_atr.getTextContent().toString());
-            node_temp_atr = temp_atr.getNamedItem("def");
-            Integer def_cell = Integer.parseInt(node_temp_atr.getTextContent().toString());
+            NodeList cells_req = row_element_atm.getElementsByTagName("req");
 
+            ArrayList int_req_tags = new ArrayList();
+            while(int_req_tags.size() < cells_req.getLength())
+            {
+                Integer req_internal_nr = add_req_tag(cells_req.item(int_req_tags.size()).getAttributes());
+                int_req_tags.add(req_internal_nr);
+
+            }
+            Boolean req_passed = true;
+            if(int_req_tags.size() > 0 )
+            {
+                check_req_type_extended(int_req_tags);
+            }
+            if(req_passed == true)
+            {
+                Node node_temp_atr = temp_atr.getNamedItem("x");
+                Integer x_pos_cell = Integer.parseInt(node_temp_atr.getTextContent().toString());
+                node_temp_atr = temp_atr.getNamedItem("y");
+                Integer y_pos_cell = Integer.parseInt(node_temp_atr.getTextContent().toString());
+                node_temp_atr = temp_atr.getNamedItem("def");
+                Integer def_cell = Integer.parseInt(node_temp_atr.getTextContent().toString());
+
+                field_atm_array[x_pos_cell][y_pos_cell][0] = def_cell;
+            }
+
+            /*
             Integer tel_cells_req = 0;
+            boolean test_result == true;
             while (tel_cells_req < cells_req.getLength()) {
                 Node reqnode_atm = cells_req.item(tel_cells_req);
 
@@ -2220,15 +2241,24 @@ public class Questionnaire extends Activity {
                     set_def = Integer.parseInt(reqnode_atm_atr.getNamedItem("set_def").getTextContent());
                 }
 
-                boolean test_result = check_reqcuirements(reqnode_atm);
+
+                Integer temp_req_nr = add_req_tag(reqnode_atm);
+
+
                 if (test_result == true) {
-                    def_cell = set_def;
+                    test_result = check_reqcuirements(reqnode_atm);
+
                 }
 
                 tel_cells_req = tel_cells_req + 1;
             }
+            if()
+            {
+                def_cell = set_def;
+            }
+            */
 
-            field_atm_array[x_pos_cell][y_pos_cell][0] = def_cell;
+
 
             cells_tel = cells_tel + 1;
         }
@@ -2244,8 +2274,28 @@ public class Questionnaire extends Activity {
             NamedNodeMap temp_atr = start_pos_node.getAttributes();
 
             Element start_pos_element_atm = (Element) startposition_nodelist.item(tel_startpos);
-            NodeList start_pos_req = start_pos_element_atm.getElementsByTagName("req_startposition");
+//            NodeList start_pos_req = start_pos_element_atm.getElementsByTagName("req_startposition");
 
+            NodeList req_interaction_nl = start_pos_element_atm.getElementsByTagName("req");
+
+            ArrayList int_req_tags = new ArrayList();
+            while(int_req_tags.size() < req_interaction_nl.getLength())
+            {
+                Integer req_internal_nr = add_req_tag(req_interaction_nl.item(int_req_tags.size()).getAttributes());
+                int_req_tags.add(req_internal_nr);
+
+            }
+
+            Boolean req_passed = true;
+            if(int_req_tags.size()>0)
+            {
+                check_req_type_extended(int_req_tags);
+            }
+
+            Integer tel_req = 0;
+            Boolean add_start_pos = req_passed;
+
+            /*
             Boolean add_start_pos = true;
             Integer tel_start_pos_req = 0;
             while (tel_start_pos_req < start_pos_req.getLength()) {
@@ -2256,6 +2306,7 @@ public class Questionnaire extends Activity {
 
                 tel_start_pos_req = tel_start_pos_req + 1;
             }
+            */
 
             if(add_start_pos == true)
             {
@@ -2797,6 +2848,7 @@ public class Questionnaire extends Activity {
 
     }
 
+    /*
     public Boolean check_reqcuirements(Node input_node)
     {
         Boolean return_bool = false;
@@ -2849,6 +2901,7 @@ public class Questionnaire extends Activity {
 
         return return_bool;
     }
+    */
 
     /*
     public XmlPullParser load_XML(String input) throws FileNotFoundException, XmlPullParserException {
@@ -6710,6 +6763,19 @@ public class Questionnaire extends Activity {
             }
 
             // NOT SPECIFIC FOR MOVE.
+
+
+            Integer tel_req = 0;
+            NodeList req_nl = activity_atm_element.getElementsByTagName("req");
+            while(tel_req < req_nl.getLength())
+            {
+                NamedNodeMap temp_atribute_2 = req_nl.item(tel_req).getAttributes();
+                Integer reference_req = add_req_tag(temp_atribute_2);
+                req_enemy_turn_glob.get(array_list_atm).add(reference_req.toString());
+
+                tel_req =tel_req +1;
+            }
+            /*
             NodeList found_reg = activity_atm_element.getElementsByTagName("req_enemy_move");
             if(found_reg.getLength() > 0)
             {
@@ -6731,6 +6797,7 @@ public class Questionnaire extends Activity {
                 req_enemy_turn_glob.get(array_list_atm).add(temp_atribut2.getNamedItem("req_then_name").getTextContent());
                 req_enemy_turn_glob.get(array_list_atm).add(extra_eq);
             }
+            */
 
 
             tel_enemy_turn_activitys = tel_enemy_turn_activitys +1 ;
@@ -6982,9 +7049,17 @@ public class Questionnaire extends Activity {
             if(enemy_turn.get(tel_move_options).get(1).equals(name_active_player))
             {
                 Boolean req_pass = true;
-                if(req_enemy_turn_glob.get(tel_move_options).size() > 0)
-                {
 
+                Integer tel_req = 0;
+                ArrayList temp_req_i = new ArrayList();
+                while(tel_req < req_enemy_turn_glob.get(tel_move_options).size())
+                {
+                    temp_req_i.add(Integer.parseInt(req_enemy_turn_glob.get(tel_move_options).get(tel_req)));
+                    tel_req = tel_req+1;
+                }
+
+                req_pass = check_req_type_extended(temp_req_i);
+                    /*
                     String req_name = req_enemy_turn_glob.get(tel_move_options).get(1);
                     String req_type = req_enemy_turn_glob.get(tel_move_options).get(2);
                     String req_then_name = req_enemy_turn_glob.get(tel_move_options).get(3);
@@ -7018,9 +7093,10 @@ public class Questionnaire extends Activity {
                         equals_true = true;
                     }
 
+                    k
+                            req_enemy_turn_glob
                     req_pass = check_req_type(value1.toString(), req_type, value_then.toString(), null, null, equals_true);
-
-                }
+                       */
 
                 if(req_pass == true)
                 {
