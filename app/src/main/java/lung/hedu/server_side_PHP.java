@@ -336,42 +336,6 @@ public class server_side_PHP {
         return sb_string;
     }
 
-    public static void push_to_testphp(String suffix, String send_to_server_flag) throws IOException {
-        // SPATIES!!!
-
-        if(send_to_server_flag.equals("true"))
-        {
-
-            suffix = suffix.replaceAll(" ", "_");
-            String server = "http://hedu-free.uphero.com/active_games/test.php?";
-            String file_path = suffix;
-            String link = server + file_path;
-            link = link.replaceAll(" ", "_");
-            link = link.replace("\r","").replace("\n","");
-            Log.e("XML parser", link);
-            HttpClient client = new DefaultHttpClient();
-            HttpGet request = new HttpGet();
-            try {
-                request.setURI(new URI(link));
-            } catch (URISyntaxException e) {
-                e.printStackTrace();
-            }
-
-            HttpResponse response = null;
-            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-            StrictMode.setThreadPolicy(policy);
-            try {
-                response = client.execute(request);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            client.getConnectionManager().shutdown();
-        }
-
-    }
-
-
-
     public static void push_map_to_testphp(Document document, String qid ) throws IOException
     {
 
@@ -457,7 +421,7 @@ public class server_side_PHP {
 
         if(check_time_difference_bool == true)
         {
-            set_date_version_number_server(document);
+            document = set_date_version_number_server(document);
 
             suffix = suffix.replaceAll(" ", "_");
             String server = "http://hedu-free.uphero.com/"+map+"/"+php_file+".php?";
@@ -694,6 +658,7 @@ public class server_side_PHP {
             if(found_date_from_server_i > found_date_i)
             {
                 return_bool = true;
+                // Log.e("temp", "phone:"+found_date+" online"+ found_date_from_server);
 
 
                // server is new'er ask update of file.

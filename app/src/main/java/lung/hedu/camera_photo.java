@@ -87,7 +87,6 @@ public class camera_photo
             CameraCharacteristics characteristics = manager.getCameraCharacteristics(cameraId);
             StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
             assert map != null;
-
             manager.openCamera(cameraId, stateCallback, null);
 
         } catch (CameraAccessException e)

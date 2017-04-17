@@ -90,6 +90,7 @@ public class Questionnaire extends Activity {
     Document XML_user_info_doc = null;
     public String this_world = "";
     public Boolean check_if_XMLisset = false;
+    public String this_xml_file = "";
 
     // user_name_glob x.0 = name | x.1 = server_id
     public ArrayList<ArrayList<String>> user_name_glob = new ArrayList(new ArrayList<String>());
@@ -169,6 +170,8 @@ public class Questionnaire extends Activity {
     public Integer min_server_update = 5;
 
     public Integer upload_field_version = 0;
+
+    Document actions_log = null;
 
     /**
      * Whether or not the system UI should be auto-hidden after
@@ -392,6 +395,9 @@ public class Questionnaire extends Activity {
         String output = input;
         String names = read_username ();
         output = output.replace("|qname", names);
+        output = output.replaceAll("\t","");
+        output = output.replaceAll("\n","");
+        output = output.trim();
 
 
         if(field_ids_and_names.size()>0)
@@ -400,7 +406,7 @@ public class Questionnaire extends Activity {
             output = output.replace("|qactive", field_ids_and_names.get(active_player_id).get(0));
             if(selected_player_q != null )
             {
-                if(selected_player_q >0)
+                if(selected_player_q >=0)
                 {
                     output = output.replace("|qselected", user_name_glob.get(selected_player_q).get(0));
                 }
@@ -523,8 +529,7 @@ public class Questionnaire extends Activity {
             // NOT WELL CODED, CLEAR NAME LIST AFTER MAP. TO REDUCE FRIEND NAME DOUBLE
         }
         */
-        Log.e("temp", "XML_file " + XML_file);
-        Log.e("temp", "type_xml " + type_xml);
+
         if(type_xml.equals("q"))
         {
             // XML_ini_questionairre(XML_file);
@@ -701,7 +706,7 @@ public class Questionnaire extends Activity {
         lin_lay_q.addView(upload_userfile_tv);
 
         ArrayList<LinearLayout> new_slot_list_ll = new ArrayList<LinearLayout>();
-        Log.e("XML parser", "start");
+
         Integer tel_atribute_slots = 0;
         while(tel_atribute_slots < atribute_slot.size())
         {
@@ -1345,7 +1350,9 @@ public class Questionnaire extends Activity {
                         e.printStackTrace();
                     }
 
-                    XML_user_info_doc = new_user_file ;
+                    new_user_file = server_side_PHP.set_date_version_number_phone(new_user_file);
+
+                    XML_user_info_doc =  new_user_file;
 
                     try {
                         XML_IO.save_XML("user_info", XML_user_info_doc);
@@ -2289,10 +2296,9 @@ public class Questionnaire extends Activity {
             Boolean req_passed = true;
             if(int_req_tags.size()>0)
             {
-                check_req_type_extended(int_req_tags);
+                req_passed = check_req_type_extended(int_req_tags);
             }
 
-            Integer tel_req = 0;
             Boolean add_start_pos = req_passed;
 
             /*
@@ -2653,9 +2659,10 @@ public class Questionnaire extends Activity {
 
             tel_no_players_triggers = tel_no_players_triggers+1;
         }
-        Log.e("temp", "hello ?!" );
 
         draw_field_squarres();
+
+        this_xml_file = XML_file_input ;
 
         upload_field();
 
@@ -3248,8 +3255,6 @@ public class Questionnaire extends Activity {
             if(node_temp_atr == null)
             {
                 //k
-                Log.e("XML parser", "add_line_id:"+add_line_id+" value:" + add_value + " Value ID:" + value_id);
-
                 ((Element)node_found).setAttribute(value_id, add_value);
 
                 // Attr atribute_new = XML_user_info_doc.createAttribute(add_value);
@@ -4519,12 +4524,24 @@ public class Questionnaire extends Activity {
         // k
         Integer return_player = -1;
         Integer end_name = (input.indexOf("|"));
+
         String type_operator_is = input.substring(0, end_name);
         String name_atribute_is_and_opperator = input.substring((end_name + 1), input.length());
 
         Integer end_name2 = (name_atribute_is_and_opperator.indexOf("|"));
-        String name_atribute_is = name_atribute_is_and_opperator.substring(0, end_name2);
-        String name_opperator2_is = name_atribute_is_and_opperator.substring((end_name2 + 1), name_atribute_is_and_opperator.length());
+
+        String name_atribute_is ="";
+        String name_opperator2_is = "";
+
+        if(end_name2 == -1)
+        {
+            name_atribute_is = name_atribute_is_and_opperator.substring(0, name_atribute_is_and_opperator.length());
+        }
+        else
+        {
+            name_atribute_is = name_atribute_is_and_opperator.substring(0, end_name2);
+            name_opperator2_is = name_atribute_is_and_opperator.substring((end_name2 + 1), name_atribute_is_and_opperator.length());
+        }
         // add u_info en u_person
         // k
         if(name_atribute_is.equals("distance"))
@@ -5022,6 +5039,8 @@ public class Questionnaire extends Activity {
             input = input.substring(first_quote_inside_squarre + 1);
             first_quote_inside_squarre = (input.indexOf("\""));
 
+
+            // TODO USELESS!!!
             Integer end_name = (input.indexOf("|"));
             String type_operator_is = input.substring(0, end_name);
             String name_atribute_is = input.substring((end_name+1), first_quote_inside_squarre);
@@ -5029,10 +5048,29 @@ public class Questionnaire extends Activity {
 
             atribute_synchrome_id.add(atribute_id_temp_is);
 
-            Integer id_found_object_field = from_name_to_id_field(type_operator_is);
-            Integer id_found_object_rulebook = from_object_name_to_rule_number(type_operator_is);
+            first_open_curve = input.indexOf("{");
+            Integer first_close_curve = input.indexOf("}");
 
-            Integer total_atribute_value = id_def_atributs.get(id_found_object_rulebook).get(atribute_id_temp_is);
+            // Integer total_atribute_value = calculate_from_string(input.substring(0, (first_open_curve-1) ));
+
+            Integer[] req_value1_array = get_object_rule_world_and_atribute_id(input.substring(0, first_quote_inside_squarre));
+            Integer value1 = 0;
+            if(req_value1_array[0] == -1)
+            {
+                value1 = req_value1_array[2];
+            }
+            else
+            {
+                value1 = count_atributs_mod_to_def(req_value1_array[0], req_value1_array[1], req_value1_array[2]);
+            }
+
+
+            // Integer id_found_object_field = from_name_to_id_field(type_operator_is);
+            //  Integer id_found_object_rulebook = from_object_name_to_rule_number(type_operator_is);
+
+            Integer total_atribute_value = value1;
+
+
             /*
             Integer size = atribute_modifications.size();
 
@@ -5053,14 +5091,15 @@ public class Questionnaire extends Activity {
             }
             */
 
-            total_atribute_value = count_atributs_mod_to_def(id_found_object_rulebook, id_found_object_field, atribute_id_temp_is);
+            // total_atribute_value = count_atributs_mod_to_def(id_found_object_rulebook, id_found_object_field, atribute_id_temp_is);
+
+
+
+
+            // Integer total_atribute_value = calculate_from_string(input.substring(0, (first_open_curve-1) ));
 
             chance_synchrome_id.add( total_atribute_value);
             total_chance = total_chance +  total_atribute_value;
-
-
-            first_open_curve = input.indexOf("{");
-            Integer first_close_curve = input.indexOf("}");
 
             String inside_curve = input.substring((first_open_curve + 1), first_close_curve);
             Integer awnser_inside_curve = calculate_from_string(inside_curve);
@@ -5087,9 +5126,9 @@ public class Questionnaire extends Activity {
 
             }
             tel_temp = tel_temp +1;
-            if(tel_temp >= (chance_synchrome_id.size()-1))
+            if(tel_temp >= (chance_synchrome_id.size()))
             {
-                return_string = "\"v|"+awnser_synchrome_id.get(tel_temp).toString()+ "\"";
+                return_string = "\"v|"+awnser_synchrome_id.get((tel_temp-1)).toString()+ "\"";
             }
         }
 
@@ -5267,21 +5306,49 @@ public class Questionnaire extends Activity {
             String y_pos_object_s = hidden_objects_array.get(tel_hidden_objects_array).get(3).get(0);
             Integer y_pos_object = Integer.parseInt(y_pos_object_s);
 
-            if(x_pos == x_pos_object)
+            boolean active_player_is_human = false;
+            boolean right_type_player = false;
+            if(field_ids_and_names.get(active_player_id).get(1).equals("2"))
             {
-                if(y_pos == y_pos_object)
+                active_player_is_human = true;
+            }
+
+            if(hidden_objects_array.get(tel_hidden_objects_array).get(1).get(0).equals("pl"))
+            {
+                if(active_player_is_human == true)
                 {
-                    ArrayList<Integer> req_norm_numbers = new ArrayList<Integer>();
-                    req_norm_numbers.clear();
-                    Integer tel_all_req = 0;
-                    while(tel_all_req < hidden_objects_array.get(tel_hidden_objects_array).get(5).size())
+                    right_type_player = true;
+                }
+            }
+            if(hidden_objects_array.get(tel_hidden_objects_array).get(1).get(0).equals("bot"))
+            {
+                if(active_player_is_human == false)
+                {
+                    right_type_player = true;
+                }
+            }
+            if(hidden_objects_array.get(tel_hidden_objects_array).get(1).get(0).equals("all"))
+            {
+                right_type_player = true;
+            }
+            if(right_type_player == true)
+            {
+                if (x_pos == x_pos_object)
+                {
+                    if (y_pos == y_pos_object)
                     {
-                        String req_number_temp = hidden_objects_array.get(tel_hidden_objects_array).get(5).get(tel_all_req);
-                        Integer req_number_temp_i = Integer.parseInt(req_number_temp);
-                        req_norm_numbers.add(req_number_temp_i);
-                        tel_all_req = tel_all_req +1;
+                        ArrayList<Integer> req_norm_numbers = new ArrayList<Integer>();
+                        req_norm_numbers.clear();
+                        Integer tel_all_req = 0;
+                        while (tel_all_req < hidden_objects_array.get(tel_hidden_objects_array).get(5).size())
+                        {
+                            String req_number_temp = hidden_objects_array.get(tel_hidden_objects_array).get(5).get(tel_all_req);
+                            Integer req_number_temp_i = Integer.parseInt(req_number_temp);
+                            req_norm_numbers.add(req_number_temp_i);
+                            tel_all_req = tel_all_req + 1;
+                        }
+                        req_pass = check_req_type_extended(req_norm_numbers);
                     }
-                    req_pass = check_req_type_extended (req_norm_numbers);
                 }
             }
             // Log.e("hiddenobj", "tel_hidden_objects_array:"+tel_hidden_objects_array+" req_pass " + req_pass+" size"+hidden_objects_array.get(tel_hidden_objects_array).get(5));
@@ -5368,7 +5435,7 @@ public class Questionnaire extends Activity {
 
     public void goto_q_m_new(String goto_q_m, String goto_id, String above_map_s)
     {
-        Log.e("goto_q_m_new", "goto_q_m_new:"+goto_q_m+" goto_id:" + goto_id);
+        // Log.e("goto_q_m_new", "goto_q_m_new:"+goto_q_m+" goto_id:" + goto_id);
 
         Integer tel_players = 0;
         while(tel_players < user_name_glob.size() )
@@ -5419,7 +5486,7 @@ public class Questionnaire extends Activity {
             remove_question_above();
             XML_IO.set_value_user_info(this_world+"_save", "saved_xml_name", goto_q_m);
             XML_IO.set_value_user_info(this_world+"_save", "saved_q_or_m", goto_id);
-            Log.e("goto_q_m_new", "?:");
+            // Log.e("goto_q_m_new", "?:");
             // XML_ini_map_new(goto_q_m);
             // k
             end_map(goto_id, goto_q_m);
@@ -5427,13 +5494,50 @@ public class Questionnaire extends Activity {
         }
         else if(goto_id.equals("r"))
         {
-            Log.e("goto_q_m_new", "Remove?:");
+
+            String php_file = "active_games_add_q.php";
+            String[] id_url_addon = {"qid", "qty"};
+            String[] data_url_addon = {player_id_server, "r"};
+            String folder = "phpfree";
+
+            ArrayList<String> login_data = null;
+            try {
+                login_data = server_side_PHP.get_dataarray_server(php_file, id_url_addon, data_url_addon, folder);
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            } catch (URISyntaxException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            // Log.e("goto_q_m_new", "Remove?:");
             remove_question_above();
         }
         else
         {
-            Log.e("goto_q_m_new", "!:" + above_map_s);
+            // Log.e("goto_q_m_new", "!:" + above_map_s);
 
+            if(player_id_server == "")
+            {
+                player_id_server = find_value_in_xml("login_info", "id");
+            }
+
+            String php_file = "active_games_add_q.php";
+            String[] id_url_addon = {"qid", "qty"};
+            String[] data_url_addon = {player_id_server, this_world+"/"+goto_q_m};
+            String folder = "phpfree";
+
+            ArrayList<String> login_data = null;
+            try {
+                login_data = server_side_PHP.get_dataarray_server(php_file, id_url_addon, data_url_addon, folder);
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            } catch (URISyntaxException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
             if (above_map_s == "f")
             {
@@ -5542,13 +5646,13 @@ public class Questionnaire extends Activity {
                 }
                 else if(set_vriable.equals("active_player_id"))
                 {
-                    // TODO active_player FIELD!
+                    // TODO active_player FIELD! volgens mij gedaan TG 2017-04-02
                     active_player_id = from_name_to_id_field(user_name_glob.get(from_interger_player).get(0));
 
                 }
                 else if(set_vriable.equals("target_field_id"))
                 {
-                    // TODO target FIELD!
+                    // TODO target FIELD! volgens mij gedaan TG 2017-04-02
                     target_field_id = from_name_to_id_field(user_name_glob.get(from_interger_player).get(0));
                 }
             }
@@ -5748,7 +5852,6 @@ public class Questionnaire extends Activity {
                 Integer tel_math_problems = 0;
                 while (tel_math_problems < questions_awnser_array.get(awnser_number).get(3).size()) {
                     String math_problem = questions_awnser_array.get(awnser_number).get(3).get(tel_math_problems);
-                    // TODO SET TARGET ?
                     aply_math_to_interaction(math_problem);
                     tel_math_problems = tel_math_problems + 1;
                 }
@@ -5876,8 +5979,6 @@ public class Questionnaire extends Activity {
                         smallest_difference_time = difference_time;
                         new_active_player = tel_ids;
                     }
-// TODO SEND NEW ATRIBUTES TO THE SERVER!!
-                    // check_send_atributes(tel_ids.toString(), name);
 
                 }
 
@@ -6762,6 +6863,17 @@ public class Questionnaire extends Activity {
                 enemy_turn.get(array_list_atm).add(temp_atribut2.getNamedItem("target").getTextContent());
             }
 
+            // Math ENEMY INI
+            NodeList goto_q_m = activity_atm_element.getElementsByTagName("goto_q_m");
+            if(goto_q_m.getLength() > 0)
+            {
+
+                Integer reference_tel_goto_q_m = tel_goto_q_m_rules(goto_q_m.item(0).getAttributes());
+
+                enemy_turn.get(array_list_atm).add("goto");
+                enemy_turn.get(array_list_atm).add(reference_tel_goto_q_m.toString());
+            }
+
             // NOT SPECIFIC FOR MOVE.
 
 
@@ -7042,6 +7154,8 @@ public class Questionnaire extends Activity {
         ArrayList<Integer> prio_sync = new ArrayList<Integer>();
         Boolean atleast_found_one = false;
 
+        String enemy_activity = "";
+
         set_target_to_closest_target();
 
         while (tel_move_options < enemy_turn.size())
@@ -7163,6 +7277,29 @@ public class Questionnaire extends Activity {
                 }
                 end_turn();
             }
+
+            else if(type_activity.equals("goto"))
+            {
+
+                Integer tel_goto_q_m_atm = Integer.parseInt(enemy_turn.get(move_id_choosen).get(4));
+                String goto_q_m = goto_normalized.get(tel_goto_q_m_atm).get(0);
+                String goto_id = goto_normalized.get(tel_goto_q_m_atm).get(1);
+                String above_map_s = goto_normalized.get(tel_goto_q_m_atm).get(2);
+
+                goto_q_m_new(goto_q_m, goto_id, above_map_s);
+
+                end_turn();
+            }
+
+            enemy_activity = enemy_turn.get(move_id_choosen).get(0);
+            if(enemy_activity.length()>2)
+            {
+                enemy_activity = replace_q_texts(enemy_activity);
+                text_to_speak.playSilence(750, TextToSpeech.QUEUE_ADD, null);
+                text_to_speak.speak(enemy_activity, TextToSpeech.QUEUE_ADD, null);
+            }
+
+
         }
         else
         {
@@ -7725,6 +7862,9 @@ public class Questionnaire extends Activity {
         upload_field_version = upload_field_version +1;
 
         Element map_element = temp_activegamefile.createElement("map");
+        map_element.setAttribute("map_name", this_xml_file  );
+        map_element.setAttribute("game_name", this_world );
+
         Node map_node = active_game_node.appendChild(map_element);
 
         if(player_id_server == "")
@@ -7768,7 +7908,7 @@ public class Questionnaire extends Activity {
                     {
                         id_name_field_cell = "0";
                     }
-                    Log.e("XML parser", "x"+tel_x+" y"+tel_y+" -"+id_name_field_cell);
+
                     if(type_field_cell != "0")
                     {
                         if(type_field_cell != "1")
